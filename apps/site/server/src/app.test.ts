@@ -6,16 +6,16 @@ import type { Api } from './boundary';
 import { ROUTES } from './contract/routes';
 
 const base = new URL(URLS.apps.production.site).origin;
-const deny = { limit: async () => ({ success: false }) };
+const deny = { take: async () => ({ allowed: false, retryAfter: 42 }) };
 
 describe('limits', () => {
 	it('refuses a caller over the allowance before any handler runs', async () => {
 		const res = await app.fetch(
 			new Request(`${base}/like`, { method: 'PUT', headers: { 'CF-Connecting-IP': '192.0.2.1' } }),
-			{ LIKE_LIMIT: deny } as unknown as Bindings,
+			{ QUOTA: deny } as unknown as Bindings,
 		);
 		expect(res.status).toBe(429);
-		expect(res.headers.get('Retry-After')).toBe('60');
+		expect(res.headers.get('Retry-After')).toBe('42');
 		expect(await res.json()).toMatchObject({ status: 'error', code: 'rate_limited' });
 	});
 });

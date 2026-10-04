@@ -28,28 +28,9 @@
 			"migrations_dir": "server/drizzle",
 		},
 	],
-	// The allowances of apps/site/server/src/contract/limits.ts, and the read counter's own minute.
-	// These are intentionally approximate: Cloudflare enforces them close to the caller.
-	"ratelimits": [
-		{
-			"name": "ENGAGEMENT_LIMIT",
-			"namespace_id": "959379523",
-			"simple": { "limit": 60, "period": 60 },
-		},
-		{
-			"name": "NEWSLETTER_LIMIT",
-			"namespace_id": "959379521",
-			"simple": { "limit": 5, "period": 60 },
-		},
-		{ "name": "LIKE_LIMIT", "namespace_id": "959379522", "simple": { "limit": 10, "period": 60 } },
-		// One read counted per IP per article per minute: a refresh inside the minute is the same
-		// read, not a new one.
-		{
-			"name": "READ_RATE_LIMITER",
-			"namespace_id": "959379524",
-			"simple": { "limit": 1, "period": 60 },
-		},
-	],
+	// `quota`'s inside door, which counts apps/site/server/src/contract/limits.ts and the read
+	// counter's own minute. See spec/architecture/quota.md.
+	"services": [{ "binding": "QUOTA", "service": "quota", "entrypoint": "Internal" }],
 
 	// `vite dev` on 26511 is the development server, and is what libs/urls records. This port
 	// is for `wrangler dev`, which exercises the built worker instead.

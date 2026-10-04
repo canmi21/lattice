@@ -34,7 +34,7 @@ import {
 	whole,
 } from './cache.ts';
 import { GATEWAY_DEFAULTS, type Route } from './declaration.ts';
-import { counted } from './limit.ts';
+import { counted } from '@canmi/limits';
 import { type Profile, profileOf, readRequest, type Tuple } from './profile.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, WORKERS } from './table.ts';
@@ -289,7 +289,10 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 						return aka.fetch(new Request(new URL(`/v1/symlink${name.pathname}`, name), init));
 					}
 				: fetch;
-			return followSymlink(symlinkOf(pickUrls(developing(c)).symlink, host, 'favicon.ico'), fetcher);
+			return followSymlink(
+				symlinkOf(pickUrls(developing(c)).symlink, host, 'favicon.ico'),
+				fetcher,
+			);
 		}
 		// The host's own address is somebody typing it: they go to the site, and `ref` tells the
 		// site's analytics where from.

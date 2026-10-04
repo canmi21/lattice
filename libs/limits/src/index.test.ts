@@ -1,51 +1,62 @@
-import { describe, expect, it } from 'vitest';
-import { type Limit, limited, within } from './index.ts';
+import { describe, expect, it, vi } from 'vitest';
+import { type Check, counted, limited, type Row } from './index.ts';
 
-const LIMITS: Limit[] = [
-	{ methods: ['PUT'], path: '/like', limiter: 'LIKE' },
-	{ methods: ['GET'], path: '/like', limiter: 'READS' },
+const ROWS: Row[] = [
+	{ methods: ['PUT'], path: '/like', count: 10, seconds: 60 },
+	{ methods: ['GET'], path: '/like', count: 60, seconds: 60 },
 ];
 
-function limiter(success: boolean) {
-	const keys: string[] = [];
+function quota(allowed: boolean) {
+	const asked: Check[] = [];
 	return {
-		binding: { limit: async ({ key }: { key: string }) => (keys.push(key), { success }) },
-		keys,
+		asked,
+		quota: {
+			take: (checks: readonly Check[]) => (asked.push(...checks), { allowed, retryAfter: 9 }),
+		},
 	};
 }
 
-describe('within', () => {
-	it('counts by the address, in the first limit covering the method and path', async () => {
-		const like = limiter(false);
-		const reads = limiter(true);
-		const env = { LIKE: like.binding, READS: reads.binding };
-		const address = '192.0.2.1';
-		expect(await within(LIMITS, env, { method: 'PUT', path: '/like', address })).toBe(false);
-		expect(await within(LIMITS, env, { method: 'GET', path: '/like', address })).toBe(true);
-		expect(like.keys).toEqual([address]);
-		expect(reads.keys).toEqual([address]);
+describe('counted', () => {
+	it('asks quota for the row covering the method and path, by the address', async () => {
+		const { asked, quota: door } = quota(false);
+		const call = { method: 'PUT', path: '/like', address: '2001:db8::1' };
+		expect(await counted(door, 'site', ROWS, call)).toEqual({ allowed: false, retryAfter: 9 });
+		expect(asked).toEqual([
+			{ key: 'site_put_like_address-2001:db8:0:0::/64', rate: { count: 10, seconds: 60 } },
+		]);
 	});
 
-	it('leaves alone what no limit covers, and a caller with no address', async () => {
-		const env = { LIKE: limiter(false).binding };
-		expect(await within(LIMITS, env, { method: 'POST', path: '/like', address: '192.0.2.1' })).toBe(
-			true,
-		);
-		expect(await within(LIMITS, env, { method: 'PUT', path: '/like', address: undefined })).toBe(
-			true,
-		);
+	it('leaves alone what no row covers, and a caller with no address', async () => {
+		const { asked, quota: door } = quota(false);
+		expect(
+			(await counted(door, 'site', ROWS, { method: 'POST', path: '/like', address: 'a' })).allowed,
+		).toBe(true);
+		expect(
+			(await counted(door, 'site', ROWS, { method: 'PUT', path: '/like', address: undefined }))
+				.allowed,
+		).toBe(true);
+		expect(asked).toEqual([]);
 	});
 
-	it('refuses rather than skips a limit whose binding is missing', async () => {
-		expect(await within(LIMITS, {}, { method: 'PUT', path: '/like', address: '192.0.2.1' })).toBe(
-			false,
-		);
+	it('refuses when the binding is missing, and lets through when quota fails', async () => {
+		const call = { method: 'PUT', path: '/like', address: '192.0.2.1' };
+		expect(await counted(undefined, 'site', ROWS, call)).toEqual({
+			allowed: false,
+			retryAfter: 60,
+		});
+		const error = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+		const broken = { take: async () => Promise.reject(new Error('down')) };
+		expect((await counted(broken, 'site', ROWS, call)).allowed).toBe(true);
+		expect(error).toHaveBeenCalled();
+		error.mockRestore();
 	});
 });
 
-it('answers in the envelope, with a retry hint', async () => {
-	const answer = limited();
-	expect(answer.status).toBe(429);
-	expect(answer.headers.get('retry-after')).toBe('60');
-	expect(await answer.json()).toMatchObject({ status: 'error', code: 'rate_limited' });
+describe('limited', () => {
+	it('says when to try again, in the envelope', async () => {
+		const answer = limited({ allowed: false, retryAfter: 12 });
+		expect(answer.status).toBe(429);
+		expect(answer.headers.get('Retry-After')).toBe('12');
+		expect(await answer.json()).toMatchObject({ status: 'error', code: 'rate_limited' });
+	});
 });

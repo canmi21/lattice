@@ -4,8 +4,7 @@ import { developmentUrl, GATEWAY, PAGE_ORIGINS, URLS } from '@canmi/urls';
 import { describe, expect, it, vi } from 'vitest';
 import { declarations } from '../scripts/scopes.ts';
 import { type Env, gateway, MARK } from './index.ts';
-import type { Check } from '@canmi/limits';
-import { covers } from './limit.ts';
+import { type Check, covers } from '@canmi/limits';
 import { GATEWAY_DEFAULTS } from './declaration.ts';
 import { SCOPES } from './scopes.ts';
 import { type Scope, scopeTable, WORKERS } from './table.ts';
@@ -134,7 +133,7 @@ describe('the gateway', () => {
 			expect(answer.status, path).toBe(status);
 			expect(answer.headers.get('location')).toBe(location);
 		}
-	});;
+	});
 
 	it('does not know a scope outside its table, or one inherited from Object', async () => {
 		for (const path of ['/v1/nothing/x', '/v1/constructor/x']) {
@@ -246,7 +245,7 @@ describe('the gateway', () => {
 		expect(lines).not.toContain('Disallow: /');
 	});
 
-	it("lets a crawler into a CDN host as far as its routes say", async () => {
+	it('lets a crawler into a CDN host as far as its routes say', async () => {
 		const cdn: Record<string, Scope> = {
 			cdn: {
 				placement: WORKERS,
@@ -267,7 +266,6 @@ describe('the gateway', () => {
 		expect(text).toContain('Disallow: /');
 	});
 
-
 	it('follows its own mark for the browser rather than reading it as a scope', async () => {
 		const object = `${URLS.apps.production.cdn}/object/abc.ico`;
 		const fetching = vi
@@ -287,7 +285,8 @@ describe('the gateway', () => {
 		const seen: string[] = [];
 		const AKA = {
 			fetch: async (request: Request) => (
-				seen.push(request.url), new Response(null, { status: 302, headers: { Location: object } })
+				seen.push(request.url),
+				new Response(null, { status: 302, headers: { Location: object } })
 			),
 		} as unknown as Fetcher;
 		const fetching = vi.spyOn(globalThis, 'fetch');
@@ -543,8 +542,6 @@ describe("shot's declaration", () => {
 		]) {
 			expect((await app.fetch(new Request(`${HOST}${path}`, { headers }), env)).status).toBe(200);
 		}
-		expect(refused.asked.map((asked) => asked.key)).toEqual([
-			'shot_post_tasks_address-192.0.2.1',
-		]);
+		expect(refused.asked.map((asked) => asked.key)).toEqual(['shot_post_tasks_address-192.0.2.1']);
 	});
 });

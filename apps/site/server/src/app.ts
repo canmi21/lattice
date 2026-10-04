@@ -1,5 +1,6 @@
 import { PUBLISHED } from '@canmi/cache';
-import { limited, within } from '@canmi/limits';
+import { counted, limited } from '@canmi/limits';
+import { URLS } from '@canmi/urls';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import batch from './handlers/batch';
@@ -17,15 +18,20 @@ import { LIMITS } from './contract/limits';
  */
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Limits first, so a request over its allowance never reaches a handler.
+/** The public API host. A request naming it came through the gateway, which counted it already. */
+const API_HOST = new URL(URLS.apps.production.api).hostname;
+
+// Limits first, so a request over its allowance never reaches a handler. A call is counted once, by
+// the door it entered: the gateway's own rows for what it passes on, these for the pages'. See
+// spec/architecture/quota.md, "Deployed twice, counted where a request enters".
 app.use('*', async (c, next) => {
-	const request = {
+	if (new URL(c.req.url).hostname === API_HOST) return next();
+	const taken = await counted(c.env.QUOTA, 'site', LIMITS, {
 		method: c.req.method,
 		path: c.req.path,
 		address: c.req.header('CF-Connecting-IP') || undefined,
-	};
-	if (!(await within(LIMITS, c.env, request))) return limited();
-	return next();
+	});
+	return taken.allowed ? next() : limited(taken);
 });
 
 app.route('/', media);

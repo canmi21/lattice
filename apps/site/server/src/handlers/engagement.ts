@@ -1,4 +1,5 @@
 import { PUBLISHED } from '@canmi/cache';
+import { addressOf, type Quota } from '@canmi/limits';
 import { and, count, eq, sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import { Hono } from 'hono';
@@ -197,7 +198,7 @@ engagement.post('/read', JSON_LIMIT, async (c) => {
 	// answer to it: the reader still needs the number to put on the page, and a second look
 	// within the minute is the same read rather than a failure. So the count comes back
 	// either way and only the increment is withheld.
-	if (!(await withinLimit(c.env.READ_RATE_LIMITER, `${ip}:${slug}`))) {
+	if (!(await firstRead(c.env.QUOTA, ip, slug))) {
 		return success(
 			c,
 			{ slug, read_count: await countOf(database, slug) } satisfies ReadAnswer,
@@ -238,8 +239,18 @@ function clientIp(request: Request): string | undefined {
 	return request.headers.get('CF-Connecting-IP') || undefined;
 }
 
-async function withinLimit(limiter: RateLimit, key: string): Promise<boolean> {
-	return (await limiter.limit({ key })).success;
+/**
+ * Whether this is the address's first read of the article this minute, asked of `quota` as a
+ * bucket of one. One that cannot answer counts the read: a read too many is cheaper than one lost.
+ */
+async function firstRead(quota: Quota, ip: string, slug: string): Promise<boolean> {
+	const key = `site_read-once_${slug.replaceAll('/', '-')}_address-${addressOf(ip) ?? ip}`;
+	try {
+		return (await quota.take([{ key, rate: { count: 1, seconds: 60 } }])).allowed;
+	} catch (error) {
+		console.error('site: quota failed, and the read was counted', error);
+		return true;
+	}
 }
 
 async function readObject(request: Request): Promise<Record<string, unknown> | undefined> {

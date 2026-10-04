@@ -6,6 +6,7 @@ import app from '../app';
 import type { Bindings } from '../bindings';
 import { forgetRoot } from '../data/root';
 import { unwrap } from '@canmi/artifacts';
+import type { Quota } from '@canmi/limits';
 
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
@@ -18,7 +19,7 @@ async function payload<T = unknown>(response: Response): Promise<T> {
 
 const IP_ONE = '203.0.113.10';
 const IP_TWO = '2001:db8::20';
-const allow: RateLimit = { limit: async () => ({ success: true }) };
+const allow: Quota = { take: async () => ({ allowed: true, retryAfter: 0 }) };
 
 // The counter is keyed by identity, so the directory these two sit in is deliberately not the
 // thing being asked with. See spec/architecture/artifacts.md.
@@ -267,22 +268,22 @@ describe('article reads', () => {
 	it('returns the unchanged count instead of an error once deduplicated', async () => {
 		await api(`/read?slug=${slug}`, { method: 'POST', ip: IP_ONE });
 
-		const deny: RateLimit = { limit: async () => ({ success: false }) };
+		const deny: Quota = { take: async () => ({ allowed: false, retryAfter: 60 }) };
 		const repeated = await api(
 			`/read?slug=${slug}`,
 			{ method: 'POST', ip: IP_ONE },
-			{ READ_RATE_LIMITER: deny },
+			{ QUOTA: deny },
 		);
 		expect(repeated.status).toBe(200);
 		expect(await payload(repeated)).toEqual({ slug, read_count: 1 });
 	});
 
 	it('reports an unread article as zero rather than creating its row', async () => {
-		const deny: RateLimit = { limit: async () => ({ success: false }) };
+		const deny: Quota = { take: async () => ({ allowed: false, retryAfter: 60 }) };
 		const response = await api(
 			`/read?slug=${slug}`,
 			{ method: 'POST', ip: IP_ONE },
-			{ READ_RATE_LIMITER: deny },
+			{ QUOTA: deny },
 		);
 		expect(await payload(response)).toEqual({ slug, read_count: 0 });
 
@@ -364,10 +365,7 @@ async function api(
 	const bindings = {
 		ASSETS: store,
 		DATABASE: database as unknown as Bindings['DATABASE'],
-		ENGAGEMENT_LIMIT: allow,
-		NEWSLETTER_LIMIT: allow,
-		LIKE_LIMIT: allow,
-		READ_RATE_LIMITER: allow,
+		QUOTA: allow,
 		...overrides,
 	} satisfies Bindings;
 	return app.fetch(
