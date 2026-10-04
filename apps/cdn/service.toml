@@ -10,7 +10,7 @@ placements = ["workers"]
 [api]
 public = true
 
-# All of it may be fetched by a crawler, and is: a card's picture is fetched by crawlers that read no
+# All of it may be fetched by a crawler: a card's picture is fetched by crawlers that read no
 # `Allow`, so the host says nothing it does not refuse. See spec/architecture/gateway.md.
 [api.defaults]
 crawlable = true
