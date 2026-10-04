@@ -628,13 +628,12 @@ it costs no request and reports nothing.
 
 ## Every address has one spelling
 
-**A request whose path is not in its one spelling is redirected to it**: every CJK full stop a dot,
-every backslash a slash, every run of slashes one, and no trailing slash, the query kept. The full
-stops are the three IDNA already reads as a dot in a hostname -- `。`, `．` and `｡` -- so a reader
-typing on a CJK keyboard reaches the path the way a browser lets them reach the host, written or
-percent-encoded as a path carries them. The rule is `normalizePath` in
-`@canmi/urls`, and `normalizedLocation` says where a request belongs and by which status, or that
-it is already there; each entry point does the redirecting in its own framework's terms, first,
+**A request whose path is not in its one spelling is redirected to it**, the query kept. The
+spelling -- CJK full stops, backslashes, runs of slashes, a trailing slash -- is `normalizePath` in
+`@canmi/me/urls`, and `normalizedLocation` says where a request belongs and by which status, or
+that it is already there; both are the package's, in the lib repository's `spec/me/addresses.md`,
+"Every address has one spelling". Each entry point does the redirecting in its own framework's
+terms, first,
 before any route reads the path -- a Hono middleware on the gateway, the CDN and the alias layer, a
 SvelteKit handle on the site, the status page and the panel, each with `trailingSlash = 'ignore'`
 in its root layout, since SvelteKit's own redirect runs before any handle and would answer first. The CMS is a static build with no

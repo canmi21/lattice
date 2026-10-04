@@ -24,10 +24,10 @@ again under `.dark`; an app imports the one it wears.
 
 ## Light and dark are one cookie, read the same way everywhere
 
-**`theme` is `light` or `dark`, and `@canmi/kit/theme` is the only code that reads or writes it**: the
-inline script that settles it before the first frame, the server's reading of it, and the control's
-writing of it. An app wires the script into its `app.html` and, where its render is its own, the
-server's reading into its hooks -- the site does both, so its first byte already carries the class.
+**`theme` is `light` or `dark`, and `@canmi/kit/theme` is the only code that reads or writes it**;
+how, and how an app wires it, are the package's, in the lib repository's `spec/kit/theme.md`. The
+site wires the script into its `app.html` and the server's reading into its hooks, so its first
+byte already carries the class.
 **The status page runs the script alone**, because its render is kept at the edge and shared
 between readers, and a render that differed by cookie could not be; the script sets the class
 before anything is painted, so no reader sees the other theme first.

@@ -1,14 +1,10 @@
 # Identity: who the author is, and where they are found, declared once
 
-**`canmi/identity` holds the author**: the name a page signs with, the full name, the role, the
-email, and the handle on each service -- GitHub, X, the fediverse, Bluesky, Telegram. Telegram is
-two: the author's own account, and the group they run, which is the one the row of links points
-at. Every app
-reads it; none spells the name. The site's `site.config.yaml` keeps what is the site's own and takes
-its `author` from here, so `site.author` reads as it always has. The data is a JSON file,
-`@canmi/me/identity/author.json`, which the `canmi` crate renders as `AUTHOR_*` constants, so the
-Rust that draws the home card and the scripts that compile the corpus read what the TypeScript does. A service's address is `platform/libs/sdk`'
-and a handle is this library's: the link is the two put together.
+**`@canmi/me/identity` holds the author**, declared once for every app: what the record holds and
+how Rust reads it are the package's, in the lib repository's `spec/me/identity.md`. Every app reads
+it; none spells the name. The site's `site.config.yaml` keeps what is the site's own and takes its
+`author` from here, so `site.author` reads as it always has. A service's address is
+`platform/libs/sdk`' and a handle is the author's: the link is the two put together.
 
 **`@canmi/social` is the row of links to where the author is found, and only its shape**: the row's
 layout, each icon drawn as it needs to read at the same weight as the rest, and each link's default
@@ -34,7 +30,7 @@ identifier every page of every app refers to. What it says and why is
 is said only where the author is introduced: the home page and its card, the homepage's agent view
 once, and the structured data, where `alternateName` lets an engine join the two. Anywhere else that
 names the author in full -- an article's agent view, an index -- says `Canmi <t@canmi.icu>`, the
-name and the address, which is `mailbox` in `canmi/identity`; anywhere that only mentions the
+name and the address, which is `mailbox` in `@canmi/me/identity`; anywhere that only mentions the
 author says `Canmi`. The homepage's agent view says which name to use.
 
 **The author's own Telegram account is said in the structured data alone.** `sameAs` lists it, so

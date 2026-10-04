@@ -18,55 +18,19 @@ arrived as a Sentry issue. No configuration would have predicted it.
 
 ## The API floor: a short list of canaries, and all of core-js behind it
 
-`@canmi/web/compat` checks for each canary -- `Array.prototype.toSorted`,
-`URL.canParse` -- and, if any is absent, dynamically imports `core-js/stable` before hydration.
-
-**There is no list of modules any more, and that is the point.** A hand-written list has no
-knowable correct length: an entry missing from it is a crash in somebody's browser, discovered
-the way the first one was. Loading the whole stable set removes the question instead of
-answering it.
-
-Being generous is free here because the import is dynamic. Measured on the built client:
-
-|                                       |                                                               |
-| ------------------------------------- | ------------------------------------------------------------- |
-| Check compiled into the eager entry   | 174 bytes, dynamic import included                            |
-| core-js in the entry's static closure | none. 38 eager chunks, 1187.5 KB, and core-js in none of them |
-| What a current browser fetches        | nothing                                                       |
-| What a browser below the line fetches | 87.1 KB gzipped, once, before hydration                       |
-
-The closure is the measurement that matters and text search cannot give it: `manifest.json`'s
-`imports` are the static edges, `dynamicImports` are not, so grepping chunks for a core-js marker
-counts the lazy ones too and reads as though the bundle were bloated.
-
-**The canaries grow one at a time, each an edge case met in production.** `toSorted` was the
-first. `URL.canParse` is the second: Chrome 120, above the floor, so a Chrome 110 to 119 reader
-passes the first canary and loads nothing, and a Chrome 99 reader of the status page crashed on it.
-Either missing loads core-js. The floor itself does not move for a canary: it is where the syntax
-must parse, and a canary is only a cheaper way of noticing a browser that needs the rest. The list
-is in `@canmi/web/compat`, one line an entry.
-
-### Why `toSorted` first, and why so few checks
-
-It is the one that actually broke. Chrome 110, Firefox 115 and Safari 16.0 shipped it, and a
-reader below that line reached production.
-
-One check rather than a set, because browser support is strongly ordered: a browser new enough to
-have this has the decade of features before it, and a browser without it needs everything anyway.
-The canary is not a claim about which API the next crash involves -- it is a cheap proxy for
-"this browser is old", and the whole of core-js is what answers the crash.
-
-**The canaries are where the API floor is declared.** Not in a config file, not in a table. Moving
-that line is editing that list.
-
-`stable` rather than `es`, which omits `URL` and `structuredClone`, or `actual`, which adds
-proposals nothing here writes.
+`@canmi/web/compat` checks for a short list of canaries -- `Array.prototype.toSorted`,
+`URL.canParse` -- and, if any is absent, dynamically imports `core-js/stable` before hydration. The
+mechanism, why a list of met cases rather than a complete one, and why `stable`, are the package's,
+in the lib repository's `spec/web/compat.md`. A canary is added there, one line, when this site
+meets a new edge case in production; `URL.canParse` was a Chrome 99 reader of the status page.
 
 ## The syntax floor is set to the same line, deliberately
 
 `browserslist` in [apps/site/package.json](../apps/site/package.json) is the only place the
-syntax floor is written, and [vite.config.ts](../apps/site/vite.config.ts) derives esbuild's
-`build.target` from it.
+syntax floor is written, and `esbuildTarget` from `@canmi/web/compat/build` derives esbuild's
+`build.target` from it in [vite.config.ts](../apps/site/vite.config.ts). Why the two floors must
+agree, and why a floor and never a relative query, is the package's, in the lib repository's
+`spec/web/compat.md`.
 
 It names Chrome 110, Edge 110, Firefox 115 and Safari 16.0 -- the canary's line. This listed three
 and the file declares four, which is a correction, though only of the enumeration: **Edge is not a
@@ -75,18 +39,9 @@ name browserslist matches on -- browserslist keys on the browser, not the engine
 Edge is an unconstrained one. The canary section above names three because three engines shipped
 `toSorted`; this list names four because four browsers have to be told about it.
 
-**A rescue only happens if the browser could parse the code doing the rescuing.** A target above
-that line hands exactly the readers this mechanism exists for a bundle that dies before the check
-runs, and core-js sitting in a chunk they never reach helps nobody. The two floors agree by
-construction rather than by somebody remembering to keep them in step.
-
 Stated rather than left to Vite's default, which is a baseline of somebody else's choosing and can
 move under a major -- it was `chrome111, edge111, firefox114, safari16.4` when this was written,
 which is above the canary for Firefox and would have had precisely the effect described above.
-
-**Floors, never a relative query.** `> 0.5%` or `last 2 versions` is resolved against
-`caniuse-lite`, so the compiled output would change on an unrelated dependency update and
-rebuilding one commit twice would not produce the same bytes.
 
 The site and the status page declare one, the same, through `@canmi/web/compat`, which holds the
 canary, the lazy import and the reading of `browserslist` into esbuild's target, so the two cannot

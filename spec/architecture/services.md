@@ -244,23 +244,10 @@ answers as unavailable rather than taking the rest down.
 ## Every answer is one envelope
 
 Every API here, in TypeScript or in Rust, answers in one shape: `{ "status": "success", "data": ... }`
-or `{ "status": "error", "code": ..., "message": ... }`. `lib/pkgs/response` is both halves -- `src/index.ts`
-and the `response` crate -- and both read the one catalogue of codes, `codes.json`, and are tested
-against the same fixtures, so the two languages cannot drift apart. A success carries what the route
-answers and nothing else; there is nothing to say about a call that worked. A body that is the
-thing itself -- an image, a file, a redirect -- is not wrapped.
-
-**A failure carries a code and a message, both always.** The code is for a program: ours, lowercase
-with underscores, and not the HTTP status, which the response already has. The message is for a
-person: one line of English, objective, short without being curt, opening with a capital and ending
-without a stop. Each code has a default message in the catalogue, so a refusal names its code and a
-moment with something more exact to say -- a port and who holds it -- says it instead.
-
-**A code is one of four families.** `no_such_*` for something asked for by a name or an id that
-does not exist, `invalid_*` for a request that is malformed, `*_unavailable` for something that
-could not be reached or read at this moment, and `forbidden_*` for a request that is well formed and
-refused to this caller -- a 403, where `invalid_*` is a 400. `rate_limited` is the one code outside
-them.
+or `{ "status": "error", "code": ..., "message": ... }`, from `@canmi/response` and the `response`
+crate. The shape, how a code and a message are written and the four families of code are the
+package's, in the lib repository's `spec/response/envelope.md`; a code this repository needs is
+added to its catalogue there.
 
 **What faces the public says nothing about the inside.** A message a stranger can read names no
 path, no internal error and no secret; a failure inside is logged in full and answered with its

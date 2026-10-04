@@ -349,29 +349,9 @@ favour has been done, and the first of those arrived as a loose key of its own. 
 have arrived the same way, and a tenth -- which is how a reader's storage becomes a scatter of
 names nothing owns and nothing can move together.
 
-The persisted query cache is where the shape comes from: one container, edited in place. What is
-deliberately not taken from it is the machinery. There is no eviction, no staleness and no
-serialisation beyond `JSON`, because none of these facts expire and all of them are small.
-
-**Keys are flat and dotted, like the message catalogue's.** `support.preferred`, not a `support`
-object with a `preferred` inside it. Nesting buys grouping the dot already expresses and costs
-every reader and writer a walk down a path that may not exist yet. A component simple enough to
-hold one fact names the key after the component and stops.
-
-**The version is an integer, and it is there from the first write.** `migrations[0]` takes a
-record at version 1 to version 2, and a step edits in place and may assume every earlier one has
-run. It was introduced while both lists were empty, which is exactly when the mechanism is
-cheapest: a record written without a version cannot be migrated later, because the code that
-would migrate it has no way to know what it is looking at. This section said the lists are empty
-today and they no longer are -- the reader's record is still at version 1 with no steps, while
-the per-tab record below is at version 2 with one, carrying `video.at` from a position to a
-position and a picture of it. Three hundred versions from now it is still an integer.
-
-**A record from a later version is left alone rather than reset.** That is a reader whose other
-device runs a newer build -- the case cloud sync exists to make ordinary -- and the keys this
-build understands are still readable inside it. Discarding it would throw away facts this build
-merely has no opinion about. A record that is not an object, or carries no usable version, is
-replaced, because nothing in it can be placed.
+The container is `@canmi/kit/behavior/state`, and how it works -- flat dotted keys, an integer
+version from the first write, migrations, a later version left alone -- is the package's, in the lib
+repository's `spec/kit/state.md`. What follows is which facts this site keeps in it.
 
 **Per-tab facts stay out of it, and have a record of their own.** `sessionStorage["state"]` is the
 same container with the same mechanism, and the difference is whose fact it is: the `reader`
@@ -380,11 +360,6 @@ position belongs to the sitting -- coming back tomorrow to a twenty-five second 
 at 0:18 is a surprise rather than a courtesy -- and the storage area is what says so. So does
 `support.preferred`, which is in both: the reader has a preference, and this tab has already acted
 on it.
-
-**The two share everything except what cannot be shared:** the key, the version, and the
-migrations. Two records hold different facts and will version independently, and a step written
-for one running against the other is the failure the whole mechanism exists to prevent. Both are
-called `state`, because the storage area already says which record it is.
 
 **`visit.seen` is the reader record's on every app, not the site's alone.** It says the browser has
 loaded a page of that app before, which decides the title a fresh load shows; see
@@ -409,11 +384,6 @@ Back needs where to go, which is the trail, and where the reader was on that pag
 Nothing carries a live tab's old loose key across. A trail lives for one sitting and its absence
 already means the homepage, so the cost of losing one is a Back control pointing where it points
 on a first visit -- see [styling/rail.md](styling/rail.md).
-
-**A fallback names the kind of thing wanted, and `undefined` is not a kind.** Reading the trail
-with `undefined` as its fallback discarded every stored trail, because the container compares
-what it found against the kind it was asked for. The fallback is `{}`, which an absent record
-answers with and `isTrail` refuses like anything else that is not a trail.
 
 ### A path keeps its place, because Back is a link
 
