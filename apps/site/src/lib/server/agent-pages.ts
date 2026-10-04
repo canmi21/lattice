@@ -20,16 +20,7 @@ import {
 	siteStats,
 } from '$lib/published';
 import { site } from '$lib/site';
-import {
-	bodyOf,
-	contents,
-	fields,
-	opening,
-	section,
-	stamp,
-	structured,
-	table,
-} from './agent-view';
+import { bodyOf, contents, fields, opening, section, stamp, structured, table } from './agent-view';
 import { languageOf, nameOf, noticeFor } from './markdown';
 
 type Fetch = typeof fetch;
@@ -60,7 +51,6 @@ function corpusAsOf(generated: string | undefined): string {
 		? `From the published corpus, as of ${stamp(generated)}.`
 		: 'From the published corpus.';
 }
-
 
 export async function articleAgentView(
 	fetch: Fetch,
@@ -146,14 +136,18 @@ export async function articleAgentView(
 					),
 				]
 			: []),
-		...(view.body.toc.length ? [section('Contents', undefined, contents(view.body.toc, page))] : []),
+		...(view.body.toc.length
+			? [section('Contents', undefined, contents(view.body.toc, page))]
+			: []),
 		section('Article', undefined, bodyOf(text, view.meta.description)),
 		...(citations.length
 			? [
 					section(
 						'Works cited',
 						undefined,
-						citations.map((work) => `- ${work.name ? `[${work.name}](${work.url})` : work.url}`).join('\n'),
+						citations
+							.map((work) => `- ${work.name ? `[${work.name}](${work.url})` : work.url}`)
+							.join('\n'),
 					),
 				]
 			: []),

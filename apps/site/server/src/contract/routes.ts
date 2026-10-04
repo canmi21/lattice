@@ -105,4 +105,3 @@ export function read(shape: string, path: string): Record<string, string> | unde
 	}
 	return asked.length === expected.length ? values : undefined;
 }
-

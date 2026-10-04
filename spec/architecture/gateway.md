@@ -35,14 +35,14 @@ versions, routing `/v1/...` and, one day, `/v2/...` itself; the gateway reads th
 fill it in. A profile that pins one -- `cdn.monoflake.com` at `v3` -- puts `/v3` in front of the
 path, so the CDN receives `/v3/object/...` whichever host was asked.
 
-| Hostname                                  | The hostname gives                    | The path gives               |
-| ----------------------------------------- | ------------------------------------- | ---------------------------- |
-| `api.monoflake.com`                       | nothing                               | `/v{n}/{service}/{path}`     |
-| `cdn.monoflake.com`                       | the service, `cdn`, at `v3`           | `/{path}`                    |
-| `ill.li`                                  | the service, `aka`, at `v1`           | `/{rid}`, a short link       |
-| `symlink.si`                              | `aka` at `v1`, under `/symlink`       | `/{path}`                    |
-| `api-{region}-{provider}.ixc.one`         | where it runs                         | `/v{n}/{service}/{path}`     |
-| `{service}-{region}-{provider}.ixc.one`   | the service, and where it runs        | `/v{n}/{path}`               |
+| Hostname                                | The hostname gives              | The path gives           |
+| --------------------------------------- | ------------------------------- | ------------------------ |
+| `api.monoflake.com`                     | nothing                         | `/v{n}/{service}/{path}` |
+| `cdn.monoflake.com`                     | the service, `cdn`, at `v3`     | `/{path}`                |
+| `ill.li`                                | the service, `aka`, at `v1`     | `/{rid}`, a short link   |
+| `symlink.si`                            | `aka` at `v1`, under `/symlink` | `/{path}`                |
+| `api-{region}-{provider}.ixc.one`       | where it runs                   | `/v{n}/{service}/{path}` |
+| `{service}-{region}-{provider}.ixc.one` | the service, and where it runs  | `/v{n}/{path}`           |
 
 **`monoflake.com` lets the gateway choose where a request runs; `ixc.one` names it.** The two are
 the same services behind the same rules, so a caller may use either: the first is the address to
@@ -95,10 +95,10 @@ A region is three lowercase letters: the IATA code of the airport nearest the ma
 that says less, the city's own code or a datacenter's well-known one -- whichever the reader would
 recognize first. A deployment that runs everywhere at once, as a Worker does, is `glo`.
 
-| Code  | Where                                         | So a deployment there is      |
-| ----- | --------------------------------------------- | ----------------------------- |
+| Code  | Where                                            | So a deployment there is                     |
+| ----- | ------------------------------------------------ | -------------------------------------------- |
 | `rdu` | the machine at home, by Raleigh-Durham's airport | `api-rdu-int.ixc.one`, `geo-rdu-int.ixc.one` |
-| `glo` | Cloudflare's Workers, everywhere              | `api-glo-cf.ixc.one`          |
+| `glo` | Cloudflare's Workers, everywhere                 | `api-glo-cf.ixc.one`                         |
 
 ## A version is in the path, and it moves only on a break
 
@@ -145,13 +145,13 @@ settled. Each has a name, nested under success and failure, so a route can keep 
 from what it points at, a task still queued apart from a task done, and a blip apart from a refusal
 that holds until the next publication:
 
-| Class | Name                 | What it says                                       |
-| ----- | -------------------- | -------------------------------------------------- |
-| `2xx` | `success.fulfilled`  | the request was met; every `2xx` but `202`         |
-| `202` | `success.accepted`   | the request was taken and is not done              |
-| `3xx` | `success.redirected` | the answer is elsewhere                            |
-| `4xx` | `failure.rejected`   | the request was at fault                           |
-| `5xx` | `failure.faulted`    | the service was at fault, or never answered        |
+| Class | Name                 | What it says                                |
+| ----- | -------------------- | ------------------------------------------- |
+| `2xx` | `success.fulfilled`  | the request was met; every `2xx` but `202`  |
+| `202` | `success.accepted`   | the request was taken and is not done       |
+| `3xx` | `success.redirected` | the answer is elsewhere                     |
+| `4xx` | `failure.rejected`   | the request was at fault                    |
+| `5xx` | `failure.faulted`    | the service was at fault, or never answered |
 
 A lifetime is written `"30s"`, `"15m"`, `"1h"` or `"1d"`; `"immutable"` is a year and says the
 bytes will not change; `"none"` keeps nothing.

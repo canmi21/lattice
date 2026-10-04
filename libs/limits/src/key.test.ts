@@ -42,7 +42,10 @@ describe('checksOf', () => {
 
 	it('stacks a row of each kind the call carries, the address first', () => {
 		const call = { method: 'POST', path: '/tasks' };
-		const signed = checksOf('shot', ROWS, { ...call, subjects: { account: 'u1', address: '192.0.2.1' } });
+		const signed = checksOf('shot', ROWS, {
+			...call,
+			subjects: { account: 'u1', address: '192.0.2.1' },
+		});
 		expect(signed.map((check) => check.key)).toEqual([
 			'shot_post_tasks_address-192.0.2.1',
 			'shot_post_tasks_account-u1',
@@ -53,7 +56,9 @@ describe('checksOf', () => {
 	});
 
 	it('counts nothing a row does not cover, or a call with no subject', () => {
-		expect(checksOf('shot', ROWS, { method: 'GET', path: '/tasks', subjects: { address: 'a' } })).toEqual([]);
+		expect(
+			checksOf('shot', ROWS, { method: 'GET', path: '/tasks', subjects: { address: 'a' } }),
+		).toEqual([]);
 		expect(checksOf('shot', ROWS, { method: 'POST', path: '/tasks', subjects: {} })).toEqual([]);
 	});
 });

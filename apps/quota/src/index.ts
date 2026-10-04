@@ -13,5 +13,7 @@ export interface Buckets {
 
 /** Each check against its own bucket, named by its key, the first refusal ending it. */
 export function takeAll(buckets: Buckets, checks: readonly Check[]): Promise<Taken> {
-	return takeInOrder(checks, (check) => buckets.get(buckets.idFromName(check.key)).take(check.rate));
+	return takeInOrder(checks, (check) =>
+		buckets.get(buckets.idFromName(check.key)).take(check.rate),
+	);
 }

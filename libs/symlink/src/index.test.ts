@@ -58,7 +58,10 @@ it('names each mark by the object it resolves to, and leaves out what resolves t
 it('answers the bytes a name stands for from the asking origin, typed as asked', async () => {
 	const fetcher = (async (input: RequestInfo | URL) =>
 		String(input) === NAME
-			? new Response(null, { status: 302, headers: { Location: 'https://cdn.example/object/a.xsl' } })
+			? new Response(null, {
+					status: 302,
+					headers: { Location: 'https://cdn.example/object/a.xsl' },
+				})
 			: new Response('<xsl/>', { status: 200 })) as typeof fetch;
 	const res = await serveSymlink(NAME, 'text/xsl', fetcher);
 	expect(res.status).toBe(200);

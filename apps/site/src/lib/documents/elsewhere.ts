@@ -23,7 +23,11 @@ const DOCUMENTS = {
 		path: '/llms-full.txt',
 		note: "Every article's agent view, in one document.",
 	},
-	sitemap: { name: 'Sitemap', path: '/sitemap.xml', note: 'Every page, with when it last changed.' },
+	sitemap: {
+		name: 'Sitemap',
+		path: '/sitemap.xml',
+		note: 'Every page, with when it last changed.',
+	},
 	feed: {
 		name: 'Atom feed',
 		path: '/atom.xml',

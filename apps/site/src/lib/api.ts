@@ -14,7 +14,9 @@ const ASKED: Readonly<Record<Route, string>> = Object.fromEntries(
 		if (typeof STATED_API_ADDRESSES !== 'object' || STATED_API_ADDRESSES === null) {
 			return [route, SHAPES[route]];
 		}
-		const after = placeholders(SHAPES[route]).map(({ name, rest }) => `/{${name}${rest ? '*' : ''}}`);
+		const after = placeholders(SHAPES[route]).map(
+			({ name, rest }) => `/{${name}${rest ? '*' : ''}}`,
+		);
 		return [route, `${STATED_API_ADDRESSES[route]}${after.join('')}`];
 	}),
 ) as Record<Route, string>;
@@ -34,7 +36,9 @@ export function apiPath(route: Route, parameters?: Record<string, string>): stri
  * The route an address under `/api/` names, and the query its handler reads: the path's
  * placeholders' values as parameters. Undefined for an address that names none.
  */
-export function readAddress(path: string): { route: Route; query: Record<string, string> } | undefined {
+export function readAddress(
+	path: string,
+): { route: Route; query: Record<string, string> } | undefined {
 	for (const route of ROUTES) {
 		const query = read(ASKED[route], path);
 		if (query) return { route, query };

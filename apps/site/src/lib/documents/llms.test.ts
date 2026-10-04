@@ -7,7 +7,12 @@ const INPUT: LlmsInput = {
 			slug: 'a',
 			path: 'architecture/a',
 			url: 'x:architecture/a',
-			meta: { title: 'A', subtitle: 'The\nfirst.', description: '', short: { title: 'A', subtitle: '' } },
+			meta: {
+				title: 'A',
+				subtitle: 'The\nfirst.',
+				description: '',
+				short: { title: 'A', subtitle: '' },
+			},
 			dates: { created: '2026-01-01', published: '2026-01-02T00:00:00Z', lastmod: '2026-01-03' },
 			metrics: { words: 12345 },
 			objects: { content: 'c' },
@@ -27,7 +32,9 @@ it('opens as llmstxt.org sets out: the name, the one description, then how to re
 	const lines = buildLlms(INPUT).split('\n');
 	expect(lines[0]).toBe('# Site');
 	expect(lines[2]).toBe('> Notes. The site of Canmi.');
-	expect(lines[4]).toBe('Generated 2026-10-01T00:00:00Z, from the corpus published 2026-09-21T19:32:18Z.');
+	expect(lines[4]).toBe(
+		'Generated 2026-10-01T00:00:00Z, from the corpus published 2026-09-21T19:32:18Z.',
+	);
 });
 
 it('lists each article with the facts that rank it, and keeps the skippable ones last', () => {
@@ -35,7 +42,9 @@ it('lists each article with the facts that rank it, and keeps the skippable ones
 	expect(text).toContain(
 		'- [A](x:architecture/a.md): In architecture, published 2026-01-02, in Chinese (zh), 12,345 words. The first.',
 	);
-	expect(text).toContain("- [Canmi's Telegram group](https://example.com/group): A group the author runs.");
+	expect(text).toContain(
+		"- [Canmi's Telegram group](https://example.com/group): A group the author runs.",
+	);
 	expect(text.indexOf('## Articles')).toBeLessThan(text.indexOf('## Site'));
 	expect(text.indexOf('## Site')).toBeLessThan(text.indexOf('## Optional'));
 });

@@ -42,10 +42,10 @@ default -- and a level for any it moves off the entry's own**; the library write
 catalog. Naming a group does not reach all of it: what a page reaches is its business, and the
 declaration says so. The same entry at the same level is the same tag in every app.
 
-| App    | Declares                                                                                 |
-| ------ | ---------------------------------------------------------------------------------------- |
+| App    | Declares                                                                                            |
+| ------ | --------------------------------------------------------------------------------------------------- |
 | site   | `fonts` both; `ours.cdn`; `api.public`; `jsdelivr.files` raised to `connect`; `analytics` all three |
-| status | `fonts` both; `data.status`                                                          |
+| status | `fonts` both; `data.status`                                                                         |
 
 **The site connects to the API, not to the alias layer.** After hydration the page asks the API for
 what it renders, and its marks are written into the head as the objects they resolve to, so a page

@@ -37,7 +37,10 @@ export const PORT_OFFSET: number =
 
 /** The ports this checkout's servers bind: the pinned ones, shifted in the sandbox. */
 export const DEVELOPMENT_PORTS = Object.fromEntries(
-	Object.entries({ ...PINNED_PORTS, ...BOUND_PORTS }).map(([app, port]) => [app, port + PORT_OFFSET]),
+	Object.entries({ ...PINNED_PORTS, ...BOUND_PORTS }).map(([app, port]) => [
+		app,
+		port + PORT_OFFSET,
+	]),
 ) as { readonly [App in keyof typeof PINNED_PORTS | keyof typeof BOUND_PORTS]: number };
 
 /**
@@ -62,7 +65,11 @@ const SITE_SCOPE = 'site';
  * makes the site work from a phone on the same network. The site's API needs no proxy: the
  * site's Worker answers it under `/api/` itself.
  */
-export const DEVELOPMENT_PROXY_PATHS = { alias: '/alias', symlink: '/symlink', cdn: '/cdn' } as const;
+export const DEVELOPMENT_PROXY_PATHS = {
+	alias: '/alias',
+	symlink: '/symlink',
+	cdn: '/cdn',
+} as const;
 
 export function developmentUrl(app: AppName): string {
 	return `http://localhost:${DEVELOPMENT_PORTS[app]}`;
@@ -108,7 +115,10 @@ export const GITHUB_OWNER = 'canmi21';
  * `shot` is the public scope a capture's pictures are named under, see shot.md.
  */
 /** The API host's two sides: private, where every container asks, and public, past the gateway. */
-const API = { private: 'https://api.internal.ixc.one', public: 'https://api.monoflake.com' } as const;
+const API = {
+	private: 'https://api.internal.ixc.one',
+	public: 'https://api.monoflake.com',
+} as const;
 
 const INTERNAL = {
 	app: 'https://canmi.app',

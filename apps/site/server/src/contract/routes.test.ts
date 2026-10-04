@@ -7,7 +7,9 @@ describe("a route's shape", () => {
 			path: 'articles/a-b',
 			query: { locale: 'ja' },
 		});
-		expect(fill('assets/{name*}', { name: 'aka/favicon.ico' })?.path).toBe('assets/aka/favicon.ico');
+		expect(fill('assets/{name*}', { name: 'aka/favicon.ico' })?.path).toBe(
+			'assets/aka/favicon.ico',
+		);
 		expect(fill('articles/{slug}', {})).toBeUndefined();
 	});
 

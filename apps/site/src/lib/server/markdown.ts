@@ -38,9 +38,11 @@ export function tokensIn(text: string): number {
 export function nameOf(tag: string): string {
 	const language = tag.split('-')[0]!;
 	try {
-		return new Intl.DisplayNames(['en'], { type: 'language' }).of(
-			language.toLowerCase() === 'zh' ? tag : language,
-		) ?? tag;
+		return (
+			new Intl.DisplayNames(['en'], { type: 'language' }).of(
+				language.toLowerCase() === 'zh' ? tag : language,
+			) ?? tag
+		);
 	} catch {
 		return tag;
 	}
@@ -60,7 +62,8 @@ export interface NoticeInput {
 /** One line in English: the text is the original as written, and where the asked language is. */
 export function noticeFor({ source, asked }: NoticeInput): string {
 	const written = `the text below is in its original language, ${nameOf(source)} (${source}), as written`;
-	if (!asked || !otherLanguage(asked.tag, source)) return `> ${written[0]!.toUpperCase()}${written.slice(1)}.`;
+	if (!asked || !otherLanguage(asked.tag, source))
+		return `> ${written[0]!.toUpperCase()}${written.slice(1)}.`;
 	const language = nameOf(asked.tag);
 	return `> No text/markdown version of this page exists in ${language} (${asked.tag}); ${written}. The ${language} version is available as text/html at ${asked.page}.`;
 }

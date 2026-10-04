@@ -132,8 +132,7 @@ The variable picks the adapter -- Vercel's or Cloudflare's -- the base path and 
 prefix, the bare name first.** mise decrypts the pair bare from `secrets.json`, and Vercel sets it
 prefixed, because SvelteKit hands the browser only a `PUBLIC_` name and the browser opens the
 Realtime socket with the key. `vite.config.ts` copies a bare name over the prefixed one, so a
-development server needs nothing set by hand. It runs as `dev-status`, in the base session, on
-26522.
+development server needs nothing set by hand. It runs as `dev-status`, in the base session, on 26522.
 
 **Its icons are the `status` scope's marks** in `data/record/symlinks.json` -- the ICO, the SVG, the two
 PNGs and the touch icon, each derived from the one SVG -- which the page answers at its own `/{file}`

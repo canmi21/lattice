@@ -38,4 +38,9 @@ export const load: LayoutServerLoad = async ({ locals, fetch }) => {
  * The marks the head names, as the objects the alias layer resolves them to at render. See
  * spec/architecture/delivery.md, "A page follows the name for the browser".
  */
-const MARKS = ['favicon-96x96.png', 'favicon-512x512.png', 'favicon.svg', 'apple-touch-icon.png'] as const;
+const MARKS = [
+	'favicon-96x96.png',
+	'favicon-512x512.png',
+	'favicon.svg',
+	'apple-touch-icon.png',
+] as const;

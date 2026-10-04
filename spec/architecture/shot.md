@@ -13,11 +13,11 @@ nothing waits on it:
 **One question a route**: whether a capture was taken, how it stands, whether its picture is there.
 Each tells its own and nothing of the others'.
 
-| Request                                                     | Answer                                                                                     |
-| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `POST /v1/shot/tasks`                                       | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
-| `GET /v1/shot/tasks/<id>`                                   | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done  |
-| `GET /v1/shot/pictures/<id>.png`, `GET /v1/shot/pictures/<id>.webp` | `200`, the picture itself; or `404`, and no more said                              |
+| Request                                                             | Answer                                                                                      |
+| ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `POST /v1/shot/tasks`                                               | always `202 { id, state, retry_after }` and `Location: tasks/<id>`: its state, nothing more |
+| `GET /v1/shot/tasks/<id>`                                           | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done   |
+| `GET /v1/shot/pictures/<id>.png`, `GET /v1/shot/pictures/<id>.webp` | `200`, the picture itself; or `404`, and no more said                                       |
 
 **A task is a thing and starting one is a write**, as the workspace's `spec/addresses.md` has it:
 there is no `GET` that starts a capture. What a capture asks is the JSON below, and the version is

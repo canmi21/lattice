@@ -59,12 +59,12 @@ is [firewall.md](firewall.md).
 
 > Being replaced by [gateway.md](gateway.md), which wins where the two differ.
 
-| Name          | Who reaches it                                     | What goes there            |
-| ------------- | -------------------------------------------------- | -------------------------- |
-| `canmi.net`   | everyone                                           | the site, and nothing else |
-| `*.canmi.app` | the author, from anywhere, through Access          | interfaces                 |
+| Name                                                                | Who reaches it                                     | What goes there                      |
+| ------------------------------------------------------------------- | -------------------------------------------------- | ------------------------------------ |
+| `canmi.net`                                                         | everyone                                           | the site, and nothing else           |
+| `*.canmi.app`                                                       | the author, from anywhere, through Access          | interfaces                           |
 | `monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li`, `symlink.si` | the public; whether a login is needed is per route | the gateway, and every API behind it |
-| `*.internal.ixc.one` | the LAN and the tailnet only                       | everything, APIs included  |
+| `*.internal.ixc.one`                                                | the LAN and the tailnet only                       | everything, APIs included            |
 
 **"The LAN" includes the node's own containers.** Caddy admits `internal.ixc.one` from the sources host is told
 in `PRIVATE_SOURCES`: the LAN, the tailnet, loopback, and Docker's private range, `172.16.0.0/12`.

@@ -76,7 +76,11 @@ describe("a service's routes", () => {
 	it.each([
 		['a field nobody reads', { defaults: { cahce: {} } }, /cahce/],
 		['a service code nobody declares', { defaults: { cors: { origins: ['nobody'] } } }, /cors/],
-		['a lifetime it cannot read', { defaults: { cache: { success: { fulfilled: '1w' } } } }, /lifetime/],
+		[
+			'a lifetime it cannot read',
+			{ defaults: { cache: { success: { fulfilled: '1w' } } } },
+			/lifetime/,
+		],
 		['a kind of answer that is not one', { defaults: { cache: { success: { ok: '1m' } } } }, /ok/],
 		['a star in the middle', { routes: [{ path: '/a/*/b' }] }, /path/],
 		['the same path twice', { routes: [{ path: '/a' }, { path: '/a' }] }, /twice/],

@@ -20,11 +20,20 @@ const yes = (value: boolean, word: string, no: string) => (value ? word : no);
 
 /** Each spelling as a name and a value: a robots.txt line, and a header on a page or markdown. */
 export const SIGNAL_HEADERS = [
-	['Content-Signal', `search=${yes(SIGNALS.search, 'yes', 'no')}, ai-input=${yes(SIGNALS.aiInput, 'yes', 'no')}, ai-train=${yes(SIGNALS.aiTrain, 'yes', 'no')}`],
-	['Content-Usage', `search=${yes(SIGNALS.search, 'y', 'n')}, ai-use=${yes(SIGNALS.aiInput, 'y', 'n')}, train-ai=${yes(SIGNALS.aiTrain, 'y', 'n')}`],
+	[
+		'Content-Signal',
+		`search=${yes(SIGNALS.search, 'yes', 'no')}, ai-input=${yes(SIGNALS.aiInput, 'yes', 'no')}, ai-train=${yes(SIGNALS.aiTrain, 'yes', 'no')}`,
+	],
+	[
+		'Content-Usage',
+		`search=${yes(SIGNALS.search, 'y', 'n')}, ai-use=${yes(SIGNALS.aiInput, 'y', 'n')}, train-ai=${yes(SIGNALS.aiTrain, 'y', 'n')}`,
+	],
 ] as const;
 
-export const signalLines = SIGNAL_HEADERS.map(([name, value]) => `${name}: ${value}`) as [string, string];
+export const signalLines = SIGNAL_HEADERS.map(([name, value]) => `${name}: ${value}`) as [
+	string,
+	string,
+];
 
 /**
  * Cloudflare's terms for content signals, as the comment its own generator writes: the three
@@ -48,7 +57,7 @@ export const SIGNAL_TERMS = [
 	'',
 	'search: building a search index and providing search',
 	'results (e.g., returning hyperlinks and short excerpts',
-	'from your website\'s contents).  Search does not include',
+	"from your website's contents).  Search does not include",
 	'providing AI-generated search summaries.',
 	'ai-input: inputting content into one or more AI models',
 	'(e.g., retrieval augmented generation, grounding, or other',
@@ -61,7 +70,6 @@ export const SIGNAL_TERMS = [
 	'UNION DIRECTIVE 2019/790 ON COPYRIGHT AND RELATED RIGHTS',
 	'IN THE DIGITAL SINGLE MARKET.',
 ] as const;
-
 
 export type RobotsTxtOptions = {
 	allow?: readonly string[];
@@ -159,7 +167,11 @@ function hostOf(service: Service): (typeof PAGE_HOSTS)[number] {
  */
 export function rootEntry(service: Service): SitemapEntry {
 	const host = hostOf(service);
-	return { loc: new URL('/', host.origin).href, changefreq: host.changefreq, priority: host.priority };
+	return {
+		loc: new URL('/', host.origin).href,
+		changefreq: host.changefreq,
+		priority: host.priority,
+	};
 }
 
 /**

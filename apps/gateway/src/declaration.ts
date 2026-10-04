@@ -62,7 +62,8 @@ export function lifetimeOf(written: string): Lifetime {
 	if (written === 'immutable') return 'immutable';
 	if (written === 'none') return 0;
 	const match = /^(\d+)([smhd])$/.exec(written);
-	if (!match) throw new Error(`a lifetime is 30s, 15m, 1h, 1d, immutable or none, not "${written}"`);
+	if (!match)
+		throw new Error(`a lifetime is 30s, 15m, 1h, 1d, immutable or none, not "${written}"`);
 	const seconds = Number(match[1]) * UNITS[match[2] as keyof typeof UNITS];
 	if (seconds > YEAR) throw new Error(`a lifetime is at most a year, not "${written}"`);
 	return seconds;
@@ -88,7 +89,9 @@ const CacheSchema = v.strictObject({
 			redirected: v.optional(Written),
 		}),
 	),
-	failure: v.optional(v.strictObject({ rejected: v.optional(Written), faulted: v.optional(Written) })),
+	failure: v.optional(
+		v.strictObject({ rejected: v.optional(Written), faulted: v.optional(Written) }),
+	),
 });
 
 const CorsSchema = v.strictObject({
@@ -100,7 +103,9 @@ const CorsSchema = v.strictObject({
 		),
 	]),
 	methods: v.optional(v.pipe(v.array(v.picklist(METHODS)), v.minLength(1))),
-	headers: v.optional(v.array(v.pipe(v.string(), v.regex(/^[a-z0-9-]+$/, 'a header is lowercase')))),
+	headers: v.optional(
+		v.array(v.pipe(v.string(), v.regex(/^[a-z0-9-]+$/, 'a header is lowercase'))),
+	),
 });
 
 const FIELDS = {
@@ -143,7 +148,9 @@ type Fields = v.InferOutput<v.ObjectSchema<typeof FIELDS, undefined>>;
 
 /** Whether `path` is a prefix, and what it matches without its `*`. */
 function stemOf(path: string): { prefix: boolean; stem: string } {
-	return path.endsWith('/*') ? { prefix: true, stem: path.slice(0, -1) } : { prefix: false, stem: path };
+	return path.endsWith('/*')
+		? { prefix: true, stem: path.slice(0, -1) }
+		: { prefix: false, stem: path };
 }
 
 /** Exact before prefix, the longer before the shorter: the order a path is matched in. */
@@ -155,7 +162,9 @@ function specificity(a: string, b: string): number {
 }
 
 function cacheOf(...layers: readonly (Fields['cache'] | undefined)[]): Lifetimes {
-	const pick = (read: (cache: NonNullable<Fields['cache']>) => string | undefined): Lifetime | undefined => {
+	const pick = (
+		read: (cache: NonNullable<Fields['cache']>) => string | undefined,
+	): Lifetime | undefined => {
 		for (const layer of layers) {
 			const written = layer && read(layer);
 			if (written !== undefined) return lifetimeOf(written);

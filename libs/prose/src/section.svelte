@@ -18,7 +18,6 @@
 		notes = [],
 		children,
 	}: { slug: string; depth?: number; notes?: number[]; children: Snippet } = $props();
-
 </script>
 
 <!-- A subsection matches a section's size, weight and colour and sits closer to what precedes

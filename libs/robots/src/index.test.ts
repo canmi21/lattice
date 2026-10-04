@@ -60,7 +60,6 @@ describe('robotsFor', () => {
 		expect(text).toContain('Disallow: /@/');
 		expect(text).toContain(`Sitemap: ${URLS.apps.production.site}/sitemap.xml`);
 	});
-
 });
 
 describe('the terms and the sitemaps', () => {
@@ -91,7 +90,8 @@ it("ends every host's file with its own word to an agent and where the code is",
 });
 
 it("names every page host's sitemap, its own first", () => {
-	const sitemaps = (text: string) => text.split('\n').filter((line) => line.startsWith('Sitemap: '));
+	const sitemaps = (text: string) =>
+		text.split('\n').filter((line) => line.startsWith('Sitemap: '));
 	expect(sitemaps(robotsFor('site'))).toEqual([
 		`Sitemap: ${URLS.apps.production.site}/sitemap.xml`,
 		`Sitemap: ${URLS.internal.status.canonical}/sitemap.xml`,

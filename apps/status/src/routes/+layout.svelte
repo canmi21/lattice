@@ -189,7 +189,11 @@
 	{#if author.twitter}<meta name="twitter:creator" content="@{author.twitter}" />{/if}
 	<!-- Each mark is the object the alias layer resolved it to at render; one that resolved to
 	     nothing is left out. See +layout.server.ts. -->
-	{#if data.marks['favicon.ico']}<link rel="icon" href={data.marks['favicon.ico']} sizes="32x32" />{/if}
+	{#if data.marks['favicon.ico']}<link
+			rel="icon"
+			href={data.marks['favicon.ico']}
+			sizes="32x32"
+		/>{/if}
 	{#if data.marks['favicon-96x96.png']}
 		<link rel="icon" type="image/png" sizes="96x96" href={data.marks['favicon-96x96.png']} />
 	{/if}
@@ -215,13 +219,7 @@
 	<div class="flex min-h-14 items-center justify-between gap-4 py-3 {CONTAINER}">
 		<div class="flex h-9 items-center gap-1.5">
 			<a href={resolve('/')} class="focus-ring flex items-center gap-1.5 rounded-md">
-				<img
-					src={data.marks['favicon.svg']}
-					alt=""
-					width="28"
-					height="28"
-					class="size-7"
-				/>
+				<img src={data.marks['favicon.svg']} alt="" width="28" height="28" class="size-7" />
 				<span class={stylex.attrs(styles.wordmark).class}>Status</span>
 			</a>
 			<span class="mx-1 h-[13px] w-px {stylex.attrs(styles.rule).class}" aria-hidden="true"></span>

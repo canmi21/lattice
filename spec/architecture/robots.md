@@ -4,13 +4,13 @@
 asks for its own by its internal name -- `robotsFor('site')` -- so a change to one policy is one line
 there, and the rules every host shares are written once.
 
-| Service  | Rules                                     | Content signals |
-| -------- | ----------------------------------------- | --------------- |
-| `site`   | all but `/@/`, `/cgi-bin/`, `/cdn-cgi/`   | yes, and the sitemap |
-| `status` | all                                       | yes, and the sitemap |
-| `cdn`    | all                                       | no              |
-| `aka`    | all                                       | no              |
-| `api`    | only the site's scope, `/site/`           | no              |
+| Service  | Rules                                   | Content signals      |
+| -------- | --------------------------------------- | -------------------- |
+| `site`   | all but `/@/`, `/cgi-bin/`, `/cdn-cgi/` | yes, and the sitemap |
+| `status` | all                                     | yes, and the sitemap |
+| `cdn`    | all                                     | no                   |
+| `aka`    | all                                     | no                   |
+| `api`    | only the site's scope, `/site/`         | no                   |
 
 **The API lets in the one scope a page asks.** A crawler that renders a page -- Google's does -- asks
 the API for what the page fetches after hydration; shut out, it renders a page with nothing in it.

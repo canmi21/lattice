@@ -12,14 +12,21 @@ export function stamp(at: Date | string): string {
 
 /** A table cell: one line, its pipes escaped. */
 function cell(value: string | number): string {
-	return String(value).replace(/\s*\n\s*/g, ' ').replaceAll('|', '\\|');
+	return String(value)
+		.replace(/\s*\n\s*/g, ' ')
+		.replaceAll('|', '\\|');
 }
 
 /** A two-column table of fields, rows without a value left out. */
 export function fields(rows: readonly (readonly [string, string | number | undefined])[]): string {
-	const kept = rows.filter((row): row is readonly [string, string | number] => row[1] !== undefined);
-	return ['| Field | Value |', '| --- | --- |', ...kept.map(([k, v]) => `| ${cell(k)} | ${cell(v)} |`)]
-		.join('\n');
+	const kept = rows.filter(
+		(row): row is readonly [string, string | number] => row[1] !== undefined,
+	);
+	return [
+		'| Field | Value |',
+		'| --- | --- |',
+		...kept.map(([k, v]) => `| ${cell(k)} | ${cell(v)} |`),
+	].join('\n');
 }
 
 /** A table with a header row. */

@@ -41,7 +41,7 @@ function opening({ site, author, generated, now }: LlmsInput): string[] {
 		`Generated ${stamp(now)}${generated ? `, from the corpus published ${stamp(generated)}` : ''}.`,
 		'',
 		`- Every page has an agent view at its own address with \`.md\` appended; the homepage's is ${documentUrl('homepage')}. A request with \`Accept: text/markdown\` at a page's own address gets the same view.`,
-		'- A view is in the original language of what it shows. Translations are text/html, at the page\'s address with `?lang=` and one of `de`, `en`, `es`, `fr`, `ja`, `ko`, `zh` or `tw`.',
+		"- A view is in the original language of what it shows. Translations are text/html, at the page's address with `?lang=` and one of `de`, `en`, `es`, `fr`, `ja`, `ko`, `zh` or `tw`.",
 		`- Search, AI input and AI training are all permitted, as the Content-Signal and Content-Usage lines in ${web}/robots.txt say.`,
 	];
 }
@@ -75,7 +75,8 @@ export function buildLlms(input: LlmsInput): string {
 		'',
 		documentLink('homepage'),
 		...input.profiles.map(
-			(profile) => `- [${input.author.name} at ${new URL(profile).hostname}](${profile}): An account of the author's.`,
+			(profile) =>
+				`- [${input.author.name} at ${new URL(profile).hostname}](${profile}): An account of the author's.`,
 		),
 		`- [${input.author.name}'s Telegram group](${input.group}): A group the author runs.`,
 		'',

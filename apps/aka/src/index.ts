@@ -38,7 +38,9 @@ names.get('/:rid{[0-9a-z]{5}}', (c) => resource(c, c.req.param('rid')));
  * already out there -- every host's year-long `301` from `/favicon.ico`, the BIMI record -- while a
  * page asks the scoped form below.
  */
-names.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) => resolve(c, c.req.param('name')));
+names.get('/symlink/:name{[a-z0-9][a-z0-9.-]*\\.[a-z0-9]+}', (c) =>
+	resolve(c, c.req.param('name')),
+);
 
 /**
  * A scope's marks, `/symlink/{scope}/{file}`: the form every page asks. See

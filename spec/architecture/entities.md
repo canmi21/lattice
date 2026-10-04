@@ -25,14 +25,14 @@ reference carries the author's name and address beside the `@id`: JSON-LD merges
 person all the same, and a reader that does not follow identifiers still finds a name there. Two nodes sharing an `@id` are merged into one by JSON-LD, so a site and the
 person who runs it can never share one; each takes a fragment of its own.
 
-| Entity                       | `@id`                                   | Emitted by                  |
-| ---------------------------- | --------------------------------------- | --------------------------- |
-| the author, `Person`         | `https://canmi.net/about#person`        | every page of both sites    |
-| the site, `WebSite`          | `https://canmi.net/#website`            | every page of the site      |
-| an article view              | `{that view's canonical}#article`       | the article page            |
-| the status site, `WebSite`   | `https://status.canmi.app/#website`     | the status page             |
-| the status page, `WebPage`   | `https://status.canmi.app/#webpage`     | the status page             |
-| the status program           | `https://status.canmi.app/#app`         | the status page             |
+| Entity                     | `@id`                               | Emitted by               |
+| -------------------------- | ----------------------------------- | ------------------------ |
+| the author, `Person`       | `https://canmi.net/about#person`    | every page of both sites |
+| the site, `WebSite`        | `https://canmi.net/#website`        | every page of the site   |
+| an article view            | `{that view's canonical}#article`   | the article page         |
+| the status site, `WebSite` | `https://status.canmi.app/#website` | the status page          |
+| the status page, `WebPage` | `https://status.canmi.app/#webpage` | the status page          |
+| the status program         | `https://status.canmi.app/#app`     | the status page          |
 
 **The author's identifier is their entity home, `/about`, which does not exist yet.** An entity
 home is the one page that says, first-hand, who an entity is; the identifier names it now so it

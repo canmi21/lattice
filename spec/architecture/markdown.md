@@ -64,14 +64,14 @@ convention's names for a root page -- redirecting to it.
 
 **The headers say the rest**:
 
-| Header                             | On                     | Says                                                    |
-| ---------------------------------- | ---------------------- | ------------------------------------------------------- |
-| `Content-Type: text/markdown`      | both                   | what it is                                              |
-| `Content-Language`                 | both                   | the source's language, from its front matter            |
-| `Link: <page>; rel="canonical"`    | both                   | the page is the address that counts                     |
-| `x-markdown-tokens`                | both                   | about how many tokens it is, Cloudflare's convention    |
-| `Content-Signal`, `Content-Usage`  | both                   | what [robots.md](robots.md) says, as headers            |
-| `Vary: Accept`, `Content-Location` | the page's address     | it varies by `Accept`, and its own address is `.md`     |
+| Header                             | On                 | Says                                                 |
+| ---------------------------------- | ------------------ | ---------------------------------------------------- |
+| `Content-Type: text/markdown`      | both               | what it is                                           |
+| `Content-Language`                 | both               | the source's language, from its front matter         |
+| `Link: <page>; rel="canonical"`    | both               | the page is the address that counts                  |
+| `x-markdown-tokens`                | both               | about how many tokens it is, Cloudflare's convention |
+| `Content-Signal`, `Content-Usage`  | both               | what [robots.md](robots.md) says, as headers         |
+| `Vary: Accept`, `Content-Location` | the page's address | it varies by `Accept`, and its own address is `.md`  |
 
 The count is a CJK character as one token and four other characters as one: an estimate, as
 Cloudflare's own is. The answer at a page's address varies by what was asked, so nothing shared

@@ -45,11 +45,11 @@ is let through only when every row that covers it does: one device asking for ma
 the address's row, one account asking from many devices meets the account's. Two rows of the same
 kind covering one call are refused when the table is generated; rows of different kinds stack.
 
-| `subject`  | Counts                                                    | A key's subject                      |
-| ---------- | --------------------------------------------------------- | ------------------------------------ |
-| `address`  | the caller's address: IPv4 whole, IPv6 by its `/64`       | `address-198.51.100.7`               |
-| `account`  | one account, over all its sessions and devices            | `account-{account}`                  |
-| `session`  | one signed-in session, inside the account it belongs to   | `session-{account}.{session}`        |
+| `subject` | Counts                                                  | A key's subject               |
+| --------- | ------------------------------------------------------- | ----------------------------- |
+| `address` | the caller's address: IPv4 whole, IPv6 by its `/64`     | `address-198.51.100.7`        |
+| `account` | one account, over all its sessions and devices          | `account-{account}`           |
+| `session` | one signed-in session, inside the account it belongs to | `session-{account}.{session}` |
 
 **Only `address` is accepted until there are accounts**, as `auth` takes `"none"` alone, and it is
 what a row without `subject` counts. An IPv6 address counts by its `/64`, the block one machine is

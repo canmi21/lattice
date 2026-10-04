@@ -20,7 +20,10 @@ function answer(status: number, cacheControl: string, location?: string): Respon
  * a `302` there while it resolves, a `404` while the corpus names nothing, a `502` otherwise.
  * Each is stamped as the alias layer stamps its own.
  */
-export async function followSymlink(name: string, fetcher: typeof fetch = fetch): Promise<Response> {
+export async function followSymlink(
+	name: string,
+	fetcher: typeof fetch = fetch,
+): Promise<Response> {
 	let asked: Response;
 	try {
 		asked = await fetcher(name, { redirect: 'manual' });

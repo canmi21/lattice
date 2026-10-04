@@ -98,5 +98,7 @@ export function agentNote(file: NoteFile, service: Service): string[] {
 
 /** Every note, for a test that holds them all different. */
 export function everyNote(): string[][] {
-	return Object.values(NOTES).flatMap((byService) => Object.values(byService).map((lines) => [...lines]));
+	return Object.values(NOTES).flatMap((byService) =>
+		Object.values(byService).map((lines) => [...lines]),
+	);
 }

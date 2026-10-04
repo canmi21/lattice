@@ -229,113 +229,118 @@
 			<Section slug={block.slug} depth={block.depth} notes={block.notes}>{block.text}</Section>
 		{:else}
 			<Anchored id={anchors[i]}>
-		{#if block.type === 'code'}
-			<CodeBlock
-				label={block.label}
-				title={block.title}
-				collapsible={block.collapsible}
-				default_expanded={block.default_expanded}
-				copyLabel={m['code.copy']({}, { locale })}
-				copiedLabel={m['code.copied']({}, { locale })}
-				copyFailedLabel={m['code.copy-failed']({}, { locale })}
-				code={block.code}
-				html={block.html}
-			/>
-		{:else if block.type === 'mermaid'}
-			<Mermaid
-				source={block.source}
-				ratio={block.ratio}
-				description={block.description}
-				loadingLabel={m['mermaid.loading']({}, { locale })}
-			/>
-		{:else if block.type === 'quadrant'}
-			<Quadrant
-				title={block.title}
-				description={block.description}
-				reading={block.reading}
-				axes={block.axes}
-				items={block.items}
-			/>
-		{:else if block.type === 'image'}
-			<!-- Resolved here rather than carried by the block: the ladder and the placeholder are
+				{#if block.type === 'code'}
+					<CodeBlock
+						label={block.label}
+						title={block.title}
+						collapsible={block.collapsible}
+						default_expanded={block.default_expanded}
+						copyLabel={m['code.copy']({}, { locale })}
+						copiedLabel={m['code.copied']({}, { locale })}
+						copyFailedLabel={m['code.copy-failed']({}, { locale })}
+						code={block.code}
+						html={block.html}
+					/>
+				{:else if block.type === 'mermaid'}
+					<Mermaid
+						source={block.source}
+						ratio={block.ratio}
+						description={block.description}
+						loadingLabel={m['mermaid.loading']({}, { locale })}
+					/>
+				{:else if block.type === 'quadrant'}
+					<Quadrant
+						title={block.title}
+						description={block.description}
+						reading={block.reading}
+						axes={block.axes}
+						items={block.items}
+					/>
+				{:else if block.type === 'image'}
+					<!-- Resolved here rather than carried by the block: the ladder and the placeholder are
 			     the record's, and the record is a fact about the corpus at the moment somebody
 			     asks. `pictured` refuses a rid that resolved to nothing, which is the one thing a
 			     picture does that a card's mark does not -- see libs/artifacts. -->
-			{@const picture = pictured(
-				block.resources.picture,
-				resources[block.resources.picture],
-				cdnUrl,
-			)}
-			<Picture
-				{locale}
-				enlarges
-				src={picture.src}
-				alt={block.alt}
-				width={picture.width}
-				height={picture.height}
-				preview={picture.placeholder}
-				srcset={picture.srcset}
-				crop={block.crop}
-				align={block.align}
-				eager={i === lead}
-			/>
-		{:else if block.type === 'video'}
-			<Video
-				{locale}
-				src={block.src}
-				rungs={block.rungs}
-				width={block.width}
-				height={block.height}
-				poster={block.poster}
-				preview={block.preview}
-				captions={block.captions}
-				description={block.description}
-				source={block.source}
-				gain={block.gain}
-			/>
-		{:else if block.type === 'linkcard'}
-			<LinkCard
-				{locale}
-				src={block.src}
-				url={block.url}
-				title={block.title}
-				icon={block.resources ? resources[block.resources.icon] : undefined}
-				tone={block.tone}
-				width={block.width}
-				height={block.height}
-				preview={block.preview}
-				srcset={block.srcset}
-				crop={block.crop}
-				align={block.align}
-				description={block.description}
-			/>
-		{:else if block.type === 'article'}
-			<!-- The homepage's row, unchanged, and navigating in place like every other link
+					{@const picture = pictured(
+						block.resources.picture,
+						resources[block.resources.picture],
+						cdnUrl,
+					)}
+					<Picture
+						{locale}
+						enlarges
+						src={picture.src}
+						alt={block.alt}
+						width={picture.width}
+						height={picture.height}
+						preview={picture.placeholder}
+						srcset={picture.srcset}
+						crop={block.crop}
+						align={block.align}
+						eager={i === lead}
+					/>
+				{:else if block.type === 'video'}
+					<Video
+						{locale}
+						src={block.src}
+						rungs={block.rungs}
+						width={block.width}
+						height={block.height}
+						poster={block.poster}
+						preview={block.preview}
+						captions={block.captions}
+						description={block.description}
+						source={block.source}
+						gain={block.gain}
+					/>
+				{:else if block.type === 'linkcard'}
+					<LinkCard
+						{locale}
+						src={block.src}
+						url={block.url}
+						title={block.title}
+						icon={block.resources ? resources[block.resources.icon] : undefined}
+						tone={block.tone}
+						width={block.width}
+						height={block.height}
+						preview={block.preview}
+						srcset={block.srcset}
+						crop={block.crop}
+						align={block.align}
+						description={block.description}
+					/>
+				{:else if block.type === 'article'}
+					<!-- The homepage's row, unchanged, and navigating in place like every other link
 			     here -- the reader's way back is the trail, see spec/styling/rail.md. Its thumbnail
 			     keeps the baked first frame rather than the content-derived shape the homepage
 			     animates to: that shape is normalised across a whole list, and one card in a body
 			     has no list to be measured against. See $lib/article/list.svelte. -->
-			<ArticleCard
-				title={block.title}
-				subtitle={block.subtitle}
-				short_title={block.short_title}
-				short_subtitle={block.short_subtitle}
-				published={block.published}
-				path={block.path}
-			/>
-		{:else if block.type === 'placeholder'}
-			<Placeholder kind={block.kind} meta={block.meta} />
-		{:else if block.type === 'svgCanvas'}
-			<SvgCanvas svg={block.svg} {locale} description={block.description} />
-		{:else if block.type === 'tokei'}
-			<Tokei source={block.source} title={block.title} view={block.view} />
-		{:else if block.type === 'cargo'}
-			<Cargo crate={block.crate} view={block.view} />
-		{:else if block.type === 'twitter'}
-			<Twitter tweet={block.tweet} />
-		{:else if block.type === 'github'}
-			<GitHub repo={block.repo} git_ref={block.git_ref} title={block.title} align={block.align} />
-		{/if}
+					<ArticleCard
+						title={block.title}
+						subtitle={block.subtitle}
+						short_title={block.short_title}
+						short_subtitle={block.short_subtitle}
+						published={block.published}
+						path={block.path}
+					/>
+				{:else if block.type === 'placeholder'}
+					<Placeholder kind={block.kind} meta={block.meta} />
+				{:else if block.type === 'svgCanvas'}
+					<SvgCanvas svg={block.svg} {locale} description={block.description} />
+				{:else if block.type === 'tokei'}
+					<Tokei source={block.source} title={block.title} view={block.view} />
+				{:else if block.type === 'cargo'}
+					<Cargo crate={block.crate} view={block.view} />
+				{:else if block.type === 'twitter'}
+					<Twitter tweet={block.tweet} />
+				{:else if block.type === 'github'}
+					<GitHub
+						repo={block.repo}
+						git_ref={block.git_ref}
+						title={block.title}
+						align={block.align}
+					/>
+				{/if}
 			</Anchored>
 		{/if}
 	{/each}

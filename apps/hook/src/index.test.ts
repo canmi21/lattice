@@ -66,7 +66,10 @@ describe('handle', () => {
 
 	it('takes the same delivery at /v1/github', async () => {
 		const { sent, env } = home();
-		const response = await handle(await deliver(DELIVERY, 'workflow_run', undefined, '/v1/github'), env);
+		const response = await handle(
+			await deliver(DELIVERY, 'workflow_run', undefined, '/v1/github'),
+			env,
+		);
 		expect(response.status).toBe(202);
 		expect(sent.map((notice) => notice.url)).toEqual(RECEIVERS);
 	});

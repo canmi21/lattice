@@ -29,7 +29,10 @@ describe("the pages' addresses for the API, in production", () => {
 			const { apiPath, readAddress } = await import('./api');
 			const read = apiPath('read', { slug: 'a-b' });
 			expect(read).toBe(`/api/${stated.read}/a-b`);
-			expect(readAddress(read.slice('/api/'.length))).toEqual({ route: 'read', query: { slug: 'a-b' } });
+			expect(readAddress(read.slice('/api/'.length))).toEqual({
+				route: 'read',
+				query: { slug: 'a-b' },
+			});
 			expect(apiPath('stats')).toBe(`/api/${stated.stats}`);
 			expect(readAddress('articles/a-b/reads')).toBeUndefined();
 		} finally {
