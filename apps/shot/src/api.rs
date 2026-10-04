@@ -13,7 +13,7 @@ use axum::body::Bytes;
 use axum::extract::{Path, RawQuery, State};
 use axum::http::{HeaderMap, HeaderValue, StatusCode, header};
 use axum::response::{IntoResponse, Response};
-use axum::routing::get;
+use axum::routing::{get, post};
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -28,9 +28,27 @@ const PICTURE_CACHE: &str = "public, max-age=900";
 /// any time, so a few minutes rather than until a fixed expiry, which there is none of.
 const TASK_CACHE: &str = "public, max-age=300";
 
+/// Which shape a request was asked in, and so where its answer points to ask after a capture.
+#[derive(Clone, Copy)]
+enum Shape {
+	/// `capture` and `status?task=`, unversioned, until its callers move.
+	Old,
+	/// `/v1/tasks` and `/v1/tasks/{id}`: a task is a thing, and starting one is a write. See the
+	/// workspace's spec/addresses.md.
+	V1,
+}
+
+/// The API at `/v1/` in its own shape, and unversioned in the old one until its callers move;
+/// `/health` is host's and never versioned. See spec/architecture/gateway.md, "A version is in the
+/// path, and it moves only on a break".
 pub fn routes<R: Render>(shot: Arc<Shot<R>>) -> Router {
+	let v1 = Router::new()
+		.route("/tasks", post(task_post::<R>))
+		.route("/tasks/{task}", get(task_get::<R>))
+		.route("/pictures/{file}", get(picture::<R>));
 	Router::new()
 		.route("/health", get(|| async { response::success(StatusCode::OK, ()) }))
+		.nest("/v1", v1)
 		.route("/capture", get(capture_get::<R>).post(capture_post::<R>))
 		.route("/status", get(status::<R>))
 		// A signed, temporary address awaits a place to issue one. See
@@ -59,7 +77,7 @@ async fn capture_get<R: Render>(
 ) -> Response {
 	let raw = raw.unwrap_or_default();
 	let pairs = url::form_urlencoded::parse(raw.as_bytes()).into_owned();
-	capture(&shot, &headers, Query::from_pairs(pairs))
+	capture(&shot, &headers, Query::from_pairs(pairs), Shape::Old)
 }
 
 /// The same, asked in a POST's JSON.
@@ -68,8 +86,21 @@ async fn capture_post<R: Render>(
 	headers: HeaderMap,
 	body: Bytes,
 ) -> Response {
-	match serde_json::from_slice::<crate::asked::Body>(&body) {
-		Ok(body) => capture(&shot, &headers, Ok(Query::from_body(body))),
+	posted(&shot, &headers, &body, Shape::Old)
+}
+
+/// A task started, as `/v1/` has it: the one way to start one, since a `GET` changes nothing.
+async fn task_post<R: Render>(
+	State(shot): State<Arc<Shot<R>>>,
+	headers: HeaderMap,
+	body: Bytes,
+) -> Response {
+	posted(&shot, &headers, &body, Shape::V1)
+}
+
+fn posted<R: Render>(shot: &Shot<R>, headers: &HeaderMap, body: &Bytes, shape: Shape) -> Response {
+	match serde_json::from_slice::<crate::asked::Body>(body) {
+		Ok(body) => capture(shot, headers, Ok(Query::from_body(body)), shape),
 		Err(error) => settled(response::failure_with(StatusCode::BAD_REQUEST, "invalid_body", error)),
 	}
 }
@@ -87,6 +118,7 @@ fn capture<R: Render>(
 	shot: &Shot<R>,
 	headers: &HeaderMap,
 	query: Result<Query, Refused>,
+	shape: Shape,
 ) -> Response {
 	let lane = lane(headers);
 	let public = lane == Lane::Public;
@@ -105,15 +137,15 @@ fn capture<R: Render>(
 			answer.headers_mut().insert(header::RETRY_AFTER, HeaderValue::from_static("30"));
 			settled(answer)
 		}
-		Ok(id) => taken(id, shot.about(id)),
+		Ok(id) => taken(id, shot.about(id), shape),
 	}
 }
 
 /// That a capture was taken, and where to ask after it: its state and nothing it found, which is
 /// the task's to tell. `Location` is relative, since this service does not know the scope it is
-/// reached under: `status?task=<id>` beside `capture`. See spec/architecture/shot.md, "A picture
-/// is named by its whole public address".
-fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
+/// reached under: `status?task=<id>` beside `capture`, or `tasks/<id>` beside `/v1/tasks`. See
+/// spec/architecture/shot.md, "A picture is named by its whole public address".
+fn taken(id: Uuid, known: Option<(View, Details)>, shape: Shape) -> Response {
 	let (state, retry_after) = match known.map(|(view, _)| view) {
 		Some(View::Waiting { rendering, retry_after }) => {
 			(if rendering { "rendering" } else { "queued" }, retry_after)
@@ -128,7 +160,11 @@ fn taken(id: Uuid, known: Option<(View, Details)>) -> Response {
 	if retry_after > 0 {
 		headers.insert(header::RETRY_AFTER, HeaderValue::from(retry_after));
 	}
-	if let Ok(location) = HeaderValue::from_str(&format!("status?task={id}")) {
+	let location = match shape {
+		Shape::Old => format!("status?task={id}"),
+		Shape::V1 => format!("tasks/{id}"),
+	};
+	if let Ok(location) = HeaderValue::from_str(&location) {
 		headers.insert(header::LOCATION, location);
 	}
 	settled(answer)
@@ -142,7 +178,16 @@ async fn status<R: Render>(State(shot): State<Arc<Shot<R>>>, RawQuery(raw): RawQ
 	let raw = raw.unwrap_or_default();
 	let pairs = url::form_urlencoded::parse(raw.as_bytes());
 	let task = pairs.into_iter().find(|(name, _)| name == "task").map(|(_, value)| value);
-	let Some(id) = task.and_then(|id| Uuid::parse_str(&id).ok()) else {
+	task_of(&shot, task.as_deref()).await
+}
+
+/// A task, as `/v1/` names it: by its id, in the path.
+async fn task_get<R: Render>(State(shot): State<Arc<Shot<R>>>, Path(task): Path<String>) -> Response {
+	task_of(&shot, Some(&task)).await
+}
+
+async fn task_of<R: Render>(shot: &Shot<R>, task: Option<&str>) -> Response {
+	let Some(id) = task.and_then(|id| Uuid::parse_str(id).ok()) else {
 		return settled(response::failure(StatusCode::NOT_FOUND, "no_such_task"));
 	};
 	if let Some((view, details)) = shot.about(id) {
@@ -498,7 +543,11 @@ mod tests {
 	}
 
 	async fn post(router: &Router, body: &str) -> Answer {
-		let request = Request::post("/capture")
+		post_to(router, "/capture", body).await
+	}
+
+	async fn post_to(router: &Router, path: &str, body: &str) -> Answer {
+		let request = Request::post(path)
 			.header(header::CONTENT_TYPE, "application/json")
 			.body(Body::from(body.to_owned()))
 			.unwrap();
@@ -534,6 +583,26 @@ mod tests {
 		}
 		let whole = ask(&router, "/capture?host=x.test&query=a%3D1", false).await;
 		assert_eq!(whole.json()["code"], "invalid_url");
+	}
+
+	#[tokio::test]
+	async fn v1_starts_a_task_by_post_and_names_it_in_the_path() {
+		let (_root, shot, router) = service();
+		let body = r#"{"target":{"host":"x.test","path":"docs"}}"#;
+		let started = post_to(&router, "/v1/tasks", body).await;
+		assert_eq!(started.status, StatusCode::ACCEPTED);
+		let id = started.json()["data"]["id"].as_str().unwrap().to_owned();
+		assert_eq!(started.headers[header::LOCATION], format!("tasks/{id}").as_str());
+		assert_eq!(post(&router, body).await.headers[header::LOCATION], format!("status?task={id}").as_str());
+		drain(&shot).await;
+		let task = ask(&router, &format!("/v1/tasks/{id}"), false).await;
+		assert_eq!(task.json(), ask(&router, &format!("/status?task={id}"), false).await.json());
+		assert_eq!(task.status, StatusCode::OK);
+		assert_eq!(ask(&router, "/v1/tasks/not-an-id", false).await.json()["code"], "no_such_task");
+		for old in ["/v1/capture?host=x.test", "/v1/status?task=x"] {
+			assert_eq!(ask(&router, old, false).await.status, StatusCode::NOT_FOUND, "{old}");
+		}
+		assert_eq!(ask(&router, "/v1/tasks", false).await.status, StatusCode::METHOD_NOT_ALLOWED);
 	}
 
 	#[tokio::test]

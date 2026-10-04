@@ -39,6 +39,10 @@ path = "/status"
 cache = { success = { fulfilled = "5m" } }
 
 [[api.routes]]
+path = "/tasks/*"
+cache = { success = { fulfilled = "5m" } }
+
+[[api.routes]]
 path = "/pictures/*"
 cache = { success = { fulfilled = "15m" } }
 
@@ -46,5 +50,12 @@ cache = { success = { fulfilled = "15m" } }
 [[api.limits]]
 methods = ["GET", "HEAD", "POST"]
 path = "/capture"
+count = 3
+seconds = 60
+
+# The same, as `/v1/` starts a task: by POST alone.
+[[api.limits]]
+methods = ["POST"]
+path = "/tasks"
 count = 3
 seconds = 60

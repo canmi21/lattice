@@ -112,6 +112,12 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				count: 3,
 				seconds: 60,
 			},
+			{
+				methods: ['POST'],
+				path: '/tasks',
+				count: 3,
+				seconds: 60,
+			},
 		],
 		routes: [
 			{
@@ -132,6 +138,20 @@ export const SCOPES: Readonly<Record<string, Scope>> = {
 				path: '/pictures/*',
 				cache: {
 					fulfilled: 900,
+					accepted: 0,
+					redirected: 0,
+					rejected: 0,
+					faulted: 0,
+				},
+				crawlable: false,
+				exposed: true,
+				forbidden: ['internal', 'fresh'],
+				auth: 'none',
+			},
+			{
+				path: '/tasks/*',
+				cache: {
+					fulfilled: 300,
 					accepted: 0,
 					redirected: 0,
 					rejected: 0,

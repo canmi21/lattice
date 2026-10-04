@@ -19,6 +19,12 @@ Each tells its own and nothing of the others'.
 | `GET /shot/status?task=<id>`                                  | `202 { id, state, retry_after }` while queued or rendering; `200` with all it found, done         |
 | `GET /shot/pictures/<id>.png`, `GET /shot/pictures/<id>.webp` | `200`, the picture itself, `Cache-Control: max-age=900`; or `404`, and no more said               |
 
+**`/v1/` names a task as a thing and starts one by a write**, as the workspace's
+`spec/addresses.md` has it: `POST /shot/v1/tasks` takes what `POST /shot/capture` takes and answers
+`Location: tasks/<id>`; `GET /shot/v1/tasks/<id>` is what `status?task=<id>` is; the pictures are
+`/shot/v1/pictures/<id>.png` and `.webp`. The table above is the unversioned shape, answered until
+its callers move, and `/v1/` has no `GET` that starts a capture.
+
 - **The id is said once, in the body; where to ask is the `Location` header's**, never a second
   field repeating the id.
 - **A capture asked for again answers the same way** whether it waits or is done: one flow for the
