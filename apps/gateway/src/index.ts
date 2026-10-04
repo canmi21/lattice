@@ -400,6 +400,10 @@ export function gateway(scopes: Readonly<Record<string, Scope>> = SCOPES) {
 			);
 			relayed.headers.delete(INTERNAL_HEADER);
 			if (c.env.INTERNAL_TOKEN) relayed.headers.set(INTERNAL_HEADER, c.env.INTERNAL_TOKEN);
+			// Cloudflare's own headers are Cloudflare's to set: a request arriving with one, the
+			// visitor's address that Caddy wrote here among them, is refused at its edge with a 403.
+			const cloudflare = [...relayed.headers.keys()].filter((name) => name.startsWith('cf-'));
+			for (const name of cloudflare) relayed.headers.delete(name);
 			try {
 				return answered(await c.env.RELAY.fetch(relayed));
 			} catch {

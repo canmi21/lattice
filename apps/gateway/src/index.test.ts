@@ -405,13 +405,16 @@ describe('the gateway', () => {
 			RELAY: relay.fetcher,
 			INTERNAL_TOKEN: 'house',
 		};
-		await ask('/v1/site/stats?x=1', env, { headers: { [INTERNAL_HEADER]: 'forged' } });
+		await ask('/v1/site/stats?x=1', env, {
+			headers: { [INTERNAL_HEADER]: 'forged', 'cf-connecting-ip': '10.0.0.7' },
+		});
 		await ask('/v1/geo/address', env);
 		const relayed = relay.seen;
 		expect(relayed.map((request) => request.url)).toEqual([
 			`https://${GATEWAY.api}/v1/site/stats?x=1`,
 		]);
 		expect(relayed[0]?.headers.get(INTERNAL_HEADER)).toBe('house');
+		expect(relayed[0]?.headers.has('cf-connecting-ip')).toBe(false);
 		expect(home.seen).toHaveLength(1);
 	});
 
