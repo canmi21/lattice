@@ -45,8 +45,7 @@ enforce.
 
 Decided: all of it goes into `service.toml`, CORS by service code; see the gateway's spec.
 
-**Undecided: the declaration's shape.** How a path is matched and which match wins, what a lifetime
-is written as, and how `mise run scopes` validates a declaration before the gateway is built from it.
+Decided: the shape in the gateway's spec, "The declaration".
 
 ## A lifetime is one number for a success and one for a failure
 
@@ -56,9 +55,9 @@ distinction the alias layer already makes by hand.
 
 Decided: fifteen minutes for a success and five for a failure when nothing is declared.
 
-**Undecided: whether a failure is one kind or two.** A refusal about the request (a 4xx) and the
-service failing or unreachable (a 5xx, or no answer) can share one lifetime or have one each; the
-alias layer keeps the second for no time at all, since every icon on a page passes through it.
+Decided: four kinds, named, nested under success and failure; see the gateway's spec.
+
+Decided: `fulfilled`, `redirected`, `rejected` and `faulted`; see the gateway's spec.
 
 ## The addresses are spelled for the old hosts
 
@@ -80,3 +79,15 @@ Decided: `rdu`.
 `api.monoflake.com`, `cdn.monoflake.com`, each `ixc.one` deployment -- have none yet, and a
 deployment's own host is a second address for the same answers, which an index should not take as a
 second copy.
+
+## The whitelists are written by hand, and checked against the table only
+
+`rules/ill.li/alias-paths-only.txt`, `rules/ffoni.com/api-scopes-only.txt` and
+`rules/ffoni.com/cdn-prefixes-only.txt` spell each host's paths out by hand, and `mise run rules`
+checks only that the API's list and the gateway's scopes name the same scopes. The new zones --
+`monoflake.com`, `ixc.one`, `symlink.si` -- have no rules at all, and `symlink.si` is not yet a
+domain anything answers.
+
+A generated whitelist has two limits to fit inside: an expression is at most 4,096 characters, and
+the Free plan allows a zone five custom rules. Every deployment of `ixc.one` is in one zone, so its
+whitelist covers every service on every node in one expression.

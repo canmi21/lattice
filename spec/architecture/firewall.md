@@ -22,6 +22,8 @@ Three things hold across every zone, and a new rule keeps to them:
 - **A blacklist everywhere**: what scanners ask every host for is refused before a Worker runs.
 - **A whitelist where the paths are ours**: a host whose every path this repository serves refuses
   the rest, and lets `/.well-known/` through, where the standards put what every host answers.
+  A service-layer zone's whitelist is generated from the gateway's table rather than written; see
+  [gateway.md](gateway.md), "Every host's files and firewall are derived".
   `*.canmi.app` has no whitelist: its names are other vendors' interfaces behind Access.
 - **One rate cap per zone, a floor under the limits that know more**: counted by address at each
   Cloudflare location, set to catch a flood rather than a reader. A service's own limits -- the

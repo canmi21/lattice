@@ -39,7 +39,8 @@ path, so the CDN receives `/v3/object/...` whichever host was asked.
 | ----------------------------------------- | ------------------------------------- | ---------------------------- |
 | `api.monoflake.com`                       | nothing                               | `/v{n}/{service}/{path}`     |
 | `cdn.monoflake.com`                       | the service, `cdn`, at `v3`           | `/{path}`                    |
-| `ill.li`                                  | the service, `alias`, at `v1`         | `/{path}`                    |
+| `ill.li`                                  | the service, `alias`, at `v1`         | `/{rid}`, a short link       |
+| `symlink.si`                              | `alias` at `v1`, under `/symlink`     | `/{path}`                    |
 | `api-{region}-{provider}.ixc.one`         | where it runs                         | `/v{n}/{service}/{path}`     |
 | `{service}-{region}-{provider}.ixc.one`   | the service, and where it runs        | `/v{n}/{path}`               |
 
@@ -50,7 +51,9 @@ which node is nearest and asks it directly. A page rendered on the server would 
 `monoflake.com`, so that what it renders can always be reached.
 
 **A profile is a row in a table, not code.** A new short host, or a new node, is one more row: the
-hostname, what it fixes, and the version it pins.
+hostname, what it fixes, the version it pins, and the path it puts in front, if any.
+`symlink.si/{path}` reaches the alias layer as `/v1/symlink/{path}`; `ill.li/symlink/...` is then no
+address at all, and `ill.li` carries short links alone.
 
 ## Hostnames are one label deep, spelled with hyphens
 
@@ -79,7 +82,7 @@ recognize first. A deployment that runs everywhere at once, as a Worker does, is
 
 | Code  | Where                                         | So a deployment there is      |
 | ----- | --------------------------------------------- | ----------------------------- |
-| `rdu` | the machine at home, by Raleigh-Durham's airport | `api-rdu-int.ixc.one`       |
+| `rdu` | the machine at home, by Raleigh-Durham's airport | `api-rdu-int.ixc.one`, `geo-rdu-int.ixc.one` |
 | `glo` | Cloudflare's Workers, everywhere              | `api-glo-cf.ixc.one`          |
 
 ## A version is in the path, and it moves only on a break
@@ -115,8 +118,79 @@ origin, or a list of the codes of the services whose pages may call it -- `["sit
 which the gateway reads against `libs/urls` for their origins. A page moving to another host is
 then one change in `libs/urls`, and no declaration names a URL.
 
+**Every field is declared for the service, and may be declared again for any one of its paths.**
+CORS, lifetimes, crawling and, later, credentials are all route-level: a service's defaults say
+what its paths get, a route says what it gets instead, and the nearest declaration wins.
+
+**A lifetime is declared for four kinds of answer, named rather than numbered.** A success is a
+`2xx` or a `3xx`, a failure a `4xx` or a `5xx` -- the request's fault, or the service's, an answer
+that never came counting as the service's. Each has a name, nested under success and failure, so a
+route can keep a redirect apart from what it points at, and a blip apart from a refusal that holds
+until the next publication:
+
+| Class | Name                 | What it says                                       |
+| ----- | -------------------- | -------------------------------------------------- |
+| `2xx` | `success.fulfilled`  | the request was met                                |
+| `3xx` | `success.redirected` | the answer is elsewhere                            |
+| `4xx` | `failure.rejected`   | the request was at fault                           |
+| `5xx` | `failure.faulted`    | the service was at fault, or never answered        |
+
+A lifetime is written `"30s"`, `"15m"`, `"1h"` or `"1d"`; `"immutable"` is a year and says the
+bytes will not change; `"none"` keeps nothing.
+
 **What nobody declares falls to one default: a success is kept fifteen minutes, a failure five.**
-A service sets its own for all its paths, and a path for itself; the nearest declaration wins.
+
+### The declaration
+
+`[api.defaults]` holds what every path of the service gets; each `[[api.routes]]` names a `path`
+and what it gets instead. Each field is looked up on the route, then the service's defaults, then
+the gateway's own, field by field, so a route that names one lifetime inherits the other three.
+
+```toml
+[api.defaults]
+crawlable = false
+
+[api.defaults.cors]
+origins = "public"            # or service codes: ["site", "status"]
+methods = ["GET", "HEAD"]     # the default when absent
+headers = []                  # request headers allowed beside Content-Type
+
+[api.defaults.cache.success]
+fulfilled = "15m"
+redirected = "15m"
+
+[api.defaults.cache.failure]
+rejected = "5m"
+faulted = "none"
+
+[[api.routes]]
+path = "/v1/symlink/*"
+
+[api.routes.cache.success]
+redirected = "1h"
+```
+
+- **`cors` absent is no browser at all.** `origins` is `"public"` or a list of service codes,
+  `methods` defaults to `GET` and `HEAD`, `headers` to none beyond `Content-Type`.
+- **A path is exact, or a prefix ending in `/*`.** The more specific wins -- exact over prefix, the
+  longer prefix over the shorter -- whatever the order they are written in; two routes as specific
+  as each other are an error when the table is generated.
+- **`auth` is reserved.** It takes `"none"` alone until there are accounts.
+
+### The table is built, not read at run time
+
+`mise run scopes` reads every `service.toml`, holds each to a schema -- an unknown field, a service
+code nobody declares, a lifetime it cannot read and two routes as specific as each other all fail
+it -- and writes the gateway's table as `apps/gateway/src/scopes.ts`, lifetimes in seconds and
+routes in the order they are matched. The gateway reads nothing else at run time, and a test holds
+the committed table to the declarations. A Worker cannot read the repository, and a store it read
+at run time would be state that drifts from the code and is checked only once it is live; a change
+to a declaration is a commit either way, and Cloudflare rebuilds the gateway on it.
+
+**Onboarding a service is a declaration, never gateway code.** Its `service.toml`, `mise run
+scopes`, and for a Worker the binding in the gateway's `wrangler.jsonc`, which a test checks.
+host's reader of the same file ignores what it does not know, so the gateway's fields cost the
+nodes nothing.
 
 **Whether a crawler may fetch a path is declared with it.** The gateway writes each hostname's
 `robots.txt` from what the routes reachable on that host say -- the CDN may let its objects be
@@ -139,9 +213,26 @@ them. A route that serves an object to anyone answers `public, immutable`; a rou
 on some condition is kept by that route's own rule. When accounts exist, the condition is a
 credential; until then every route is public.
 
-**The gateway answers for the host.** Each hostname's `robots.txt`, `/.well-known/security.txt`
-and `/favicon.ico`, and the redirect of a path to its one spelling, are the gateway's, once, from
-the profile -- not each service's.
+## Every host's files and firewall are derived
+
+**A domain is the application layer's or the service layer's.** `canmi.net`, `canmi.app` and the
+status page's hosts are applications, configured each as itself. Every hostname bound to the
+gateway is the service layer's, and nothing about it is written by hand: what it answers is the
+profile table and the declarations, and everything a host says about itself follows from those.
+
+**What a hostname serves is known exactly, so each host's files are its own.** The gateway knows,
+for every hostname, which paths are an address there: the profile's fixed parts and every route of
+the services it reaches. From that one set it writes the host's `robots.txt` -- a path allowed where
+its route is `crawlable`, refused otherwise -- its `/.well-known/security.txt`, its `/favicon.ico`,
+and the redirect of a path to its one spelling. No two hosts answer the same file unless they serve
+the same paths.
+
+**The firewall's whitelist is generated from the same set, and synced by the same script.** A
+service-layer zone's rules in `rules/` -- which paths each of its hosts lets through to a Worker at
+all -- are written by `mise run scopes` beside the table, never by hand, so the WAF refuses exactly
+what the gateway would and opens nothing wider. `mise run rules sync` sends them to Cloudflare as it
+does every zone's today. An application-layer zone's rules stay written by hand. See
+[firewall.md](firewall.md).
 
 ## Where a request goes
 
