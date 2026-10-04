@@ -1,11 +1,11 @@
 # See spec/architecture/firewall.md.
 
 [[rules]]
-name = "Pass Probe"
+name = "Pass Our Own"
 phase = "http_request_firewall_custom"
 action = "skip"
 skip_phases = ["http_ratelimit"]
-expression = "../all/pass-probe.txt"
+expression = "../all/pass-own.txt"
 
 [[rules]]
 name = "Block Probes"

@@ -52,7 +52,8 @@ comment and a blank line stand anywhere in the file.
 - An expression holds no comments and at most 4,096 characters. What a rule is for is this file.
 - **A secret in an expression is `${NAME}`**, filled at sync from the environment mise decrypts
   the repository's secrets into -- the probe's token, `${PROBE_TOKEN}`, and the internal gateway's,
-  `${INTERNAL_TOKEN}`, which the one zone it relays to lets past its rate rule. Only a
+  `${INTERNAL_TOKEN}`, either of which one rule in every zone lets past its rate rule, since both
+  are our own callers and a zone's five custom rules are few. Only a
   name the rules task knows may appear, which the check holds to; a sync refuses a zone whose
   secret is unset before it asks Cloudflare anything, and a dry run prints the name, never the
   value. See [probe.md](probe.md).

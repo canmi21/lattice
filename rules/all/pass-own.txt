@@ -1,0 +1,2 @@
+any(http.request.headers["x-probe"][*] eq "${PROBE_TOKEN}")
+or any(http.request.headers["x-internal"][*] eq "${INTERNAL_TOKEN}")
