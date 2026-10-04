@@ -118,7 +118,7 @@ window is below.
 the `reader` record in `localStorage` -- the mechanism the site keeps its own per-person facts in,
 [engagement.md](../engagement.md), "What this site remembers is two records and one mechanism" --
 under `cms.sidebar.width`, on the CMS's own origin. The divider itself is
-[resize.ts](../../libs/kit/behavior/src/resize.ts) in `@canmi/kit/behavior`, shared rather than written for
+[resize.ts](../../lib/pkgs/kit/behavior/src/resize.ts) in `@canmi/kit/behavior`, shared rather than written for
 this page: the handle, the range a width may take, and the script that sets a remembered width
 before the first frame. The script is the part that matters. The server cannot read
 `localStorage`, so it renders the fallback width, and applying the remembered one after hydration
@@ -143,7 +143,7 @@ that margin the sidebar recedes behind a notice -- an arrow into the edge, and n
 at its narrowest there -- saying that letting go will fold it, dragging back
 withdraws the notice, and letting go folds. The width remembered is the one from before the drag,
 so unfolding returns to it rather than to the minimum the drag was pinned at. The gesture is
-`Fold` in [resize.ts](../../libs/kit/behavior/src/resize.ts), beside the rest of the divider.
+`Fold` in [resize.ts](../../lib/pkgs/kit/behavior/src/resize.ts), beside the rest of the divider.
 
 **The sidebar folds away when the window cannot hold both regions, and floats back on demand.**
 Each region has a minimum, measured rather than chosen: the sidebar's is its widest section row
@@ -294,7 +294,7 @@ The toolbar is icons alone, each named for a screen reader and on hover, and sma
 over the text without asking to be read. The drawer comes out the way a folded sidebar does, and
 only that way: the pointer at the window's right edge brings it out and moving clear of it puts it
 back. Nothing pins it open, so it carries no control to close it. Both edges are one gesture on one pair
-of margins, [edge.ts](../../libs/kit/behavior/src/edge.ts) in `@canmi/kit/behavior`. When the draft was
+of margins, [edge.ts](../../lib/pkgs/kit/behavior/src/edge.ts) in `@canmi/kit/behavior`. When the draft was
 last saved, and why a publication was refused, are said at the top of the drawer for now -- that is
 a place kept, not a place decided.
 

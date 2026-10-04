@@ -6,7 +6,7 @@ The rules over an entry are the index's; see [todo.md](todo.md).
 
 ## The named layer in CSS is the visual layer, written before there was one
 
-`utilities.css` and [`libs/ui/primitives/src/style.css`](../../libs/ui/primitives/src/style.css) hold a
+`utilities.css` and [`lib/pkgs/ui/primitives/src/style.css`](../../lib/pkgs/ui/primitives/src/style.css) hold a
 vocabulary of named surfaces -- `focus-link`, `spring-underline`, `article-link`, `pill`, `value`,
 `jump-target`, `selectable`. Measured across the site's markup before any of them moved, 426 of
 1601 class tokens were these rather than Tailwind utilities, which is the vocabulary announcing
@@ -20,12 +20,12 @@ cannot be specialised. It was also a mixed rule, so the move split it -- the app
 recipe, and the box, the alignment, the padding and the negative inline margin to Tailwind
 utilities at each of the seven call sites. Nothing else moved with it. The prose names --
 `focus-link`, `spring-underline`, `article-link`, `jump-target` -- have since left `utilities.css`
-for `libs/kit/tokens/src/interaction.css` and `libs/prose/src/prose.css`, still hand-written, because
+for `lib/pkgs/kit/tokens/src/interaction.css` and `libs/prose/src/prose.css`, still hand-written, because
 the CMS draws the same prose; see [architecture/css/layers.md](../architecture/css/layers.md).
-`libs/ui/primitives` is untouched and still deferred, for the reason below rather than for want of a
+`lib/pkgs/ui/primitives` is untouched and still deferred, for the reason below rather than for want of a
 spelling.
 
-`libs/ui/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
+`lib/pkgs/ui/primitives` is the interesting half. It is CSS rather than TypeScript for one reason: a
 Svelte application and a plain-TypeScript application both consume it, and CSS was the only thing
 both could read. StyleX removes that constraint, so the package could become typed and composable
 for both consumers at once. That is the strongest single argument for this whole arrangement and it
@@ -65,7 +65,7 @@ than into a stylesheet.
 UI portals them out of the component tree. Same shape as the paragraph above and a different cause:
 here the element exists and is ours, it is simply somewhere else in the document.
 
-## `libs/ui/svg-canvas` is a 527-line global stylesheet
+## `lib/pkgs/ui/svg-canvas` is a 527-line global stylesheet
 
 It styles generated SVG, so it is the selector layer by the definition in
 [architecture/css/layers.md](../architecture/css/layers.md). It is also five times the size of every other file in
@@ -139,7 +139,7 @@ will disagree.
 
 So there are two things to settle and one place to settle them. **Where a shared visual constant
 lives**: a `.stylex.ts` module components import, which is the same boundary question as
-[`libs/ui/primitives`](../../libs/ui/primitives/src/style.css) above and should be answered with it rather
+[`lib/pkgs/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css) above and should be answered with it rather
 than beside it. And **what the shared surfaces are called**, which is the part that cannot be
 mechanical, because a name that describes the markup it came from stops being true the third time
 it is used.
@@ -272,12 +272,12 @@ same reason. The swallowing is gone and the snap it produced is deliberate. What
 comment at each call site, which is weaker than a check and stronger than the accident it replaced.
 
 **What is still open is the general half, and it has lost the half that made it general.**
-[`libs/ui/primitives`](../../libs/ui/primitives/src/style.css) declares no `@layer` at all, so the named
+[`lib/pkgs/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css) declares no `@layer` at all, so the named
 layer is unlayered there and layered in `utilities.css` with nothing saying which a given rule
 should be, and an element carrying a primitives class and a utility for the same property still has
 no way to say which it meant. The deciding sentence here was giving `utilities.css` and
-`libs/ui/primitives` a layer of their own; `utilities.css` took Tailwind's `components` instead, which
-answered the cascade and settled nothing about the boundary. What is left is `libs/ui/primitives`
+`lib/pkgs/ui/primitives` a layer of their own; `utilities.css` took Tailwind's `components` instead, which
+answered the cascade and settled nothing about the boundary. What is left is `lib/pkgs/ui/primitives`
 alone, and it is the first entry in this file's question rather than this one's.
 
 ## The gate compares a list, and a list is not a test
@@ -329,7 +329,7 @@ Deciding it costs a behaviour change rather than a rendering one: a stroke writt
 layer stops being overridable by a caller's utility and starts outranking it, on a glyph the
 homepage and the tweet block both render. It also asks whether a path's own description belongs to
 the site at all -- `fill-rule` is closer to the artwork than to the interface -- which is the
-question [`libs/ui/svg-canvas`](../../libs/ui/svg-canvas/src/style.css) above is already holding.
+question [`lib/pkgs/ui/svg-canvas`](../../lib/pkgs/ui/svg-canvas/src/style.css) above is already holding.
 
 ## A shadow is one utility, two declarations and four variables the visual layer cannot restate
 
@@ -401,12 +401,12 @@ visual layer would have to state does not resolve at all.
 [link-card.svelte](../../libs/prose/src/blocks/link-card.svelte) writes its title and its corner
 arrow in `text-black` or `text-white` according to the tone the block declares. Measured across the
 markup, those two elements are the only users of either utility on the site, and neither colour is
-in [`@canmi/kit/theme`](../../libs/kit/theme/src/palettes/concrete.css): they are Tailwind's own `--color-black` and
+in [`@canmi/kit/theme`](../../lib/pkgs/kit/theme/src/palettes/concrete.css): they are Tailwind's own `--color-black` and
 `--color-white`.
 
 [architecture/css/authoring.md](../architecture/css/authoring.md) says a colour is read as the variable the token layer
 declares and is never retyped, and neither half of that is available here. Retyping gives `#000`,
-which the rule forbids and which puts a colour somewhere other than `libs/kit/tokens`. Reading
+which the rule forbids and which puts a colour somewhere other than `lib/pkgs/kit/tokens`. Reading
 `var(--color-black)` works only for as long as some utility still names it: `app.css` imports
 `tailwindcss` rather than declaring `@theme static`, so a theme variable no generated utility
 mentions is not emitted at all -- and moving the last two uses out of the markup is what stops it
@@ -414,7 +414,7 @@ being mentioned. The declaration would resolve to nothing and the caption would 
 whatever the cover inherits.
 
 So both stayed in the markup and the card is the one migrated component whose colours are not all
-in one place. Deciding it is either a black and a white in `libs/kit/tokens`, which is a decision about
+in one place. Deciding it is either a black and a white in `lib/pkgs/kit/tokens`, which is a decision about
 the palette rather than about this card -- a caption over a photograph is the only thing on the site
 that is deliberately the same colour in both themes -- or a rule that Tailwind's own theme variables
 are readable from the visual layer, which needs a way to keep them emitted.
@@ -693,7 +693,7 @@ declarations are the visual layer's, and a corner that is fully round is written
 the site: `calc(infinity * 1px)`, `624.9375rem`, `9999px` -- in
 [preview.svelte](../../libs/prose/src/components/preview.svelte)'s scoped block and again on
 `.article-preview-thumbnail [data-icon-bar]` in
-[`libs/ui/primitives`](../../libs/ui/primitives/src/style.css) -- and `50%` on
+[`lib/pkgs/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css) -- and `50%` on
 [`blocks/github.svelte`](../../libs/prose/src/blocks/github.svelte)'s language dot. The last is the
 one that is not a synonym: a percentage is a share of the box, so on anything that is not square it
 draws an ellipse where the other three draw a stadium. Every element carrying it is square today,
@@ -721,7 +721,7 @@ One consequence of the mechanism has nowhere to be recorded but here, because it
 this repository rather than about StyleX. **A constant's key spelling is part of the stylesheet.**
 The class is hashed from `var(--<consthash>)` and the hash is over the module path and the key, so
 renaming `text.px14` or moving the module rewrites rules while changing no declaration. Every name
-in [vocabulary.stylex.ts](../../libs/kit/tokens/src/vocabulary.stylex.ts) was therefore argued once,
+in [vocabulary.stylex.ts](../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts) was therefore argued once,
 before anything read it, and a later rename is not the free edit it looks like.
 
 ## A line height with no reason behind it is a lookup, not a name
@@ -791,7 +791,7 @@ the build on the cross-file path [architecture/css/extraction.md](../architectur
 broken; and there is no `include` in the API at 0.19.
 
 What is left to name is the three literals, which the paragraph above declines. The composed style
-this entry was waiting on now exists -- [surfaces.ts](../../libs/kit/tokens/src/surfaces.ts) holds four
+this entry was waiting on now exists -- [surfaces.ts](../../lib/pkgs/kit/tokens/src/surfaces.ts) holds four
 groups -- and this is the one thing it cannot hold. So the entry is no longer about naming and is
 entirely about the reading: whether
 [switcher.svelte](../../apps/site/src/lib/locale/switcher.svelte) answering with the property alone,
@@ -898,20 +898,20 @@ nobody has looked at yet.
 [architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at three components,
 and the count is taken over the thirty-five `stylex.create` blocks. The named surfaces are not all
 in those blocks. [utilities.css](../../apps/site/src/styles/utilities.css) holds fifteen classes,
-[`libs/ui/primitives`](../../libs/ui/primitives/src/style.css) holds eight across eleven selectors, and
+[`lib/pkgs/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css) holds eight across eleven selectors, and
 `app.css` holds four more -- `.pill-metrics`, `.pill`, `.value` and `.value-cell` -- so a surface
 can have two instances in the visual layer, sit below the bar, and already be written a third time
 in a stylesheet.
 
 Two of those three files sit above the visual layer, which makes the miscount worse than an
 accounting error. Measured on `app.css`: it opens with four imports,
-[`libs/ui/primitives`](../../libs/ui/primitives/src/style.css)'s stylesheet third and
+[`lib/pkgs/ui/primitives`](../../lib/pkgs/ui/primitives/src/style.css)'s stylesheet third and
 [utilities.css](../../apps/site/src/styles/utilities.css) fourth, and neither is inside an `@layer`.
-`utilities.css` layers part of itself and `libs/ui/primitives` layers none of itself, so every rule in
+`utilities.css` layers part of itself and `lib/pkgs/ui/primitives` layers none of itself, so every rule in
 the second is unlayered and, by [architecture/css/layers.md](../architecture/css/layers.md)'s count, nineteen of the
 twenty-seven selectors in the first are too -- and an unlayered rule outranks every layered one.
 That is the fourth participant that file already records for `utilities.css`, now confirmed by
-measurement for `libs/ui/primitives` rather than inferred from the import form. So a surface named
+measurement for `lib/pkgs/ui/primitives` rather than inferred from the import form. So a surface named
 in the visual layer and also written in one of those two is not merely counted twice: on an
 element carrying both, the copy that renders is the one the count did not see.
 
@@ -920,7 +920,7 @@ in `.article-preview-leader::before` and the same three declarations in `leader`
 pages: two in the counted layer, three in the site. **The bordered paper surface** --
 `background-color: var(--color-paper)` with `border-style: solid` and `border-color:
 var(--color-border)` -- is ten style keys in ten components, plus `.value-cell` in `app.css` and
-`.article-preview-thumbnail` in `libs/ui/primitives`, each at its own radius: four radii for one
+`.article-preview-thumbnail` in `lib/pkgs/ui/primitives`, each at its own radius: four radii for one
 surface across three layers. And **`color: var(--color-text-strong)` with `font-weight: 500`** is
 thirteen style keys in twelve components, and the first two declarations of
 `.article-preview-title`.
@@ -933,7 +933,7 @@ across the site and does not clear it inside one layer.
 
 ## The visual layer has two filename conventions and only one of them is the compiler's
 
-[vocabulary.stylex.ts](../../libs/kit/tokens/src/vocabulary.stylex.ts) carries a vendor's name in its
+[vocabulary.stylex.ts](../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts) carries a vendor's name in its
 filename because `defineConsts` refuses to hash a module spelled any other way, and its own doc
 comment says exactly that: the filename is the compiler's, not this repository's. The module
 holding composed styles has no such requirement -- `stylex.create` hashes from the declaration and
@@ -961,7 +961,7 @@ it.
 The entry on one border and two spellings counts `borderWidth` as `1px` ten times and `0.0625rem`
 seven, and reads the split as a scale nobody named. Naming the surfaces says something the count
 could not: the split is not scattered. Every one of the eight sites of
-[`surfaces.paper`](../../libs/kit/tokens/src/surfaces.ts) writes `1px` -- the three block frames, the
+[`surfaces.paper`](../../lib/pkgs/kit/tokens/src/surfaces.ts) writes `1px` -- the three block frames, the
 menu, the popover, the modal, the search panel and the newsletter's pill -- and every one of the
 three sites of `surfaces.interactive` writes `0.0625rem` -- the repository card, the tweet card and
 the support pill. Neither group has an exception.
@@ -1024,7 +1024,7 @@ is invisible every time, which is the argument for writing it down rather than r
 
 Seven components wrote `background-color: var(--color-page)` with `color: var(--color-text)`, and
 in five of them those two were the whole style object. They read
-[`surfaces.page`](../../libs/kit/tokens/src/surfaces.ts) now, which removes the duplication and leaves
+[`surfaces.page`](../../lib/pkgs/kit/tokens/src/surfaces.ts) now, which removes the duplication and leaves
 the question underneath it untouched.
 
 The question is why a route declares the ground at all. Every one of the thirteen addresses puts
@@ -1050,9 +1050,9 @@ colour moves.
 `0.125rem` as a `border-radius` is written in two of them --
 [cargo.svelte](../../libs/prose/src/blocks/cargo/cargo.svelte) and
 [tokei.svelte](../../libs/prose/src/blocks/tokei/tokei.svelte), the second twice -- and now in
-[`surfaces.quietControl`](../../libs/kit/tokens/src/surfaces.ts) as well, which is a third file and not
+[`surfaces.quietControl`](../../lib/pkgs/kit/tokens/src/surfaces.ts) as well, which is a third file and not
 a third component. It is Tailwind's `--radius-xs`, the one step of that scale
-[`vocabulary.stylex.ts`](../../libs/kit/tokens/src/vocabulary.stylex.ts) does not name, and the reason
+[`vocabulary.stylex.ts`](../../lib/pkgs/kit/tokens/src/vocabulary.stylex.ts) does not name, and the reason
 it does not is that it was below the bar on the day the scale was written.
 
 Whether a recipe counts toward the bar is the question, and it is not the same question as whether
@@ -1086,7 +1086,7 @@ markup string composes.
 ## Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
 
 [architecture/css/extraction.md](../architecture/css/extraction.md) records why a video clip takes `picture.svelte`'s 2px
-edge and 1rem corner rather than [`surfaces.blockFrame`](../../libs/kit/tokens/src/surfaces.ts)'s
+edge and 1rem corner rather than [`surfaces.blockFrame`](../../lib/pkgs/kit/tokens/src/surfaces.ts)'s
 hairline and `radius.xl`: its neighbour in a column of prose is almost always a picture, and two
 different corners side by side would read as a mistake. Left open is whether the site should have
 one answer for both media boxes instead of two, which is a question about who else draws
@@ -1132,7 +1132,7 @@ Checked against the tree on 2026-09-21:
 
 **What is not answered is whether the file empties at all**, and that is the whole of what is left
 of this entry. With those groups staying and the `:root` rail tokens going to
-[libs/kit/tokens](../../libs/kit/tokens) under the entry below, what remains in `utilities.css` is a question
+[lib/pkgs/kit/tokens](../../lib/pkgs/kit/tokens) under the entry below, what remains in `utilities.css` is a question
 for whoever picks it up rather than a backlog item with a known answer. The count that was here --
 26 rule blocks, 18 unable to move on the rules as they stood and 2 awaiting a decision -- predates
 every ruling above and is evidence of nothing now; counting again is the first thing that work
@@ -1141,10 +1141,10 @@ than a dissolution: `app.css` is itself one `@layer components` block now, wrapp
 `utilities.css` records at its own wrapper, so `.pill` and `.value` sit at the position the rules
 would arrive at.
 
-## `libs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
+## `lib/pkgs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
 
 The same file sends a `:root` block declaring nothing but custom properties to
-[libs/kit/tokens](../../libs/kit/tokens), "which is where a value gets a name". The load-bearing half is
+[lib/pkgs/kit/tokens](../../lib/pkgs/kit/tokens), "which is where a value gets a name". The load-bearing half is
 "not a layering question at all" -- that is what stops the block being weighed against the three
 questions. The destination half is an example that generalised.
 

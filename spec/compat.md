@@ -18,7 +18,7 @@ arrived as a Sentry issue. No configuration would have predicted it.
 
 ## The API floor: a short list of canaries, and all of core-js behind it
 
-[`@canmi/web/compat`](../libs/web/compat/src/index.ts) checks for each canary -- `Array.prototype.toSorted`,
+[`@canmi/web/compat`](../lib/pkgs/web/compat/src/index.ts) checks for each canary -- `Array.prototype.toSorted`,
 `URL.canParse` -- and, if any is absent, dynamically imports `core-js/stable` before hydration.
 
 **There is no list of modules any more, and that is the point.** A hand-written list has no

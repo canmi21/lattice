@@ -218,7 +218,7 @@ importers:
         version: link:../../libs/cache
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -249,7 +249,7 @@ importers:
         version: link:../../libs/cache
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -304,7 +304,7 @@ importers:
         version: link:../../libs/fonts
       '@canmi/kit':
         specifier: workspace:*
-        version: link:../../libs/kit
+        version: link:../../lib/pkgs/kit
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -313,7 +313,7 @@ importers:
         version: link:../../libs/prose
       '@canmi/ui':
         specifier: workspace:*
-        version: link:../../libs/ui
+        version: link:../../lib/pkgs/ui
       '@codemirror/commands':
         specifier: ^6.11.1
         version: 6.11.1
@@ -331,7 +331,7 @@ importers:
         version: link:../../libs/sdk
       canmi:
         specifier: workspace:*
-        version: link:../../libs/canmi
+        version: link:../../lib/pkgs/canmi
     devDependencies:
       '@stylexjs/stylex':
         specifier: ^0.19.1
@@ -386,7 +386,7 @@ importers:
         version: link:../../libs/limits
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -426,7 +426,7 @@ importers:
     dependencies:
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@monoflake/sdk':
         specifier: workspace:*
         version: link:../../libs/sdk
@@ -471,10 +471,10 @@ importers:
     devDependencies:
       '@canmi/kit':
         specifier: workspace:*
-        version: link:../../libs/kit
+        version: link:../../lib/pkgs/kit
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
@@ -513,7 +513,7 @@ importers:
         version: 3.2.0
       canmi:
         specifier: workspace:*
-        version: link:../../libs/canmi
+        version: link:../../lib/pkgs/canmi
       d3-array:
         specifier: ^3.2.4
         version: 3.2.4
@@ -546,7 +546,7 @@ importers:
         version: link:../../libs/limits
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
@@ -580,7 +580,7 @@ importers:
         version: link:../../libs/imgsrc
       '@canmi/kit':
         specifier: workspace:*
-        version: link:../../libs/kit
+        version: link:../../lib/pkgs/kit
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -589,7 +589,7 @@ importers:
         version: link:../../libs/prose
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../libs/response
+        version: link:../../lib/pkgs/response
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -607,10 +607,10 @@ importers:
         version: link:../../libs/symlink
       '@canmi/ui':
         specifier: workspace:*
-        version: link:../../libs/ui
+        version: link:../../lib/pkgs/ui
       '@canmi/web':
         specifier: workspace:*
-        version: link:../../libs/web
+        version: link:../../lib/pkgs/web
       '@chenglou/pretext':
         specifier: ^0.0.9
         version: 0.0.9
@@ -658,7 +658,7 @@ importers:
         version: 2.19.5(@internationalized/date@3.12.4)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)
       canmi:
         specifier: workspace:*
-        version: link:../../libs/canmi
+        version: link:../../lib/pkgs/canmi
       d3-hierarchy:
         specifier: ^3.1.2
         version: 3.1.2
@@ -800,7 +800,7 @@ importers:
         version: link:../../../libs/limits
       '@canmi/response':
         specifier: workspace:*
-        version: link:../../../libs/response
+        version: link:../../../lib/pkgs/response
       '@canmi/store':
         specifier: workspace:*
         version: link:../../../libs/store
@@ -809,7 +809,7 @@ importers:
         version: link:../../../libs/sdk
       canmi:
         specifier: workspace:*
-        version: link:../../../libs/canmi
+        version: link:../../../lib/pkgs/canmi
       drizzle-orm:
         specifier: ^0.45.3
         version: 0.45.3(@cloudflare/workers-types@5.20261004.1)(@opentelemetry/api@1.9.1)(@types/better-sqlite3@9.6.0)(better-sqlite3@13.0.3)(kysely@0.28.17)
@@ -843,7 +843,7 @@ importers:
         version: link:../../libs/hints
       '@canmi/kit':
         specifier: workspace:*
-        version: link:../../libs/kit
+        version: link:../../lib/pkgs/kit
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -861,7 +861,7 @@ importers:
         version: link:../../libs/symlink
       '@canmi/web':
         specifier: workspace:*
-        version: link:../../libs/web
+        version: link:../../lib/pkgs/web
       '@lucide/svelte':
         specifier: ^1.51.0
         version: 1.51.0(svelte@5.57.1)
@@ -900,7 +900,7 @@ importers:
         version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
       canmi:
         specifier: workspace:*
-        version: link:../../libs/canmi
+        version: link:../../lib/pkgs/canmi
       motion:
         specifier: ^14.0.0
         version: 14.0.0(react@19.3.0)
@@ -923,24 +923,59 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  lib/pkgs/canmi: {}
+
+  lib/pkgs/kit:
+    dependencies:
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      motion:
+        specifier: ^14.0.0
+        version: 14.0.0(react@19.3.0)
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+      thumbhash:
+        specifier: ^0.1.1
+        version: 0.1.1
+    devDependencies:
+      vitest:
+        specifier: ^5.0.3
+        version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+
+  lib/pkgs/response: {}
+
+  lib/pkgs/ui: {}
+
+  lib/pkgs/web:
+    dependencies:
+      '@sentry/sveltekit':
+        specifier: ^11.4.0
+        version: 11.4.0(@babel/core@7.29.7(supports-color@10.2.2))(@cloudflare/workers-types@5.20261004.1)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(rollup@4.64.0)(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4))
+      '@sveltejs/kit':
+        specifier: ^3.0.0
+        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      core-js:
+        specifier: ^3.50.0
+        version: 3.50.0
+
   libs/artifacts:
     dependencies:
       '@canmi/response':
         specifier: workspace:*
-        version: link:../response
+        version: link:../../lib/pkgs/response
       '@monoflake/sdk':
         specifier: workspace:*
         version: link:../sdk
       canmi:
         specifier: workspace:*
-        version: link:../canmi
+        version: link:../../lib/pkgs/canmi
       valibot:
         specifier: ^1.5.0
         version: 1.5.0(typescript@7.0.2)
 
   libs/cache: {}
-
-  libs/canmi: {}
 
   libs/collection:
     dependencies:
@@ -980,7 +1015,7 @@ importers:
         version: link:../sdk
       canmi:
         specifier: workspace:*
-        version: link:../canmi
+        version: link:../../lib/pkgs/canmi
       hast-util-to-html:
         specifier: ^9.0.5
         version: 9.0.5
@@ -1042,30 +1077,11 @@ importers:
         specifier: workspace:*
         version: link:../sdk
 
-  libs/kit:
-    dependencies:
-      '@stylexjs/stylex':
-        specifier: ^0.19.1
-        version: 0.19.1
-      motion:
-        specifier: ^14.0.0
-        version: 14.0.0(react@19.3.0)
-      svelte:
-        specifier: ^5.57.1
-        version: 5.57.1
-      thumbhash:
-        specifier: ^0.1.1
-        version: 0.1.1
-    devDependencies:
-      vitest:
-        specifier: ^5.0.3
-        version: 5.0.3(@opentelemetry/api@1.9.1)(@types/node@26.6.4)(jsdom@30.1.1(@noble/hashes@2.4.0))(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-
   libs/limits:
     dependencies:
       '@canmi/response':
         specifier: workspace:*
-        version: link:../response
+        version: link:../../lib/pkgs/response
 
   libs/messages:
     devDependencies:
@@ -1083,13 +1099,13 @@ importers:
         version: link:../artifacts
       '@canmi/kit':
         specifier: workspace:*
-        version: link:../kit
+        version: link:../../lib/pkgs/kit
       '@canmi/messages':
         specifier: workspace:*
         version: link:../messages
       '@canmi/ui':
         specifier: workspace:*
-        version: link:../ui
+        version: link:../../lib/pkgs/ui
       '@chenglou/pretext':
         specifier: ^0.0.9
         version: 0.0.9
@@ -1116,7 +1132,7 @@ importers:
         version: 2.19.5(@internationalized/date@3.12.4)(@sveltejs/kit@2.70.3(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)
       canmi:
         specifier: workspace:*
-        version: link:../canmi
+        version: link:../../lib/pkgs/canmi
       d3-hierarchy:
         specifier: ^3.1.2
         version: 3.1.2
@@ -1152,8 +1168,6 @@ importers:
         specifier: ^6.0.3
         version: 6.0.3
 
-  libs/response: {}
-
   libs/robots:
     dependencies:
       '@canmi/security':
@@ -1170,7 +1184,7 @@ importers:
         version: link:../urls
       canmi:
         specifier: workspace:*
-        version: link:../canmi
+        version: link:../../lib/pkgs/canmi
 
   libs/security:
     dependencies:
@@ -1188,7 +1202,7 @@ importers:
         version: link:../sdk
       canmi:
         specifier: workspace:*
-        version: link:../canmi
+        version: link:../../lib/pkgs/canmi
       svelte:
         specifier: ^5.57.1
         version: 5.57.1
@@ -1217,7 +1231,7 @@ importers:
         version: link:../artifacts
       '@canmi/response':
         specifier: workspace:*
-        version: link:../response
+        version: link:../../lib/pkgs/response
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
         version: 5.20261004.1
@@ -1228,25 +1242,11 @@ importers:
         specifier: workspace:*
         version: link:../cache
 
-  libs/ui: {}
-
   libs/urls:
     dependencies:
       canmi:
         specifier: workspace:*
-        version: link:../canmi
-
-  libs/web:
-    dependencies:
-      '@sentry/sveltekit':
-        specifier: ^11.4.0
-        version: 11.4.0(@babel/core@7.29.7(supports-color@10.2.2))(@cloudflare/workers-types@5.20261004.1)(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(rollup@4.64.0)(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4))
-      '@sveltejs/kit':
-        specifier: ^3.0.0
-        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
-      core-js:
-        specifier: ^3.50.0
-        version: 3.50.0
+        version: link:../../lib/pkgs/canmi
 
 packages:
 

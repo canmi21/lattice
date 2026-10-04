@@ -163,7 +163,7 @@ anywhere near it. A render is asynchronous and can therefore never land inside a
 window, which is the whole of why the `!important` sheet cannot help here.
 
 So both drawings are made while the loading surface is still up, and the toggle picks one. The
-subscription is `observeTheme` in [libs/kit/theme](../../libs/kit/theme/src/index.ts), whose callback is a
+subscription is `observeTheme` in [lib/pkgs/kit/theme](../../lib/pkgs/kit/theme/src/index.ts), whose callback is a
 microtask: it runs before the next paint, so an assignment made there turns the diagram in the same
 frame as the page. The adapter serialises its renders because Mermaid's `initialize` is global and
 every diagram now configures twice, and the two palettes are named rather than switched by a `.dark`
@@ -202,7 +202,7 @@ surfaces without competing with their words. A middle ink step serves supporting
 anchor defines one, and a vivid 400-like ink serves the title. A derived middle step keeps hue,
 lowers lightness by about `0.057`, and retains about ninety-one percent of the title chroma.
 
-The hues and tone roles live together in [style.css](../../libs/ui/svg-canvas/src/style.css). Neutral
+The hues and tone roles live together in [style.css](../../lib/pkgs/ui/svg-canvas/src/style.css). Neutral
 roles retain their alpha hierarchy. The existing custom-property and class names are the markup
 contract and do not move.
 

@@ -4,8 +4,8 @@
 	import { family, figures, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the repository card. Every colour is the token variable `libs/kit/tokens`
-	 * already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of the repository card. Every colour is a `@canmi/kit/tokens` variable. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
 	 * reaching a descendant this layer cannot see without a marker nobody owns (spec/todo/css.md).

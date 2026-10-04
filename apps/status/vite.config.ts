@@ -13,7 +13,7 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 // The workspace root, as the site and the panel set it: StyleX hashes a class from the file's path
-// relative to this, and reads `libs/kit/tokens` from under it.
+// relative to this, and reads `lib/pkgs/kit/tokens` from under it.
 // `browserslist` in package.json is the syntax floor, the site's exactly; see spec/compat.md.
 const BROWSERSLIST: string[] = JSON.parse(
 	readFileSync(fileURLToPath(new URL('./package.json', import.meta.url)), 'utf8'),

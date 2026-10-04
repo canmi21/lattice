@@ -8,7 +8,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-response = { path = "../../libs/response", features = ["axum"] }
+response = { path = "../../lib/crates/response", features = ["axum"] }
 deploy = { path = "../../libs/deploy" }
 monoflake = { path = "../../libs/sdk" }
 anyhow = "1.0.104"

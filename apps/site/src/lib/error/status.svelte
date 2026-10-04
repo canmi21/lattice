@@ -3,9 +3,9 @@
 	import { border, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the error page. Every colour is the token variable `libs/kit/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md. No scoped
-	 * block: two elements, both the component's own, so a class on each reaches everything there is.
+	 * The visual half of the error page. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * here can change one. See spec/architecture/css/authoring.md. No scoped block: two elements,
+	 * both the component's own, so a class on each reaches everything there is.
 	 *
 	 * No tag in angle brackets may appear anywhere in this block, comments included -- see
 	 * spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag in angle

@@ -3,9 +3,9 @@
 	import { border, leading, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the translator's note, the only surface this component draws itself.
-	 * Every colour is the token variable `libs/kit/tokens` already declares, so nothing here can
-	 * change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the translator's note, the only surface this component draws itself. Every
+	 * colour is a `@canmi/kit/tokens` variable, so nothing here can change one. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file does not shrink: every rule in it reaches the
 	 * translator's-note trigger, a control the markdown compiler wrote into the prose, and a style

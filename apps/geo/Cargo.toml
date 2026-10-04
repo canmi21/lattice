@@ -8,8 +8,8 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-geocode = { path = "../../libs/geocode" }
-response = { path = "../../libs/response", features = ["axum"] }
+geocode = { path = "../../lib/crates/geocode" }
+response = { path = "../../lib/crates/response", features = ["axum"] }
 monoflake = { path = "../../libs/sdk" }
 axum = "0.8.9"
 tokio = { version = "1.53.2", features = ["rt-multi-thread", "macros", "net", "signal", "fs", "time", "io-util"] }

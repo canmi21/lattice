@@ -4,8 +4,8 @@
 	import { figures, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a tweet card. Every colour is the token variable `libs/kit/tokens` already
-	 * declares. See spec/architecture/css/authoring.md.
+	 * The visual half of a tweet card. Every colour is a `@canmi/kit/tokens` variable. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps the corner arrow's other opacity and nothing else: it
 	 * lives in `.tweet-card:hover .corner`, an ancestor selector this layer cannot write. The

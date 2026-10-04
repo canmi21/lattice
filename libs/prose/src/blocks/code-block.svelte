@@ -13,8 +13,8 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a code block. Every colour is the token variable `libs/kit/tokens` already
-	 * declares. See spec/architecture/css/authoring.md.
+	 * The visual half of a code block. Every colour is a `@canmi/kit/tokens` variable. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot styles what no class reaches: Shiki's own preformatted element
 	 * -- spelled out, per that file's "A comment in the module script cannot write a tag in angle

@@ -4,8 +4,8 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a Mermaid diagram's frame. Every colour is the token variable
-	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of a Mermaid diagram's frame. Every colour is a `@canmi/kit/tokens` variable.
+	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
 	 * component-local mirror in palette.css (see spec/styling/blocks.md).

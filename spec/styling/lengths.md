@@ -13,7 +13,7 @@ hairline borders and CSS written through JavaScript as well as ordinary layout d
 
 Geometry read from the DOM is reported in CSS pixels. Calculations may stay numeric in that
 coordinate system, but any value written back to a style is divided by the live root font size and
-serialized as rem. The helpers in [@canmi/kit/units](../../libs/kit/units/src/index.ts) keep authored
+serialized as rem. The helpers in [@canmi/kit/units](../../lib/pkgs/kit/units/src/index.ts) keep authored
 measurements and live DOM measurements distinct; they moved out of the site when the CMS began
 animating lengths of its own, and [units.ts](../../apps/site/src/lib/client/units.ts) re-exports them
 so the ten components importing that path did not have to change.

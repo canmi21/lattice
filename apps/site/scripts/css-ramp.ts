@@ -68,7 +68,7 @@ function tally(lines: string[]): Map<string, number> {
 /** Whether a literal is a value a scale could hold, rather than a deferral or a token read. */
 function wantsName(raw: string): boolean {
 	const value = raw.replace(/^['"]|['"]$/g, '').trim();
-	// A `var()` is already a name: it reads the custom property libs/kit/tokens declares.
+	// A `var()` is already a name: it reads the custom property lib/pkgs/kit/tokens declares.
 	return !DEFERS.has(value) && !value.startsWith('var(');
 }
 

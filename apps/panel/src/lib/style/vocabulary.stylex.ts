@@ -1,7 +1,7 @@
 /**
  * The values the panel's visual layer repeats, each with one name, as the site's
- * libs/kit/tokens/src/vocabulary.stylex.ts names its own. `defineConsts`, so a declaration reads as
- * written. The `.stylex` in the file name is the compiler's requirement.
+ * lib/pkgs/kit/tokens/src/vocabulary.stylex.ts names its own. `defineConsts`, so a declaration
+ * reads as written. The `.stylex` in the file name is the compiler's requirement.
  */
 import * as stylex from '@stylexjs/stylex';
 

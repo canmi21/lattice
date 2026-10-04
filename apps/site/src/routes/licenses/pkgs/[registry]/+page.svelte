@@ -4,8 +4,8 @@
 	import { family, figures, line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of one registry's page. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of one registry's page. Every colour is a `@canmi/kit/tokens` variable, so
+	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * A sibling of the two directories above it, writing the same trail, header and quiet
 	 * control, name for name. Written out rather than shared -- where a module for this should

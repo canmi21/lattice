@@ -4,8 +4,8 @@
 	import { duration } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the language switcher. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the language switcher. Every colour is a `@canmi/kit/tokens` variable, so
+	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:
 	 * StyleX addresses only pseudo-classes and at-rules, and here it would also outrank the

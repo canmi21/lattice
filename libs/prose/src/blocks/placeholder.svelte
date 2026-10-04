@@ -4,8 +4,8 @@
 	import { border, family, leading, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the placeholder a block falls back to. Every colour is the token
-	 * variable `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of the placeholder a block falls back to. Every colour is a `@canmi/kit/tokens`
+	 * variable. See spec/architecture/css/authoring.md.
 	 *
 	 * The file keeps no scoped block: the box's padding and the step between metadata rows are
 	 * layout, and stay in the markup where layout belongs. See spec/architecture/css/authoring.md, "A

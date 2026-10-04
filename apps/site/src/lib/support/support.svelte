@@ -4,8 +4,8 @@
 	import { figures, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the support row. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the support row. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
 	 * grid the fallback stacks in, the widths the script animates -- and the states the pill's own

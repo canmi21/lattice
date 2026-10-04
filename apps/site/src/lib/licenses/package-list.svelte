@@ -3,8 +3,8 @@
 	import { border, family, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a package list. Every colour is the token variable `libs/kit/tokens` already
-	 * declares. See spec/architecture/css/authoring.md.
+	 * The visual half of a package list. Every colour is a `@canmi/kit/tokens` variable. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The row is the licence directory's row with a second column, its three declarations copied
 	 * character for character rather than shared -- where a module for the shared constant should

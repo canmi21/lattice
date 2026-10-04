@@ -11,7 +11,7 @@ import type { Quota } from '@canmi/limits';
 /**
  * The payload inside an answer, so a test asserts what a route returns rather than the envelope
  * every route shares. `unwrap` is the same one the site uses; a route that stops wrapping fails
- * here first. See libs/response, `ApiResponse`.
+ * here first. See lib/pkgs/response, `ApiResponse`.
  */
 async function payload<T = unknown>(response: Response): Promise<T> {
 	return unwrap<T>(await response.json(), response.url || 'test');

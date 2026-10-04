@@ -227,7 +227,10 @@ mod tests {
 	#[test]
 	fn every_code_it_answers_with_is_in_the_catalogue() {
 		for code in response::codes_named(include_str!("api.rs")) {
-			assert!(response::message_of(code).is_some(), "`{code}` is not in libs/response/codes.json");
+			assert!(
+				response::message_of(code).is_some(),
+				"`{code}` is not in lib/pkgs/response/codes.json"
+			);
 		}
 	}
 }

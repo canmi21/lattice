@@ -284,9 +284,9 @@ description = "Regenerate the Rust halves of the address packages, canmi and lib
 # that gets committed. The generator emits one constant per line and rustfmt wraps the long ones,
 # so skipping this step means the mirror changes shape after it is generated.
 run = [
-	"node libs/canmi/urls/scripts/rust.ts",
+	"node lib/pkgs/canmi/urls/scripts/rust.ts",
 	"node libs/sdk/scripts/rust.ts",
-	"cargo fmt -- libs/canmi/urls/src/lib.rs libs/sdk/src/lib.rs",
+	"cargo fmt -- lib/crates/canmi/src/lib.rs libs/sdk/src/lib.rs",
 ]
 
 [tasks.check-scopes]

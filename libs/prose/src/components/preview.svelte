@@ -4,7 +4,7 @@
 
 	/**
 	 * The visual half of the three elements this component renders itself. Every colour is the
-	 * token variable `libs/kit/tokens` already declares, so nothing here can change one. See
+	 * token variable `lib/pkgs/kit/tokens` already declares, so nothing here can change one. See
 	 * spec/architecture/css/authoring.md. Most of the rest is not here and cannot be: the ground, the
 	 * stage and the close are portalled out of the tree by Bits UI and reached with `:global` in the
 	 * block at the foot of this file, which is also where the ground's literal black stays -- a

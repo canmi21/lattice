@@ -4,9 +4,9 @@
 	import { easing, line, radius, text, transition } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the modal. Every colour is the token variable `libs/kit/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md, "A comment in
-	 * the module script cannot write a tag in angle brackets", including for why this one may not.
+	 * The visual half of the modal. Every colour is a `@canmi/kit/tokens` variable, so nothing here
+	 * can change one. See spec/architecture/css/authoring.md, "A comment in the module script cannot
+	 * write a tag in angle brackets", including for why this one may not.
 	 *
 	 * The scoped block at the foot of this file is `:global` because Bits UI portals the overlay
 	 * and the surface out of the component tree, reaching them by the library's own data

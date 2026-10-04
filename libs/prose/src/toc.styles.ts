@@ -2,8 +2,8 @@ import * as stylex from '@stylexjs/stylex';
 import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
 
 /**
- * The visual half of the table of contents. Every colour is the token variable `libs/kit/tokens`
- * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+ * The visual half of the table of contents. Every colour is a `@canmi/kit/tokens` variable, so
+ * nothing here can change one. See spec/architecture/css/authoring.md.
  *
  * Nothing here draws a bar's width or the indicator's height. Those are measured and written
  * inline by the script below, an inline style outranks every layer, and this one only says

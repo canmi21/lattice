@@ -244,7 +244,7 @@ answers as unavailable rather than taking the rest down.
 ## Every answer is one envelope
 
 Every API here, in TypeScript or in Rust, answers in one shape: `{ "status": "success", "data": ... }`
-or `{ "status": "error", "code": ..., "message": ... }`. `libs/response` is both halves -- `src/index.ts`
+or `{ "status": "error", "code": ..., "message": ... }`. `lib/pkgs/response` is both halves -- `src/index.ts`
 and the `response` crate -- and both read the one catalogue of codes, `codes.json`, and are tested
 against the same fixtures, so the two languages cannot drift apart. A success carries what the route
 answers and nothing else; there is nothing to say about a call that worked. A body that is the

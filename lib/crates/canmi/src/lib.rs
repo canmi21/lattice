@@ -1,4 +1,4 @@
-//! @generated from libs/canmi/urls/src/index.ts by `mise run urls`; do not edit.
+//! @generated from lib/pkgs/canmi/urls/src/index.ts by `mise run urls`; do not edit.
 //! The author's own addresses, for Rust -- see spec/architecture/layers.md.
 
 pub const SITE: &str = "https://canmi.net";

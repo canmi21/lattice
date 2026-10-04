@@ -4,8 +4,8 @@
 	import { border, duration, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the notes. Every colour is the token variable `libs/kit/tokens` already
-	 * declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the notes. Every colour is a `@canmi/kit/tokens` variable, so nothing here
+	 * can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The block below keeps what a class cannot reach: the fold's mask and its two phase rules, the
 	 * `:global` marker rules, and the note-link's hovered colour -- see spec/todo/todo.md, "Ancestor

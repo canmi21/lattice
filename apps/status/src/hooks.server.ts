@@ -22,7 +22,7 @@ const spellingHandle: Handle = ({ event, resolve }) => {
 };
 
 // Sentry's handles first, and none when the DSN is unset. The same handles serve both doors; see
-// libs/web/sentry/src/server.ts.
+// lib/pkgs/web/sentry/src/server.ts.
 export const handle = sequence(
 	...serverHandles({ dsn: URLS.external.sentry.status, dev }),
 	spellingHandle,

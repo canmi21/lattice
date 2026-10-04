@@ -17,10 +17,10 @@ members = [
 	"apps/shot",
 	"apps/telemetry",
 	"libs/deploy",
-	"libs/geocode",
+	"lib/crates/geocode",
 	"libs/ledger",
-	"libs/response",
-	"libs/canmi",
+	"lib/crates/response",
+	"lib/crates/canmi",
 	"libs/sdk",
 ]
 

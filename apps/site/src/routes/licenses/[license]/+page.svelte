@@ -4,8 +4,8 @@
 	import { family, figures, line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of one licence's page. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of one licence's page. Every colour is a `@canmi/kit/tokens` variable, so
+	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * Third of the licence surface's directory pages, writing the same trail, heading and tabular
 	 * count as the two above it, name for name. Written out rather than shared -- where a module

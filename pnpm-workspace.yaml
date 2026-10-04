@@ -2,6 +2,13 @@
 # ignores the rest, so Rust-only libraries under libs/ are simply invisible to it. Cargo
 # has no such tolerance, which is why Cargo.toml lists its members by hand instead.
 packages:
+  - lib/pkgs/*
+  - infra/apps/*
+  - infra/libs/*
+  - platform/apps/*
+  - platform/libs/*
+  - services/apps/*
+  - services/libs/*
   - libs/*
   - apps/*
   # The site's API, a package inside the site because its type program is workerd's, not the

@@ -6,12 +6,12 @@ to be done by hand. Which layer owns which declaration is [layers.md](layers.md)
 
 ## Colour is never retyped
 
-A StyleX declaration names a colour by reading the custom property `libs/kit/tokens` already declares
+A StyleX declaration names a colour by reading the custom property `lib/pkgs/kit/tokens` already declares
 -- `var(--color-text-soft)`, not the OKLCH value behind it. Measured: a StyleX style resolving a
 Tailwind `@theme` variable renders that variable's value, so the two systems read one table.
 
 This is the single cheapest guarantee available here and it is structural rather than tested.
-`libs/kit/tokens` stays the one home for a colour, as
+`lib/pkgs/kit/tokens` stays the one home for a colour, as
 [workspace.md](../workspace.md) requires; a migrated declaration therefore cannot change a colour,
 because it is the same variable it was before. What a migration can get wrong is a number it
 retyped, which is geometry, and geometry is what the migration's diff polices.

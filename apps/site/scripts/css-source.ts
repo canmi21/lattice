@@ -25,7 +25,7 @@ export const ROOT = join(SITE, '../..');
 const SRC = [
 	join(SITE, 'src'),
 	join(SITE, '../../libs/prose/src'),
-	join(SITE, '../../libs/kit/tokens/src'),
+	join(SITE, '../../lib/pkgs/kit/tokens/src'),
 ];
 const SCAN = relative(ROOT, fileURLToPath(import.meta.url));
 
@@ -35,7 +35,7 @@ const STYLEX = '@stylexjs/stylex';
 const VOCABULARY = '@canmi/kit/tokens/vocabulary.stylex';
 const SURFACES = '@canmi/kit/tokens/surfaces';
 /** Where those two resolve to, so each module is spelled once. */
-const LIB = 'libs/kit/tokens/src';
+const LIB = 'lib/pkgs/kit/tokens/src';
 
 /**
  * The two homes of a name, as paths. A gate counting application sites has to tell a read inside

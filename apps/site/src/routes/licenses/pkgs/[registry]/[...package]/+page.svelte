@@ -4,8 +4,8 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the package page. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the package page. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * Two of Tailwind's own theme variables are read differently and the difference is whether
 	 * anything outside a utility names them. `--font-mono` is also read by `.value-cell` in

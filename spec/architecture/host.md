@@ -431,7 +431,7 @@ for what carries no class -- [css/layers.md](css/layers.md) decides which is whi
 and development arrangements there are copied rather than re-derived. Its colors are Nord's, one
 theme and dark, with no light twin: the sixteen are declared under their own names in `panel.css`,
 what the panel means by each is declared beside them, and a surface in `src/lib/style/` reads the
-meaning. They are its own rather than `libs/kit/tokens`', which is the site's. Icons are Lucide's, and
+meaning. They are its own rather than `lib/pkgs/kit/tokens`', which is the site's. Icons are Lucide's, and
 what moves -- a page arriving, the sidebar's marker crossing to the next page -- moves on
 `@canmi/kit/motion`'s timing, as the editor's panels do.
 

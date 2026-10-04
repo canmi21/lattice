@@ -8,7 +8,10 @@ function constants(rust: string): string {
 }
 
 it('keeps the committed Rust half in step with the map', () => {
-	const committed = readFileSync(new URL('./lib.rs', import.meta.url), 'utf8');
+	const committed = readFileSync(
+		new URL('../../../../crates/canmi/src/lib.rs', import.meta.url),
+		'utf8',
+	);
 	// A mismatch means the map changed without `mise run urls` -- regenerate rather than edit.
 	expect(constants(committed)).toBe(constants(rustCanmi()));
 });

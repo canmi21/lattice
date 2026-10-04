@@ -4,8 +4,8 @@
 	import { border, family, figures, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the registry directory. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the registry directory. Every colour is a `@canmi/kit/tokens` variable, so
+	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The page writes the same trail, the same heading and the same directory row as the licence
 	 * directory one level up, and those styles say what its styles say, name for name. They are

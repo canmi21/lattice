@@ -188,7 +188,7 @@ sends, and a browser bundle carries it, so it is public and sits beside the othe
 whose DSN is absent initializes nothing and registers no Sentry request handle; the status page
 then drops the build plugin as well.
 
-**What the apps share is `libs/web/sentry`**: the upload decision, the `sentrySvelteKit` options,
+**What the apps share is `lib/pkgs/web/sentry`**: the upload decision, the `sentrySvelteKit` options,
 and the client and server init. **Source maps upload only when `SENTRY_AUTH_TOKEN` is set**, and
 are deleted after the upload; without it the build emits none and skips silently.
 `SENTRY_SKIP_UPLOAD` turns the upload off locally, as [data.md](data.md) records under "A CI

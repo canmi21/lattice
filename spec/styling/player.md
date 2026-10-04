@@ -13,7 +13,7 @@ read against the page, and the reader picks which. A player's controls are read 
 frame_ -- a surface this site does not choose, cannot know, and which changes twenty-four times a
 second. A control tinted for a light page disappears over a bright sky; one tinted for a dark page
 disappears over a night interior. So the player does not ask what theme the page is in. It brings
-its own ground, the way every native player does, and `libs/kit/tokens/src/player.css` is deliberately
+its own ground, the way every native player does, and `lib/pkgs/kit/tokens/src/player.css` is deliberately
 not derived from any `--color-*` -- a derivation would re-introduce the theme the file exists to
 escape. What the player _does_ take from the page is the focus ring, and only that:
 see [focus.md](focus.md).

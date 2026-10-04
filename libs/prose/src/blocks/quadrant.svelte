@@ -4,8 +4,8 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the quadrant figure. Every colour is the token variable `libs/kit/tokens`
-	 * already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of the quadrant figure. Every colour is a `@canmi/kit/tokens` variable. See
+	 * spec/architecture/css/authoring.md.
 	 *
 	 * The figure's geometry is the frame, written on the elements in the markup. What is left in
 	 * the block at the foot is the two axis arrowheads alone, which are pseudo-elements no class

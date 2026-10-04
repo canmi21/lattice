@@ -1,5 +1,5 @@
 /**
- * The envelope lives in libs/response, beside its Rust half; these are its re-exports for the
+ * The envelope lives in lib/pkgs/response, beside its Rust half; these are its re-exports for the
  * readers that already take their contracts from here.
  */
 import * as v from 'valibot';

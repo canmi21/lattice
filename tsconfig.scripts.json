@@ -12,6 +12,6 @@
 		// pnpm installs @types/node under the member that asked for it, not at this root.
 		"typeRoots": ["apps/site/node_modules/@types", "node_modules/@types"]
 	},
-	"include": ["apps/*/scripts/**/*.ts"],
+	"include": ["apps/*/scripts/**/*.ts", "*/apps/*/scripts/**/*.ts"],
 	"exclude": ["**/node_modules", "**/dist", "**/build"]
 }

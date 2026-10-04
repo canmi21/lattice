@@ -4,8 +4,8 @@
 	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the Tokei figure. Every interface colour is the token variable
-	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of the Tokei figure. Every interface colour is a `@canmi/kit/tokens` variable.
+	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay put: the whites over a tile's own colour (spec/todo/todo.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip

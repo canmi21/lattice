@@ -13,8 +13,8 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the article shell. Every colour is the token variable `libs/kit/tokens`
-	 * already declares, so nothing here can change one. See spec/architecture/css/authoring.md.
+	 * The visual half of the article shell. Every colour is a `@canmi/kit/tokens` variable, so
+	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
 	 * a little geometry beside it -- see spec/todo/todo.md, "The article body's typography reaches

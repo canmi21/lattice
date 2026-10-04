@@ -59,7 +59,7 @@ reasons.
 - Geometry is derived through a cascade of custom properties
 - The article body's typography reaches elements no component renders
 - The floating surfaces are styled from the component that summons them
-- `libs/ui/svg-canvas` is a 527-line global stylesheet
+- `lib/pkgs/ui/svg-canvas` is a 527-line global stylesheet
 - Ancestor state reaches the visual layer only through a marker nobody owns
 - `truncate` is one utility and two layers
 - A shared visual vocabulary, arrived at by two people writing it separately
@@ -97,7 +97,7 @@ reasons.
 - A recipe's other half is a convention and nothing checks that a call site kept it
 - Whether a clip and a picture should draw one frame is a question about `blockFrame`'s users
 - The dissolution section's argument stopped following from its premise
-- `libs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
+- `lib/pkgs/kit/tokens` is where a `:root` block goes, and only one kind has been tested there
 - The three-component threshold is a memory, and nothing counts the components
 - The enumeration is normative and the code has drifted from it
 - The `// unnamed:` ledger has no entries and no counter

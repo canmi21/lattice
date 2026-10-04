@@ -6,7 +6,15 @@
 	"compilerOptions": {
 		"lib": ["es2023", "dom"]
 	},
-	"include": ["libs/**/*.ts", "apps/**/*.ts", "*.ts"],
+	"include": [
+		"lib/**/*.ts",
+		"infra/**/*.ts",
+		"platform/**/*.ts",
+		"services/**/*.ts",
+		"libs/**/*.ts",
+		"apps/**/*.ts",
+		"*.ts"
+	],
 	"exclude": [
 		"**/node_modules",
 		"**/dist",

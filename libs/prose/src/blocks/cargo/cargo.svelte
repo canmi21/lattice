@@ -4,8 +4,8 @@
 	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the Cargo widget. Every interface colour is the token variable
-	 * `libs/kit/tokens` already declares. See spec/architecture/css/authoring.md.
+	 * The visual half of the Cargo widget. Every interface colour is a `@canmi/kit/tokens` variable.
+	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
 	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on it (spec/todo/css.md,
