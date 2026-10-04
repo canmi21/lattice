@@ -4,22 +4,33 @@ Findings about the things that describe the repository rather than the things th
 
 The rules over an entry are the index's; see [todo.md](todo.md).
 
-## `.gitattributes` is a list nothing keeps complete
+## `.gitattributes` is a list only a long file is held to
 
-Two paths are marked `linguist-generated=true` so a forge reads this repository as what somebody
-wrote rather than as what its tools emit -- [architecture/workspace.md](../architecture/workspace.md),
-"Machine output is marked, so the language statistics describe the repository". A third path that
-becomes machine output and is not added goes on being counted, and nothing fails.
+The paths marked `linguist-generated=true` keep a forge reading this repository as what somebody
+wrote, and since the workspace's line check began measuring every file, they are also what it
+passes over -- [architecture/workspace.md](../architecture/workspace.md), "Machine output is
+marked, so the language statistics describe the repository". A generated file over the hard limit
+that nobody marked now fails the gate, which is how `data/record/metadata.json`, marked under a
+path it had left, was found. One under the limit still goes on being counted and nothing fails.
 
-The evidence that this drifts is the file itself. It carried ten lines of reasoning citing
-`spec/architecture.md`, a file that does not exist, and the citation survived because
-`mise run refs` reads code under `apps/` and `libs/` and the documents, and `.gitattributes` is
-neither.
+Deciding the rest costs a definition: a gate that answers "is this machine output" without a
+person needs the set of paths the generators write, a second list kept by hand. Worth doing only
+alongside a reason to enumerate those outputs anyway.
 
-Deciding it costs a definition. A gate has to answer "is this machine output" without a person,
-and the only honest proxy is the set of paths this repository's own generators write -- which is
-a second list, kept by hand, with the same failure. Worth doing only alongside a reason to
-enumerate those outputs anyway.
+## Over the line limit, and deferred
+
+The workspace's line check measures every file, prose and data included, and these are over its
+hard limit of a thousand lines. Each is marked `lines=deferred` in `.gitattributes`, so the check
+reports it and passes, and each is split after the migration into layers rather than during it.
+
+- `data/record/media.yaml` and `tags.yaml`, the curated records, which A2 moves into the database
+  -- see [milestones.md](milestones.md); they leave rather than split.
+- `spec/todo/css.md`, the CSS backlog, split by area.
+- six of the translation sidecars, `contents/**/*.i18n.yaml`, the longest at 9329 lines, whose shape waits
+  on the segment layer's redesign -- see [cms.md](cms.md), "The segment layer waits for its
+  redesign".
+
+A deferral whose file falls under the limit is reported too, so the mark does not outlive it.
 
 ## A commit said less than it carried, because the paths were a directory
 

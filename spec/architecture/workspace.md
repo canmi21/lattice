@@ -57,28 +57,34 @@ it.
 
 ## Machine output is marked, so the language statistics describe the repository
 
-A forge reads the tree and says what it is written in. Two paths here would answer for their
-generators instead, and both are marked `linguist-generated=true` in `.gitattributes`.
+A forge reads the tree and says what it is written in, and the workspace's line check measures
+every file in it. Both would answer for this repository's generators instead of its authors, so
+what the generators write is marked `linguist-generated=true` in `.gitattributes`, which both read.
 
 `libs/fonts/src/*.css` is 8837 lines of `@font-face` rules and unicode-ranges against a few
-hundred lines of stylesheet anybody wrote. Counted, the figure describes the subsetter.
-`data/metadata.json` is written by `local image` and is tracked only because a build resolves
-every image from it with no byte of `data/` present -- a record, not source. See
-[data.md](data.md), "What stays in git, and until when".
+hundred lines of stylesheet anybody wrote. `data/record/metadata.json` is written by `local
+image`, and `diagram.json` beside it by the model calls that describe each diagram; `data/build/`
+holds what a build derives; Drizzle writes its own snapshots. Each is tracked because a build
+reads it with nothing else present -- a record, not source. See [data.md](data.md), "What stays in
+git, and until when".
 
 **A glob for the fonts, not a list of families.** Adding a font is three steps and coming back
 to this file is not one anybody would remember. Nothing in that directory is hand-authored,
 whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
 honest shape and a list would be a maintenance obligation bought for nothing.
 
-**Every other stylesheet stays counted.** `libs/theme/src/palettes/`, `apps/site/src/styles/`
-and the rest are decisions somebody made and should weigh what they weigh. The mark is for
-output, not for files that are merely long.
+**Every other file stays counted.** `libs/theme/src/palettes/`, `apps/site/src/styles/` and the
+rest are decisions somebody made and should weigh what they weigh. The mark is for output, not for
+files that are merely long; a file that is long and owed a split is marked `lines=deferred`
+instead, which the line check reports and passes.
 
-Nothing checks this. A path that becomes machine output and is not added here goes on being
-counted, and the statistics drift without anything failing -- which is the same shape as every
-other rule in this repository that a person has to remember, and is listed with them in
-[todo.md](../todo/todo.md) if it is ever worth a gate.
+A generator writing code also opens it with `@generated` in its first five lines -- `urls`,
+`scopes` and `fonts` do -- which rustfmt and the comment check read, and a reader opening the file
+sees before editing it.
+
+A generated file over the hard limit that nobody marked fails the line check, which is how this
+list found one of its own entries pointing at a path the file had left. One under the limit goes
+on being counted and nothing fails; see [../todo/tooling.md](../todo/tooling.md).
 
 ## Layout
 

@@ -101,7 +101,7 @@ def generated(lines: list[str]) -> bool:
 
 	A check reporting a line that may not be edited teaches its reader to skip the output, so
 	the exemption is the tool's job rather than a note in a brief: the tool writes `@generated`
-	in the first five lines, the workspace's one marker -- see its spec/code.md.
+	in the first five lines, as rustfmt reads it. See spec/architecture/workspace.md.
 	"""
 	return any("@generated" in line for line in lines[:5])
 
