@@ -392,7 +392,7 @@ away before its replacement answers.
 | E1  | The declaration                       | `[api.defaults]` and `[[api.routes]]` in `service.toml`, a schema `mise run scopes` holds them to, the richer table, service codes resolved in `libs/urls` | --       | near    |
 | E2  | Hostnames read as profiles            | The profile table, a hostname read from the right, the provider and region registries, every request read into its tuple | E1       | near    |
 | E3  | The gateway enforces the declaration  | CORS, the four lifetimes and crawling per route, and each host's `robots.txt`, `security.txt`, `favicon.ico` and path rule, derived; `policy.ts` retires | E1 E2    | near    |
-| E4  | Services speak `/v{n}/`               | Every service routes on its version -- the CDN on `/v3/`, the rest on `/v1/` -- answering the unversioned path too until E8 | E3       | near    |
+| E4  | Services speak `/v{n}/`               | Every service routes on its version -- the CDN on `/v3/`, the rest on `/v1/` -- and `/v1/` is born in the shape the workspace's `addresses.md` gives, the unversioned path answering as it did until E8 | E3       | near    |
 | E5  | The CDN and the alias layer move in   | Both become services behind the gateway by binding, their own CORS, stamps, host files and custom domains gone; `ill.li` and the old hosts become profiles | E3 E4    | near    |
 | E6  | The new domains answer                | `monoflake.com`, `ixc.one` and `symlink.si` bound to the gateway: DNS, routes, certificates                | E5       | near    |
 | E7  | The firewall is generated             | Each service-layer zone's whitelist written from the table, inside the expression and rule-count limits, and synced by `mise run rules sync` | E2 E6    | near    |
@@ -407,6 +407,11 @@ table rather than of writing rules.
 **E4 answers both spellings for as long as anything sends the old one.** A node's service and the
 gateway deploy apart, so a service that took the unversioned path away before the gateway put the
 version in would break every call in between. The old path goes in E8, with the last caller.
+
+**E4 is where the routes take their shape, because `/v1/` is new anyway.** A route that puts a
+thing's identity in its query is reshaped as its first version is written, rather than as a second
+version later; each one is studied again when it is taken, and its service and every caller of it
+move together. The list found so far is [gateway.md](gateway.md)'s.
 
 **E6 is work in Cloudflare's dashboard as much as in the repository**, and is the one step whose
 order is forced from outside: a zone has to exist before a route or a rule can name it.

@@ -91,3 +91,23 @@ domain anything answers.
 A generated whitelist has two limits to fit inside: an expression is at most 4,096 characters, and
 the Free plan allows a zone five custom rules. Every deployment of `ixc.one` is in one zone, so its
 whitelist covers every service on every node in one expression.
+
+## Some routes name a thing in the query
+
+The workspace's `spec/addresses.md` puts a thing's identity in the path and only what adjusts it in
+the query, and a `GET` changes nothing. These routes, read once and not yet studied one by one, do
+not:
+
+| Today                                  | By the rule                                  |
+| -------------------------------------- | -------------------------------------------- |
+| shot `GET /status?task={id}`           | `GET /tasks/{id}`                            |
+| shot `GET /capture?url=...`, which starts a capture | `POST /tasks`                   |
+| probe `/results?check={id}&since&until` | `/checks/{id}/results?since&until`          |
+| site `/article?slug=`                  | `/articles/{slug}`                           |
+| site `/source?slug=`                   | `/articles/{slug}/source`                    |
+| site `/like?slug=`, `/read?slug=`      | `/articles/{slug}/likes`, `/articles/{slug}/reads` |
+| site `/media?resource=`                | `/media/{rid}`                               |
+
+`/asset?name=` is not yet read. Each row is checked again when E4 takes it -- what the parameter
+really is, and every caller -- and the service and its callers move in one change.
+
