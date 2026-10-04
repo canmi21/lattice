@@ -140,34 +140,6 @@ describe('a name this site publishes', () => {
  * none of the routes expresses names nothing at all and never will.
  */
 describe('the rest of the host', () => {
-	it('sends the root to the site, permanently', async () => {
-		const res = await ask('/');
-		expect(res.status).toBe(301);
-		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.site}/?ref=alias`);
-	});
-
-	it("serves its own robots policy rather than a copy of another host's", async () => {
-		const res = await ask('/robots.txt');
-		expect(res.status).toBe(200);
-		expect(await res.text()).toContain('User-agent: *');
-	});
-
-	it('answers its own security.txt', async () => {
-		const res = await ask('/.well-known/security.txt');
-		expect(res.status).toBe(200);
-		expect(await res.text()).toContain('Contact: mailto:');
-	});
-
-	it('answers the name a browser asks every origin for with its own mark, in one hop', async () => {
-		// A browser asks every origin it touches for this one. This layer resolves its own `aka`
-		// mark straight to the object rather than redirecting to a name it would then resolve.
-		const fetching = answering(200, named);
-		const res = await ask('/favicon.ico');
-		expect(res.status).toBe(302);
-		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.cdn}/object/${CID}.svg`);
-		expect(String(fetching.mock.calls[0]?.[0])).toContain('/v1/assets/aka/favicon.ico');
-	});
-
 	it('refuses everything else, including a name that is neither a rid nor under the prefix', async () => {
 		const fetching = answering(200, named);
 		expect((await ask('/k7m2')).status).toBe(400);

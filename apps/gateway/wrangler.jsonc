@@ -6,7 +6,13 @@
 
 	// The public API host, declared here so every deploy asserts it: attached in the dashboard, it
 	// was gone after a deploy and nothing said so. See spec/toolchain.md.
-	"routes": [{ "pattern": "api.ffoni.com", "custom_domain": true }],
+	// The service layer's hosts this Worker answers; each is a profile in src/profile.ts. See
+	// spec/architecture/gateway.md.
+	"routes": [
+		{ "pattern": "api.ffoni.com", "custom_domain": true },
+		{ "pattern": "cdn.ffoni.com", "custom_domain": true },
+		{ "pattern": "ill.li", "custom_domain": true },
+	],
 
 	// Each scope placed on Workers is a binding here, named by `bindingOf` in src/table.ts, and
 	// src/index.test.ts holds this list to the generated table. See spec/architecture/services.md,

@@ -51,10 +51,8 @@ describe('robotsFor', () => {
 		}
 	});
 
-	it('leaves bytes and APIs to rules alone', () => {
-		for (const service of ['cdn', 'aka', 'api'] as const) {
-			expect(robotsFor(service)).not.toContain('Content-');
-		}
+	it('leaves a host that says no signals to rules alone', () => {
+		expect(robotsTxt({ disallow: ['/'], agent: 'api' })).not.toContain('Content-');
 	});
 
 	it("keeps the site's namespace out and names its sitemap", () => {
@@ -63,18 +61,12 @@ describe('robotsFor', () => {
 		expect(text).toContain(`Sitemap: ${URLS.apps.production.site}/sitemap.xml`);
 	});
 
-	it("lets into the API only the scope a site's page asks", () => {
-		expect(robotsFor('api').startsWith(`${robotsTxtBase.join('\n\n')}
-Allow: /site/
-Disallow: /
-`)).toBe(true);
-	});
 });
 
 describe('the terms and the sitemaps', () => {
 	it("opens a page host's file with Cloudflare's terms, and only a page host's", () => {
 		expect(robotsFor('site')).toContain('# ANY RESTRICTIONS EXPRESSED VIA CONTENT SIGNALS');
-		expect(robotsFor('cdn')).not.toContain('content signals');
+		expect(robotsTxt({ disallow: [''], agent: 'cdn' })).not.toContain('content signals');
 	});
 
 	it('names the status sitemap beside its signals', () => {
@@ -89,7 +81,10 @@ describe('the terms and the sitemaps', () => {
 });
 
 it("ends every host's file with its own word to an agent and where the code is", () => {
-	const files = (['site', 'status', 'cdn', 'aka', 'api'] as const).map(robotsFor);
+	const files = [
+		...(['site', 'status'] as const).map(robotsFor),
+		...(['cdn', 'aka', 'api'] as const).map((agent) => robotsTxt({ disallow: ['/'], agent })),
+	];
 	for (const text of files) expect(text).toContain(`# ${URLS.source}.git`);
 	const notes = files.map((text) => text.split('Note to AI agents')[1]?.split('.git')[0]);
 	expect(new Set(notes).size).toBe(files.length);
@@ -105,7 +100,7 @@ it("names every page host's sitemap, its own first", () => {
 		`Sitemap: ${URLS.internal.status.canonical}/sitemap.xml`,
 		`Sitemap: ${URLS.apps.production.site}/sitemap.xml`,
 	]);
-	expect(sitemaps(robotsFor('cdn'))).toEqual([]);
+	expect(sitemaps(robotsTxt({ disallow: [''], agent: 'cdn' }))).toEqual([]);
 });
 
 it('lists every other page host by its root alone, as that host declares it', () => {

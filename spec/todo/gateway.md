@@ -6,19 +6,14 @@ it is agreed, not an entry here.
 
 The rules over an entry are the index's; see [todo.md](todo.md).
 
-## The CDN and the alias layer still answer for themselves
+## The CDN and the alias layer still stamp their own lifetimes
 
-The gateway holds CORS, lifetimes, the host files and the path rule from each service's
-declaration. `cdn` on `cdn.ffoni.com` and `aka` on `ill.li` are Workers on custom domains of their
-own, and each still writes all four itself: `*` to every origin from its own middleware; a stamp
-the CDN derives from whether the path is content addressed ([cdn's cache.ts](../../apps/cdn/src/cache.ts))
-and the alias layer gives a resolution, a refusal and a blip three ways
-([aka's cache.ts](../../apps/aka/src/cache.ts)); its own `robots.txt`, `security.txt` and
-`favicon.ico`; and `normalizedLocation` mounted by hand.
-
-Their routes -- `/object`, `/derive`, `/proxy/github`, the legacy `/github/*`, `/symlink/...`, the
-five-character rids -- move behind the gateway unchanged, reached by binding, and their custom
-domains go; each stamp becomes a declaration.
+Both stand behind the gateway now, which answers their hosts -- `cdn.ffoni.com` and `ill.li` --
+their CORS, their host files and the path rule, and stamps what leaves them from their
+declarations. Each still stamps its answers itself as well, in its `cache.ts`: the gateway writes
+over it, but the CDN keeps derived pictures in its own cache by that stamp, so it is not idle
+there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
+layer's stamps go, is the cleanup pass's to settle.
 
 ## The CDN and the alias layer are not yet versioned, and the old paths still answer
 

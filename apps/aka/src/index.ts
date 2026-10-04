@@ -1,9 +1,5 @@
-import { robotsFor } from '@canmi/robots';
-import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import { isDevHost, normalizedLocation, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
-import { cacheControl, NEVER, REFUSED } from './cache';
+import { cacheControl, NEVER } from './cache';
 import { failure } from './respond';
 import { resolve } from './resolve';
 import { resource } from './resource';
@@ -18,45 +14,12 @@ import { resource } from './resource';
  */
 const app = new Hono();
 
-// Any origin may read: everything reachable here is public, and an answer is a redirect rather
-// than bytes. Methods stay read-only on the layer itself; a preserved redirect carries whatever
-// the caller sent on to the CDN.
-app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
+// CORS, the path's spelling and the files every host answers -- `/`, `favicon.ico`, `robots.txt`,
+// `security.txt` -- are the gateway's, which this layer stands behind. See
+// spec/architecture/gateway.md.
+//
 // Before any route, so nothing can answer without a lifetime. See ./cache.ts.
 app.use('*', cacheControl);
-// One spelling per address: a path that normalizes differently goes where it should.
-// See spec/architecture/delivery.md, "Every address has one spelling".
-app.use('*', async (c, next) => {
-	const normal = normalizedLocation(new URL(c.req.url));
-	return normal ? c.redirect(normal.location, normal.status) : next();
-});
-
-// Permanent, because this host's root resolves nothing: which site it belongs to is not a thing
-// that changes, so a browser that learns it once need never ask again. `ref` marks where the
-// visitor came from, so the site can tell this apart from someone typing the address.
-app.get('/', (c) => {
-	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return c.redirect(`${urls.site}/?ref=alias`, 301);
-});
-
-// The name a browser asks every origin for: this layer's own `aka` mark, resolved in one hop. See
-// spec/architecture/delivery.md, "A page follows the name for the browser".
-app.get('/favicon.ico', (c) => resolve(c, 'aka/favicon.ico'));
-
-/**
- * This host's own policy, and not a copy of anybody else's.
- *
- * A robots policy is a statement about the host it is served from, so it stays on each of them
- * rather than moving here with the brand assets. Everything reachable here is a redirect to a
- * public object, so nothing is disallowed.
- */
-app.get('/robots.txt', (c) => {
-	c.header('Cache-Control', REFUSED);
-	return c.text(robotsFor('aka'));
-});
-
-// security.txt, the same on every host of ours; see spec/architecture/firewall.md.
-app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'aka'));
 
 /**
  * A resource, answered with whatever it declares itself canonically to be.

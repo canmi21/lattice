@@ -1,6 +1,4 @@
-import { URLS } from '@canmi/urls';
-import { RESOLVED } from '@canmi/cache';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import app from './index';
 
 const CID = '44b6081deaf0242ca3bf83d62a3b6c95';
@@ -16,54 +14,6 @@ const MINUTES = 'public, max-age=300';
 async function ask(path: string, init?: RequestInit): Promise<Response> {
 	return app.fetch(new Request(HOST + path, init), {} as never);
 }
-
-/**
- * The names this host answers for beside the three groups, and what each promises.
- *
- * Three statements and a forwarding address: where the site is, where the icon's name lives,
- * what a crawler may take, and where the proxies moved to.
- */
-describe('the fixed names', () => {
-	it('sends the root to the site, permanently', async () => {
-		const res = await ask('/');
-		// Permanent because the site's address is not a thing that changes. The hour is what
-		// every answer that names rather than identifies keeps.
-		expect(res.status).toBe(301);
-		expect(res.headers.get('Location')).toBe(`${URLS.apps.production.site}/?ref=cdn`);
-		expect(res.headers.get('Cache-Control')).toBe(HOUR);
-	});
-
-	it('follows its own mark for the browser, in one hop', async () => {
-		const object = `${URLS.apps.production.cdn}/object/abc.ico`;
-		const fetching = vi
-			.spyOn(globalThis, 'fetch')
-			.mockResolvedValue(new Response(null, { status: 302, headers: { Location: object } }));
-		const res = await ask('/favicon.ico');
-		expect(String(fetching.mock.calls[0]?.[0])).toBe(
-			`${URLS.apps.production.alias}/symlink/cdn/favicon.ico`,
-		);
-		expect(res.status).toBe(302);
-		expect(res.headers.get('Location')).toBe(object);
-		// What the alias layer's own answer keeps: the publication delay, stale through an outage.
-		expect(res.headers.get('Cache-Control')).toBe(RESOLVED);
-		fetching.mockRestore();
-	});
-
-	it('serves its own robots policy, briefly, rather than resolving one', async () => {
-		const res = await ask('/robots.txt');
-		expect(res.status).toBe(200);
-		// A robots policy is a statement about the host serving it, and these hosts differ, so
-		// this is the one name here that is not a shortcut to somewhere else.
-		expect(await res.text()).toContain('User-agent: *');
-		expect(res.headers.get('Cache-Control')).toBe(MINUTES);
-	});
-
-	it('answers its own security.txt', async () => {
-		const res = await ask('/.well-known/security.txt');
-		expect(res.status).toBe(200);
-		expect(await res.text()).toContain('Contact: mailto:');
-	});
-});
 
 /**
  * The proxies moved under `/proxy`, and the old prefix is kept as a redirect rather than as a

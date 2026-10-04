@@ -1,10 +1,4 @@
-import { PUBLISHED } from '@canmi/cache';
-import { robotsFor } from '@canmi/robots';
-import { SECURITY_TXT_PATH, securityResponse } from '@canmi/security';
-import { followSymlink, symlinkOf } from '@canmi/symlink';
-import { isDevHost, normalizedLocation, pickUrls } from '@canmi/urls';
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import { cacheControl } from './cache';
 import github from './github';
 import object from './object';
@@ -22,52 +16,13 @@ import { failure } from './respond';
  */
 const app = new Hono<{ Bindings: Bindings }>();
 
-// Any origin may read: everything served here is public, so an allowlist blocked only embedding,
-// which is what a CDN is for. Methods stay read-only, granting nothing beyond a GET.
+// CORS, the path's spelling and the files every host answers -- `/`, `favicon.ico`, `robots.txt`,
+// `security.txt` -- are the gateway's, which this host stands behind. See
+// spec/architecture/gateway.md.
 //
-// `allowHeaders` is absent for the same reason: naming headers means guessing which ones an
-// embedder sends (`Range` among them) and breaking the rest, where a reflected preflight
-// grants nothing anyway without credentials to reach. The API stays origin-restricted instead.
-// A scanner flagging the reflected preflight has found a pattern, not a hole.
-app.use('*', cors({ origin: '*', allowMethods: ['GET', 'HEAD', 'OPTIONS'] }));
-// One rule over the three groups, and the floor under everything else. See ./cache.ts.
+// One rule over the three groups, and the floor under everything else, for what this host keeps in
+// its own cache; the gateway stamps what leaves it. See ./cache.ts.
 app.use('*', cacheControl);
-// One spelling per address: a path that normalizes differently goes where it should.
-// See spec/architecture/delivery.md, "Every address has one spelling".
-app.use('*', async (c, next) => {
-	const normal = normalizedLocation(new URL(c.req.url));
-	return normal ? c.redirect(normal.location, normal.status) : next();
-});
-
-// Permanent: which host the site is reached at is not a thing that changes, so a browser that
-// learns this once need never ask again.
-app.get('/', (c) => {
-	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return c.redirect(`${urls.site}/?ref=cdn`, 301);
-});
-
-// A browser asks any origin it touches for this: the `cdn` scope's mark, followed in one hop. See
-// spec/architecture/delivery.md, "A page follows the name for the browser".
-app.get('/favicon.ico', (c) => {
-	const urls = pickUrls(isDevHost(new URL(c.req.url).hostname));
-	return followSymlink(symlinkOf(urls.alias, 'cdn', 'favicon.ico'));
-});
-
-// Nothing here is disallowed. `Disallow: /` blocked OpenGraph cards too, and adding
-// `Allow: /opengraph/` did not fix it for X: Twitterbot implements the original 1994
-// robots.txt draft, which has no `Allow` and never sees the exception.
-//
-// A per-agent block would mean guessing which crawlers parse which decade of the format,
-// forever, over something mild. So everything is fetchable, and cached briefly.
-//
-// Not a symlink: a robots policy is a statement about the host serving it, and these differ.
-app.get('/robots.txt', (c) => {
-	c.header('Cache-Control', PUBLISHED);
-	return c.text(robotsFor('cdn'));
-});
-
-// security.txt, the same on every host of ours; see spec/architecture/firewall.md.
-app.get(SECURITY_TXT_PATH, (c) => securityResponse(c.req.raw, 'cdn'));
 
 /**
  * Where the proxies used to answer, kept as a redirect rather than as a second spelling.

@@ -106,8 +106,11 @@ export function robotsTxt(options: RobotsTxtOptions = {}): string {
 	return `${lines.join('\n')}\n`;
 }
 
-/** The services that answer `/robots.txt`, by their internal names. */
-export type RobotsService = Service;
+/**
+ * The applications that answer their own `robots.txt`: the service layer's hosts are the gateway's,
+ * which writes theirs from the routes they reach. See spec/architecture/gateway.md.
+ */
+export type RobotsService = 'site' | 'status';
 
 /**
  * The services that serve pages, in the order every sitemap list follows, each with its origin, how
@@ -197,9 +200,6 @@ export const ROBOTS: Readonly<Record<RobotsService, RobotsTxtOptions>> = {
 		agent: 'status',
 		sitemap: sitemapsFor('status'),
 	},
-	cdn: { disallow: [''], agent: 'cdn' },
-	aka: { disallow: [''], agent: 'aka' },
-	api: { allow: [`${new URL(URLS.apps.production.api).pathname}/`], disallow: ['/'], agent: 'api' },
 };
 
 /** A service's `robots.txt`. */
