@@ -1,10 +1,9 @@
-# web
+# Everything Behind
 
-The author's site, canmi.net, and what is built around it: its API, the status page, the editor,
-and `local`, the resident service that compiles and publishes the corpus.
+The canmi.net & canmi.app monorepo.  
+Built from scratch. See `mise.toml` for project tasks.
 
-Mostly built for myself, but feel free to browse the code for reference. See `mise.toml` for the
-tasks, and [spec/repository.md](spec/repository.md) for how it is laid out.
+Mostly built for myself, but feel free to browse the code for reference.
 
 ## License
 
