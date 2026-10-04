@@ -33,10 +33,8 @@ The gateway reads one form, `/{scope}/{path}` on one host. There is no profile t
 a hostname from the right, no registry of providers or regions, and no `/v{n}/` in any path. Every
 service is `v1` from the start except the CDN at `v3` and the alias layer at `v1`.
 
-**Undecided: how a service learns the version.** The gateway can take `/v{n}` off and say it in a
-header, so a service is written without it until it has a second version; or leave it in the path,
-so a service routes on it. The first keeps every service unchanged now; the second makes a version a
-route like any other. Deciding costs nothing until a service has a `v2`.
+Decided: the gateway forwards the version in the path, and a service routes on it; see the
+gateway's spec.
 
 ## The policy is split between a service's file and the gateway's
 
@@ -45,9 +43,10 @@ lifetimes are in the gateway's `policy.ts`, written in TypeScript because an ori
 every URL is declared once in `libs/urls`. The new design has the service declare and the gateway
 enforce.
 
-**Undecided: where the rest of the policy goes.** It can move into `service.toml` with origins named
-by key -- `origins = ["status"]`, read against `libs/urls` -- or stay in `policy.ts` beside the table.
-Moving it puts a service's whole contract in one file; leaving it keeps every URL in TypeScript.
+Decided: all of it goes into `service.toml`, CORS by service code; see the gateway's spec.
+
+**Undecided: the declaration's shape.** How a path is matched and which match wins, what a lifetime
+is written as, and how `mise run scopes` validates a declaration before the gateway is built from it.
 
 ## A lifetime is one number for a success and one for a failure
 
@@ -55,8 +54,11 @@ The gateway's `Lifetime` is `{ success, failure }`. The new design declares thre
 answer, a refusal about the request itself, and the service failing or being unreachable -- the
 distinction the alias layer already makes by hand.
 
-**Undecided: the names and the defaults.** What the three are called in a declaration, what each is
-when a route says nothing, and whether a route may say that an answer is not to be kept at all.
+Decided: fifteen minutes for a success and five for a failure when nothing is declared.
+
+**Undecided: whether a failure is one kind or two.** A refusal about the request (a 4xx) and the
+service failing or unreachable (a 5xx, or no answer) can share one lifetime or have one each; the
+alias layer keeps the second for no time at all, since every icon on a page passes through it.
 
 ## The addresses are spelled for the old hosts
 
@@ -69,7 +71,7 @@ Outside the repository: GitHub's webhook calls `hook` at the old API host; Cloud
 custom domains, the DNS for `monoflake.com` and `ixc.one`, and the Worker routes the gateway would
 need for every profile's hostname.
 
-**Undecided: the home node's region.** The machine at home needs a three-letter region code before
+Decided: `rdu`.
 `api-{region}-int.ixc.one` can name it.
 
 ## What each new host tells a crawler is not written

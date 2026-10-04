@@ -30,6 +30,11 @@ the path.** Each hostname the gateway answers is a profile: it says which parts 
 hostname gives, which the path gives, and which it fills in itself. The service sees only the
 version and the path, and never which hostname or profile the request came by.
 
+**The version goes to the service as part of the path, untouched.** A service handles its own
+versions, routing `/v1/...` and, one day, `/v2/...` itself; the gateway reads the version only to
+fill it in. A profile that pins one -- `cdn.monoflake.com` at `v3` -- puts `/v3` in front of the
+path, so the CDN receives `/v3/object/...` whichever host was asked.
+
 | Hostname                                  | The hostname gives                    | The path gives               |
 | ----------------------------------------- | ------------------------------------- | ---------------------------- |
 | `api.monoflake.com`                       | nothing                               | `/v{n}/{service}/{path}`     |
@@ -72,6 +77,11 @@ A region is three lowercase letters: the IATA code of the airport nearest the ma
 that says less, the city's own code or a datacenter's well-known one -- whichever the reader would
 recognize first. A deployment that runs everywhere at once, as a Worker does, is `glo`.
 
+| Code  | Where                                         | So a deployment there is      |
+| ----- | --------------------------------------------- | ----------------------------- |
+| `rdu` | the machine at home, by Raleigh-Durham's airport | `api-rdu-int.ixc.one`       |
+| `glo` | Cloudflare's Workers, everywhere              | `api-glo-cf.ixc.one`          |
+
 ## A version is in the path, and it moves only on a break
 
 **Every API path starts with `/v{n}/`.** Every service starts at `v1` -- except the CDN, which
@@ -94,10 +104,28 @@ by path, on `api.monoflake.com`.
 ## What a service declares, and what the gateway does with it
 
 **A service declares; the gateway enforces.** The declaration is the service's `service.toml`,
-which the gateway's table is generated from. For each route it says who may call it from a browser,
-how long each kind of answer is kept, and what limits it by address. The service itself sees a
-request that has already been checked, with the version and the path, and nothing about CORS,
-caching or who sent it.
+which the gateway's table is generated from, and nothing about a service's contract is written in
+the gateway. For the service and, where it differs, for each of its paths, it says who may call it
+from a browser, how long a success and a failure are kept, whether a crawler may fetch it, and what
+limits it by address. The service itself sees a request that has already been checked, with the
+version and the path, and writes none of it.
+
+**A route names who may call it by service code, never by origin.** `cors` is `public`, for any
+origin, or a list of the codes of the services whose pages may call it -- `["site", "status"]` --
+which the gateway reads against `libs/urls` for their origins. A page moving to another host is
+then one change in `libs/urls`, and no declaration names a URL.
+
+**What nobody declares falls to one default: a success is kept fifteen minutes, a failure five.**
+A service sets its own for all its paths, and a path for itself; the nearest declaration wins.
+
+**Whether a crawler may fetch a path is declared with it.** The gateway writes each hostname's
+`robots.txt` from what the routes reachable on that host say -- the CDN may let its objects be
+indexed while the rest of the API is not.
+
+**A consumer is not behind the gateway, and keeps calling the libraries.** The site's routes are
+its own and unlike any API's, so the site, and the status page, still answer their own
+`robots.txt` and `security.txt` from `@canmi/robots` and `@canmi/security`. That is one entry point
+called twice, not the rules written twice.
 
 **An answer's lifetime is declared per route, and a success and a failure are declared apart.**
 One lifetime for every answer -- five minutes, success or failure -- is too coarse: some failures
