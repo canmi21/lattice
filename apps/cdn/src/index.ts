@@ -28,6 +28,21 @@ const groups = new Hono<{ Bindings: Bindings }>();
 groups.route('/object', object);
 groups.route('/derive', derive);
 groups.route('/proxy/github', github);
+
+/**
+ * Where the proxies used to answer, kept as a redirect rather than as a second spelling: rdm's
+ * builds already out there fetch their updates from `/github/release/...`.
+ *
+ * Permanent and method-preserving: a 308 says the path moved without inviting a client to turn
+ * its request into a `GET`. Relative, since each host spells what comes before `github/` its own
+ * way: one `../` per segment after it climbs back to where `proxy/github/` belongs.
+ */
+groups.all('/github/*', (c) => {
+	const url = new URL(c.req.url);
+	const rest = url.pathname.slice(url.pathname.indexOf('/github/') + '/github/'.length);
+	const up = '../'.repeat(rest.split('/').length);
+	return c.redirect(`${up}proxy/github/${rest}${url.search}`, 308);
+});
 // At `/v3/`. See spec/architecture/gateway.md, "A version is in the path, and it moves only on a
 // break".
 app.route('/v3', groups);

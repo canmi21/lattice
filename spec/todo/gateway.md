@@ -15,6 +15,14 @@ over it, but the CDN keeps derived pictures in its own cache by that stamp, so i
 there. Whether the CDN's own cache reads its lifetime from the declaration instead, and the alias
 layer's stamps go, is the cleanup pass's to settle.
 
+## rdm's builds out there ask `cdn.ffoni.com`
+
+rdm, a sibling repository, fetches its updates from `cdn.ffoni.com/github/release/...`, the old
+spelling the CDN still redirects to `/proxy/github/release/...`, and reads Cloudflare's trace at
+`cdn.ffoni.com/cdn-cgi/trace`. Every build already installed keeps asking there, so `ffoni.com` is
+not released while one is in use: rdm moves to `cdn.monoflake.com/proxy/github/release/...` first,
+and the domain waits for its builds to update past that.
+
 ## An apex answers nothing yet
 
 `monoflake.com`, `monoflake.net`, `ixc.one` and `symlink.si` are service domains, and each apex is

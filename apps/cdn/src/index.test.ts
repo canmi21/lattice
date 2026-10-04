@@ -14,6 +14,32 @@ async function ask(path: string, init?: RequestInit): Promise<Response> {
 	return app.fetch(new Request(`${HOST}/v3${path}`, init), {} as never);
 }
 
+describe('where the proxies used to answer', () => {
+	// Each host spells what comes before `github/` its own way; the Location is resolved as a
+	// client on each would resolve it.
+	const SPELLINGS = ['https://cdn.example', 'https://api.example/v3/cdn'];
+
+	it('forwards the whole path permanently, without letting the method change', async () => {
+		const res = await ask('/github/release/rdm/latest/rdm.dmg');
+		expect(res.status).toBe(308);
+		const location = res.headers.get('Location') ?? '';
+		for (const base of SPELLINGS) {
+			expect(new URL(location, `${base}/github/release/rdm/latest/rdm.dmg`).href).toBe(
+				`${base}/proxy/github/release/rdm/latest/rdm.dmg`,
+			);
+		}
+	});
+
+	it('carries the query, which is where the avatar route takes its size', async () => {
+		const res = await ask('/github/avatar/canmi21?width=64');
+		expect(res.status).toBe(308);
+		const location = res.headers.get('Location') ?? '';
+		expect(new URL(location, 'https://cdn.example/github/avatar/canmi21?width=64').href).toBe(
+			'https://cdn.example/proxy/github/avatar/canmi21?width=64',
+		);
+	});
+});
+
 /**
  * Everything outside the three groups, and `400` rather than `404`.
  *
@@ -63,4 +89,3 @@ describe('the catch-all', () => {
 		expect(await res.json()).toMatchObject({ status: 'error', code: 'invalid_address' });
 	});
 });
-
