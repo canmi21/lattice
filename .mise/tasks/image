@@ -21,18 +21,6 @@ while [ "$dir" != / ] && ! grep -qs '^node = "' "$dir/mise.toml"; do dir="$(dirn
 node="$(sed -n 's/^node = "\(.*\)"/\1/p' "$dir/mise.toml" 2>/dev/null || true)"
 [ -n "$node" ] || { echo "image: no node in a mise.toml above $ROOT" >&2; exit 1; }
 
-# An app that builds from an upstream release it resolves itself -- apps/clickhouse's ClickHouse
-# tag -- carries an executable `version` beside its Dockerfile printing what it resolved to. The
-# build gets it as $APP_VERSION, and the image is labelled with it, so the Dockerfile and the
-# label can never disagree. See spec/architecture/databases.md, "The drivers".
-# A tag is a git ref -- no spaces, no quoting needed -- so leaving $resolved unquoted below is
-# safe and splits into nothing when it is empty, which an empty array would not on every bash.
-resolved=""
-if [ -x "$ROOT/apps/$name/version" ]; then
-	tag="$("$ROOT/apps/$name/version")"
-	resolved="--build-arg APP_VERSION=$tag --label org.canmi.lattice.$name.version=$tag"
-fi
-
 docker buildx build --platform "${PLATFORM:-linux/arm64}" --file "$ROOT/apps/$name/Dockerfile" \
-	--build-arg "RUST_VERSION=$version" --build-arg "NODE_VERSION=$node" $resolved \
+	--build-arg "RUST_VERSION=$version" --build-arg "NODE_VERSION=$node" \
 	--tag "$name:local" --output "type=docker,dest=$archive" "$ROOT"

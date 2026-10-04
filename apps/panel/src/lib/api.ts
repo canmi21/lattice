@@ -19,7 +19,7 @@ export interface App extends Version {
 	restorable: boolean;
 	/** host, keeper, Caddy or the tunnel: restarted from here, never stopped. */
 	platform: boolean;
-	/** objects, postgres or clickhouse: no container of its own, so nothing to start or stop. */
+	/** objects or postgres: no container of its own, so nothing to start or stop. */
 	driver: boolean;
 }
 

@@ -15,7 +15,7 @@ pub const VERSION: u32 = 1;
 /// calls every job, the door onto the machine's own packages and the public telemetry, and the
 /// containers an app's name would collide with. See spec/architecture/cron.md,
 /// spec/architecture/apt.md, spec/architecture/telemetry.md and spec/architecture/databases.md.
-const RESERVED: [&str; 15] = [
+const RESERVED: [&str; 14] = [
 	"host",
 	"keeper",
 	"meter",
@@ -27,7 +27,6 @@ const RESERVED: [&str; 15] = [
 	"cloudflared",
 	"objects",
 	"postgres",
-	"clickhouse",
 	"cron",
 	"apt",
 	"telemetry",
@@ -52,7 +51,7 @@ const RESERVED_LABELS: [&str; 1] = ["cms"];
 /// telemetry. See spec/architecture/host.md, "host never updates itself; keeper updates host",
 /// spec/architecture/meter.md, spec/architecture/objects.md, spec/architecture/databases.md,
 /// spec/architecture/cron.md and spec/architecture/apt.md.
-pub const OWN: [&str; 12] = [
+pub const OWN: [&str; 11] = [
 	"host",
 	"keeper",
 	"meter",
@@ -61,7 +60,6 @@ pub const OWN: [&str; 12] = [
 	"panel",
 	"objects",
 	"postgres",
-	"clickhouse",
 	"cron",
 	"apt",
 	"telemetry",
@@ -93,8 +91,6 @@ pub struct Manifest {
 	pub objects: Option<Objects>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub postgres: Option<Database>,
-	#[serde(default, skip_serializing_if = "Option::is_none")]
-	pub clickhouse: Option<Database>,
 	/// The jobs `cron` calls for it. See spec/architecture/cron.md, "A job is declared by the
 	/// service that does it".
 	#[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -821,36 +817,34 @@ mod tests {
 
 	#[test]
 	fn databases_are_declared_each_with_an_optional_ceiling() {
-		let text = format!("{GEO}\n[postgres]\nmemory_mb = 192\n[clickhouse]\n");
+		let text = format!("{GEO}\n[postgres]\nmemory_mb = 192\n");
 		let manifest = Manifest::parse(&text).unwrap();
 		assert_eq!(manifest.postgres, Some(Database { memory_mb: Some(192) }));
-		assert_eq!(manifest.clickhouse, Some(Database { memory_mb: None }));
 		assert_eq!(manifest.check("geo", "home"), Ok(()));
-		assert_eq!(manifest.sidecars(), ["geo-postgres", "geo-clickhouse"]);
+		assert_eq!(manifest.sidecars(), ["geo-postgres"]);
 		assert_eq!(Driver::Postgres.memory_mb(&manifest), Some(192));
-		assert_eq!(Driver::ClickHouse.memory_mb(&manifest), None);
 		// Objects are not declared, so its sidecar is not among them, and the one it names is none.
 		assert_eq!(manifest.sidecar(), None);
 		let geo = Manifest::parse(GEO).unwrap();
-		assert!(geo.sidecars().is_empty() && geo.postgres.is_none() && geo.clickhouse.is_none());
+		assert!(geo.sidecars().is_empty() && geo.postgres.is_none());
 
 		let unbounded = Manifest::parse(&format!("{GEO}\n[postgres]\nmemory_mb = 0\n")).unwrap();
 		assert_eq!(unbounded.check("geo", "home"), Err(Invalid::SidecarMemory("postgres".into())));
-		let mut long = Manifest::parse(&format!("{GEO}\n[clickhouse]\n")).unwrap();
-		long.name = "a".repeat(53);
-		let named = Invalid::SidecarName(format!("{}-clickhouse", "a".repeat(53)));
-		assert_eq!(long.check(&"a".repeat(53), "home"), Err(named));
-		long.name = "a".repeat(52);
-		assert_eq!(long.check(&"a".repeat(52), "home"), Ok(()));
+		let mut long = Manifest::parse(&format!("{GEO}\n[postgres]\n")).unwrap();
+		long.name = "a".repeat(55);
+		let named = Invalid::SidecarName(format!("{}-postgres", "a".repeat(55)));
+		assert_eq!(long.check(&"a".repeat(55), "home"), Err(named));
+		long.name = "a".repeat(54);
+		assert_eq!(long.check(&"a".repeat(54), "home"), Ok(()));
 	}
 
 	#[test]
 	fn the_database_drivers_and_every_sidecar_of_theirs_are_reserved() {
-		for name in ["postgres", "clickhouse", "geo-postgres", "geo-clickhouse"] {
+		for name in ["postgres", "geo-postgres"] {
 			assert_eq!(check_name(name), Err(Invalid::Reserved(name.into())), "{name}");
 		}
 		assert!(check_name("postgres-geo").is_ok());
-		assert!(OWN.contains(&"postgres") && OWN.contains(&"clickhouse"));
+		assert!(OWN.contains(&"postgres"));
 		let driver = Manifest::parse(include_str!("../../../apps/postgres/service.toml")).unwrap();
 		assert_eq!(driver.check_own("postgres", "home"), Ok(()));
 		assert_eq!(driver.check("postgres", "home"), Err(Invalid::Reserved("postgres".into())));

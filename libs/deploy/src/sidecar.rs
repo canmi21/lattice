@@ -16,7 +16,6 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 pub enum Driver {
 	Objects,
 	Postgres,
-	ClickHouse,
 }
 
 /// How a sidecar is asked whether it is up.
@@ -30,7 +29,7 @@ pub enum Check {
 }
 
 impl Driver {
-	pub const ALL: [Driver; 3] = [Driver::Objects, Driver::Postgres, Driver::ClickHouse];
+	pub const ALL: [Driver; 2] = [Driver::Objects, Driver::Postgres];
 
 	/// Its name as a deploy, the block an app declares it with, and the directory its sidecars
 	/// mount in each app's subvolume.
@@ -38,7 +37,6 @@ impl Driver {
 		match self {
 			Driver::Objects => "objects",
 			Driver::Postgres => "postgres",
-			Driver::ClickHouse => "clickhouse",
 		}
 	}
 
@@ -51,7 +49,6 @@ impl Driver {
 		match self {
 			Driver::Objects => "-objects",
 			Driver::Postgres => "-postgres",
-			Driver::ClickHouse => "-clickhouse",
 		}
 	}
 
@@ -63,7 +60,6 @@ impl Driver {
 		match self {
 			Driver::Objects => app.objects.is_some(),
 			Driver::Postgres => app.postgres.is_some(),
-			Driver::ClickHouse => app.clickhouse.is_some(),
 		}
 	}
 
@@ -72,44 +68,39 @@ impl Driver {
 		match self {
 			Driver::Objects => None,
 			Driver::Postgres => app.postgres.as_ref()?.memory_mb,
-			Driver::ClickHouse => app.clickhouse.as_ref()?.memory_mb,
 		}
 	}
 
-	/// Where the sidecar mounts its directory: Versity's posix root, the image's `PGDATA`, and
-	/// ClickHouse's own path.
+	/// Where the sidecar mounts its directory: Versity's posix root, and the image's `PGDATA`.
 	pub fn target(self) -> &'static str {
 		match self {
 			Driver::Objects => "/data",
 			Driver::Postgres => "/var/lib/postgresql/data",
-			Driver::ClickHouse => "/var/lib/clickhouse",
 		}
 	}
 
 	/// The user it runs as, by number, whatever its image says; none takes the image's own. 70 is
-	/// Alpine's `postgres`, and 101 the `clickhouse` user apps/clickhouse builds its image with.
+	/// Alpine's `postgres`.
 	pub fn user(self) -> Option<(u32, u32)> {
 		match self {
 			Driver::Objects => None,
 			Driver::Postgres => Some((70, 70)),
-			Driver::ClickHouse => Some((101, 101)),
 		}
 	}
 
 	/// What it writes beside its data, each a tmpfs over the read-only root: Postgres's socket
-	/// directory, and ClickHouse's log directory; the rest of what they write goes under `/tmp`.
+	/// directory; the rest of what it writes goes under `/tmp`.
 	pub fn scratch(self) -> &'static [&'static str] {
 		match self {
 			Driver::Objects => &[],
 			Driver::Postgres => &["/var/run/postgresql"],
-			Driver::ClickHouse => &["/var/log/clickhouse-server"],
 		}
 	}
 
 	pub fn check(self) -> Check {
 		match self {
 			Driver::Postgres => Check::Postgres,
-			Driver::Objects | Driver::ClickHouse => Check::Http,
+			Driver::Objects => Check::Http,
 		}
 	}
 
@@ -118,7 +109,6 @@ impl Driver {
 		match self {
 			Driver::Objects => 17070,
 			Driver::Postgres => 5432,
-			Driver::ClickHouse => 8123,
 		}
 	}
 }
@@ -255,7 +245,6 @@ mod tests {
 		}
 		assert_eq!(Driver::named("geo"), None);
 		assert_eq!(Driver::Postgres.sidecar_of("umami"), "umami-postgres");
-		assert_eq!(Driver::ClickHouse.sidecar_of("umami"), "umami-clickhouse");
 	}
 
 	#[test]
@@ -280,20 +269,6 @@ mod tests {
 		tmpfs.sort();
 		assert_eq!(tmpfs, ["/tmp", "/var/run/postgresql"]);
 		assert_eq!(config.network_mode.as_deref(), Some("app-photos"));
-	}
-
-	#[test]
-	fn a_clickhouse_sidecar_runs_as_clickhouse_with_its_logs_on_tmpfs() {
-		let body = sidecar(Driver::ClickHouse).body();
-		assert_eq!(body.user.as_deref(), Some("101:101"));
-		let config = body.host_config.unwrap();
-		let mounts = config.mounts.unwrap();
-		assert_eq!(mounts[0].source.as_deref(), Some("/data/apps/photos/clickhouse"));
-		assert_eq!(mounts[0].target.as_deref(), Some("/var/lib/clickhouse"));
-		let mut tmpfs = config.tmpfs.unwrap().into_keys().collect::<Vec<_>>();
-		tmpfs.sort();
-		assert_eq!(tmpfs, ["/tmp", "/var/log/clickhouse-server"]);
-		assert_eq!(Driver::ClickHouse.check(), Check::Http);
 	}
 
 	#[test]

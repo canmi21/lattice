@@ -68,7 +68,7 @@ pub fn deployable(name: &str) -> Result<(), Invalid> {
 }
 
 /// The platform's own that host deploys, each in the shape its name gives it; a driver runs none.
-const TAKEN: [&str; 11] = [
+const TAKEN: [&str; 10] = [
 	"keeper",
 	"meter",
 	"caddy",
@@ -76,7 +76,6 @@ const TAKEN: [&str; 11] = [
 	"panel",
 	OBJECTS,
 	"postgres",
-	"clickhouse",
 	"cron",
 	"apt",
 	"telemetry",
@@ -87,7 +86,7 @@ const PANEL: &str = "panel";
 
 /// The platform's own that stand on no network of their own: the meter has none, Caddy and the
 /// tunnel stand on the edge, and a driver runs no container.
-const UNNETWORKED: [&str; 6] = ["meter", "caddy", "tunnel", OBJECTS, "postgres", "clickhouse"];
+const UNNETWORKED: [&str; 5] = ["meter", "caddy", "tunnel", OBJECTS, "postgres"];
 
 /// Refuse what could not be run before anything is stopped.
 pub fn admit(host: &Host, requested: &str, manifest: &Manifest) -> Result<(), Error> {
@@ -760,7 +759,6 @@ mod tests {
 		assert!(deployable("panel").is_ok());
 		assert!(deployable("objects").is_ok());
 		assert!(deployable("postgres").is_ok());
-		assert!(deployable("clickhouse").is_ok());
 		assert_eq!(deployable("geo-postgres"), Err(Invalid::Reserved("geo-postgres".into())));
 		assert_eq!(deployable("host"), Err(Invalid::Reserved("host".into())));
 		assert_eq!(deployable("api"), Err(Invalid::Reserved("api".into())));

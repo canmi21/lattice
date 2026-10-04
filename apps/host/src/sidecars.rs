@@ -1,4 +1,4 @@
-//! What runs beside an app for it alone -- its object storage, its Postgres, its ClickHouse -- on
+//! What runs beside an app for it alone -- its object storage, its Postgres -- on
 //! the image of a driver deployed like an app and never run under its own name. See
 //! spec/architecture/objects.md and spec/architecture/databases.md.
 
@@ -74,19 +74,13 @@ pub fn sidecar_of(
 }
 
 /// The name a database's binding is kept under in its app's `secret.env`.
-pub fn url_variable(kind: Driver) -> &'static str {
-	match kind {
-		Driver::ClickHouse => "CLICKHOUSE_URL",
-		_ => "DATABASE_URL",
-	}
+pub fn url_variable(_kind: Driver) -> &'static str {
+	"DATABASE_URL"
 }
 
 /// What comes before the password in the URL `app` is handed for `kind`.
-fn url_prefix(kind: Driver, app: &str) -> String {
-	match kind {
-		Driver::ClickHouse => format!("http://{app}:"),
-		_ => format!("postgresql://{app}:"),
-	}
+fn url_prefix(_kind: Driver, app: &str) -> String {
+	format!("postgresql://{app}:")
 }
 
 /// The URL `app` is handed for its database of `kind`, as the app's own user on its own database.
@@ -96,7 +90,7 @@ pub fn url(kind: Driver, app: &str, password: &str, port: u16) -> String {
 	format!("{prefix}{password}@{}:{port}/{app}", kind.sidecar_of(app))
 }
 
-/// The sidecar an app declaring `[postgres]` or `[clickhouse]` runs beside it on the driver's
+/// The sidecar an app declaring `[postgres]` runs beside it on the driver's
 /// current image: its own directory of that name, the app's user, password and database, and the
 /// app's ceiling or else the driver's. None for an app that declares none.
 pub fn database_of(
@@ -111,20 +105,13 @@ pub fn database_of(
 	}
 	let (port, health, memory_mb) = declared(kind, driver);
 	let name = &app.name;
-	let env = match kind {
-		Driver::ClickHouse => vec![
-			format!("CLICKHOUSE_USER={name}"),
-			format!("CLICKHOUSE_PASSWORD={password}"),
-			format!("CLICKHOUSE_DB={name}"),
-		],
-		_ => vec![
-			format!("POSTGRES_USER={name}"),
-			format!("POSTGRES_PASSWORD={password}"),
-			format!("POSTGRES_DB={name}"),
-			format!("PGDATA={}", kind.target()),
-			format!("PGPORT={port}"),
-		],
-	};
+	let env = vec![
+		format!("POSTGRES_USER={name}"),
+		format!("POSTGRES_PASSWORD={password}"),
+		format!("POSTGRES_DB={name}"),
+		format!("PGDATA={}", kind.target()),
+		format!("PGPORT={port}"),
+	];
 	Some(Sidecar {
 		name: kind.sidecar_of(name),
 		app: name.clone(),
@@ -349,12 +336,7 @@ mod tests {
 			super::url(Driver::Postgres, app, "pw", 5432),
 			format!("postgresql://{app}:pw@{app}-postgres:5432/{app}")
 		);
-		assert_eq!(
-			super::url(Driver::ClickHouse, app, "pw", 8123),
-			format!("http://{app}:pw@{app}-clickhouse:8123/{app}")
-		);
 		assert_eq!(super::url_variable(Driver::Postgres), "DATABASE_URL");
-		assert_eq!(super::url_variable(Driver::ClickHouse), "CLICKHOUSE_URL");
 	}
 
 	#[test]
@@ -389,28 +371,5 @@ mod tests {
 		// None for an app that declares none, and never for objects.
 		assert_eq!(super::database_of(root, &umami(""), Driver::Postgres, &postgres(), "pw"), None);
 		assert_eq!(super::database_of(root, &photos(), Driver::Objects, &driver(), "pw"), None);
-	}
-
-	#[test]
-	fn a_clickhouse_sidecar_runs_as_clickhouse_over_the_apps_clickhouse_directory() {
-		let root = std::path::Path::new("/data/apps/umami");
-		let app = umami("[clickhouse]\nmemory_mb = 1536");
-		let manifest = deploy::Manifest::parse(
-			"version = 1\nname = \"clickhouse\"\nplacements = [\"home\"]\n[container]\nport = 8123\nhealth = \"/ping\"\n",
-		)
-		.unwrap();
-		let driver = deploy::Version { manifest, image: "sha256:clickhouse".into() };
-		let sidecar = super::database_of(root, &app, Driver::ClickHouse, &driver, "pw").unwrap();
-		assert_eq!(sidecar.name, "umami-clickhouse");
-		assert_eq!(sidecar.source, root.join("clickhouse"));
-		assert_eq!(sidecar.target, "/var/lib/clickhouse");
-		let declared = (sidecar.port, sidecar.health.as_str(), sidecar.check, sidecar.memory_mb);
-		assert_eq!(declared, (8123, "/ping", Check::Http, Some(1536)));
-		assert_eq!(sidecar.user, Some((101, 101)));
-		assert_eq!(sidecar.scratch, ["/var/log/clickhouse-server"]);
-		assert_eq!(
-			sidecar.env,
-			["CLICKHOUSE_USER=umami", "CLICKHOUSE_PASSWORD=pw", "CLICKHOUSE_DB=umami"]
-		);
 	}
 }
