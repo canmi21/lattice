@@ -55,3 +55,15 @@ domain anything answers.
 A generated whitelist has two limits to fit inside: an expression is at most 4,096 characters, and
 the Free plan allows a zone five custom rules. Every deployment of `ixc.one` is in one zone, so its
 whitelist covers every service on every node in one expression.
+
+## An application has no way to stand apart from the infrastructure it is built on
+
+The gateway gives the service layer one place for its hosts, its files and its rules. The
+application layer -- the site, the status page -- has none: each answers its own robots, its own
+security.txt, its own canonical and its own mirrors by calling the libraries, and nothing says
+which of its concerns are its own and which it only borrows from the platform.
+
+**Undecided: what separates an application from the infrastructure**, so that the questions only
+an application asks -- which of two hosts a page is indexed under, what a page's title is -- stay
+with it, and none of the platform's leaks into it.
+
