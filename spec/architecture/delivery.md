@@ -601,15 +601,16 @@ the ones that described the upstream connection are not.
 
 Cloudflare's proxy listens on thirteen ports, not two: 443, 2053, 2083, 2087, 2096 and 8443 for
 HTTPS, and 80, 8080, 8880, 2052, 2082, 2086 and 2095 for HTTP. Every one of them reaches the same
-worker. **A WAF custom rule in each zone, `canmi.net` and `ffoni.com`, blocks the other eleven**:
+worker. **A WAF custom rule in every zone blocks the other eleven**, the first clause of
+`rules/all/block-probes.txt`:
 
 ```
 not (cf.edge.server_port in {80 443})
 ```
 
-80 stays so that "Always Use HTTPS" still has something to redirect. The rule lives in the
-dashboard rather than in this repository, so this section is the only record of it; a second zone
-added later needs its own copy.
+80 stays so that "Always Use HTTPS" still has something to redirect. Every zone's `zone.toml`
+lists the shared expression, so a zone added later has it by listing it too -- see
+[firewall.md](firewall.md).
 
 **The case that prompted it.** A scanner asked `https://canmi.net:8443/server-status`. The site's
 catch-all took the hyphenated name for an article slug and asked the API, which correctly had no

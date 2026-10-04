@@ -63,7 +63,7 @@ is [firewall.md](firewall.md).
 | ------------- | -------------------------------------------------- | -------------------------- |
 | `canmi.net`   | everyone                                           | the site, and nothing else |
 | `*.canmi.app` | the author, from anywhere, through Access          | interfaces                 |
-| `ffoni.com`   | the public; whether a login is needed is per route | APIs                       |
+| `monoflake.com`, `monoflake.net`, `ixc.one`, `ill.li`, `symlink.si` | the public; whether a login is needed is per route | the gateway, and every API behind it |
 | `*.canmi.icu` | the LAN and the tailnet only                       | everything, APIs included  |
 
 **"The LAN" includes the node's own containers.** Caddy admits `.icu` from the sources host is told
@@ -96,8 +96,9 @@ DNS, which the alternative -- the tailnet answering its own address for the name
 
 > Being replaced by [gateway.md](gateway.md), which wins where the two differ.
 
-Every API is `api.canmi.icu/{scope}/...` privately and `api.ffoni.com/{scope}/...` publicly: one
-path space, of which the public side is a subset. The scope is the service's name, so the site's own
+Every API is `api.canmi.icu/{scope}/...` privately and `api.monoflake.com/v{n}/{scope}/...`
+publicly, the private side retiring in favor of the public names -- see
+[gateway.md](gateway.md). One path space, of which the public side is a subset. The scope is the service's name, so the site's own
 API is `/site/` and gemini's is `/gemini/`. A new API is a row in a table, never a new domain.
 
 The gateway strips the scope, forwards, and decides per scope what the service never has to:
@@ -113,7 +114,8 @@ is Caddy on the node. Both are rendered from the one declaration, since two tabl
 are two readings of one format and would come to disagree silently -- the case the workspace's
 `code.md` warns about.
 
-**The public gateway is the Worker `gateway` in `apps/gateway`, on `api.ffoni.com`.** Its table is
+**The public gateway is the Worker `gateway` in `apps/gateway`, on every hostname
+[gateway.md](gateway.md) lists.** Its table is
 `src/scopes.ts`, generated from every `service.toml` by `mise run scopes` and held to them by a
 test, as is the binding list in its `wrangler.jsonc`. A scope on Workers is a service binding named
 for the scope, and the request reaches it with the scope taken off and the declaration's `prefix`, if
@@ -221,7 +223,7 @@ does not refuse anyone -- the reader still gets the count, only the increment is
 is part of what `/read` means, and it stays in the site's API.
 
 **A free service is limited where the public reaches it, and nowhere else.** `geo` is a public
-scope: any page may call `api.ffoni.com/geo/address`, and one address may ask sixty times a minute --
+scope: any page may call `api.monoflake.com/v1/geo/address`, and one address may ask sixty times a minute --
 it answers from memory, so the limit keeps a crawler off the machine at home rather than paying for
 an answer. Our own callers do not pass the gateway and so meet no limit: a Worker binds the node's
 VPC service and asks `api.canmi.app` directly, and the LAN and the tailnet ask `api.canmi.icu`.

@@ -1,9 +1,8 @@
 /**
- * The public API host, `api.ffoni.com/{scope}/...`: the scope names the service, and the request
- * goes on to it with the scope taken off -- to a Worker by its binding, or to a node's Caddy over
- * Workers VPC, which takes the scope off itself. On the way it answers for the scope what every
- * service would otherwise repeat: CORS, and limits by address. See spec/architecture/services.md,
- * "One API host, scoped by path".
+ * The gateway: every hostname of the service layer, read by its profile into the service, the
+ * version and the path, and sent on -- to a Worker by its binding, or to a node's Caddy over
+ * Workers VPC. On the way it answers what every service would otherwise repeat: CORS, lifetimes,
+ * crawling, limits by address and each host's own files. See spec/architecture/gateway.md.
  */
 import { failure } from '@canmi/response';
 import { robotsTxt } from '@canmi/robots';
