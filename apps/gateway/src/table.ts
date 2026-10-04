@@ -27,7 +27,7 @@ export interface Scope {
 	readonly routes: readonly Route[];
 }
 
-/** The placement that is Cloudflare's Workers; the same string as `WORKERS` in manifest.rs. */
+/** The placement that is Cloudflare's Workers; the same string as `WORKERS` in the deploy crate. */
 export const WORKERS = 'workers';
 
 /** A binding's name: the scope's or the node's, uppercased, hyphens as underscores. */

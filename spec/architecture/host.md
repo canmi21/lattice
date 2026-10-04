@@ -160,8 +160,9 @@ target follows the platform being built, so the same Dockerfile serves an x86 no
 An app states what it needs in `apps/<name>/service.toml` and ships it with its image. host is a
 program deployed apart from the file it reads, so the file carries a `version` and host refuses one
 it does not know before reading anything else, while a key it does not know is ignored -- see the
-workspace's `json.md`. What the keys are is [manifest.rs](../../libs/deploy/src/manifest.rs); host
-reads geo's own file in its tests, so the reader and a real declaration cannot drift apart.
+workspace's `json.md`. What the keys are is
+[manifest/mod.rs](../../libs/deploy/src/manifest/mod.rs); host reads geo's own file in its tests, so
+the reader and a real declaration cannot drift apart.
 
 An upload is written to disk whole before anything is stopped, so a transfer cut short never leaves
 an app down.
