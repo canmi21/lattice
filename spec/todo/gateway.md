@@ -62,3 +62,11 @@ which of its concerns are its own and which it only borrows from the platform.
 an application asks -- which of two hosts a page is indexed under, what a page's title is -- stay
 with it, and none of the platform's leaks into it.
 
+## A deployment's host is not checked against where the service runs
+
+`geo-glo-cf.ixc.one` reads as geo on Cloudflare's Workers, and the gateway sends it to the node at
+home, where geo runs, all the same: a profile's placement is read and not checked against the
+service's declared placements, since every service has one placement today. Refusing a placement a
+service is not at, and choosing among several where it is, come together with the gateway's choice
+of where a request runs.
+
