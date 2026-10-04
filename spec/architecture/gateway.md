@@ -241,10 +241,17 @@ service on Workers is reached by binding; a service on a node is reached through
 Choosing among several placements of one service -- by load, by distance -- is the gateway's later,
 and the reason `monoflake.com` does not name one.
 
-**Inside the house, the same names will answer locally.** The intended end is that the LAN resolves
-these hostnames to the node itself, so a service never knows whether it was reached from outside.
-Until then every request goes out through the Tunnel, and the private side stays as
-[services.md](services.md) describes it.
+**There is one entrance, and the private side goes.** Our own callers use the same hostnames the
+public does, `api.monoflake.com` and the `ixc.one` names, rather than a private host of their own;
+until the LAN answers those names, a call from the house goes out through the Tunnel and back. The
+private side [services.md](services.md) describes -- `api.canmi.icu/{scope}/...`, through Caddy --
+is retired once every caller has moved, rather than being given versions of its own.
+
+**Inside the house, the same names will answer locally, under the same rules.** The LAN's DNS will
+answer the gateway's hostnames with a gateway of its own on the node -- Caddy and a service that
+works with it -- reading the same table the Worker reads. The two are one gateway deployed twice:
+CORS, lifetimes, crawling and, later, credentials are enforced alike on both, so a service never
+knows, and never needs to know, which side reached it.
 
 **Telling our own callers from the public stays as it is until there are accounts.** What a
 service offers only to our own callers is told today by which side reached it. When the account

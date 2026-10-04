@@ -398,6 +398,7 @@ away before its replacement answers.
 | E7  | The firewall is generated             | Each service-layer zone's whitelist written from the table, inside the expression and rule-count limits, and synced by `mise run rules sync` | E2 E6    | near    |
 | E8  | Callers move                          | `libs/urls` names the new hosts, every caller here follows, GitHub's webhook moves, the unversioned paths of E4 go | E6 E7    | near    |
 | E9  | `ffoni.com` leaves                    | Its profiles deleted once nothing here calls it, and the domain released                                  | E8       | mid     |
+| E10 | The house answers its own names       | The LAN's DNS answers the gateway's hostnames with a gateway on the node, Caddy and a service beside it, reading the same table; the private side of `api.canmi.icu` retires | E8       | mid     |
 
 **E1 changes nothing a caller sees.** The declarations grow and the table with them, while the
 gateway still answers as it does today; it is the step that makes the rest a matter of reading the
@@ -409,6 +410,10 @@ version in would break every call in between. The old path goes in E8, with the 
 
 **E6 is work in Cloudflare's dashboard as much as in the repository**, and is the one step whose
 order is forced from outside: a zone has to exist before a route or a rule can name it.
+
+**Our own callers move in E8 like everyone else's.** They call the public hostnames from then on,
+through the Tunnel and back, which costs a round trip and nothing else; E10 takes the round trip
+away without any caller changing again.
 
 ## Open questions
 
@@ -453,9 +458,3 @@ for. Blocks the second half of A2, and C5 behind it.
 **What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
 to another machine while D4 puts its surface on the public internet. It is the right name for the
 year it is true and a lie afterwards, so the rename belongs in D2 rather than being avoided now.
-
-**How our own callers spell a versioned path.** The private side is `api.canmi.icu/{scope}/...`,
-and Caddy takes the scope off before the service sees it. Once a service routes on its version, a
-private caller says it too, either as `/{scope}/v1/...`, which leaves Caddy as it is, or as
-`/v1/{scope}/...`, the public side's order, which changes how Caddy reads a path. Blocks E4's
-private half.
