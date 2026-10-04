@@ -215,8 +215,11 @@ async fn run_version(
 		return Ok(None);
 	}
 	let mut shape = shape_of(host, &next.manifest.name)?;
-	// CoreDNS will not start without its file, so it is written before the container is.
+	// CoreDNS will not start without its file, so it is written before the container is -- into
+	// the subvolume host makes for it, never a directory the write would make, which could not be
+	// snapshotted.
 	if next.manifest.name == RESOLVER {
+		host.volumes.ensure(RESOLVER).await.map_err(replace::Error::from)?;
 		crate::resolver::apply(&host.config.resolver, &[]).await?;
 	}
 	let members = [host.config.own_container.as_str(), host.config.caddy.container.as_str()];
@@ -705,7 +708,10 @@ pub enum RouteError {
 pub async fn route(host: &Host) -> Result<(), RouteError> {
 	let rendered = render(host)?;
 	caddy::apply(&host.config.caddy, &rendered).await?;
-	crate::resolver::apply(&host.config.resolver, &[]).await?;
+	// Only into a resolver already deployed: its directory is the subvolume its deploy made.
+	if host.store.app(RESOLVER)?.is_some() {
+		crate::resolver::apply(&host.config.resolver, &[]).await?;
+	}
 	Ok(())
 }
 
