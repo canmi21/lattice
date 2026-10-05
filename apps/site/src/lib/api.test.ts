@@ -26,15 +26,15 @@ describe("the pages' addresses for the API, in production", () => {
 		vi.stubGlobal('STATED_API_ADDRESSES', stated);
 		vi.resetModules();
 		try {
-			const { apiPath, readAddress } = await import('./api');
-			const read = apiPath('read', { slug: 'a-b' });
+			const api = await import('./api');
+			const read = api.apiPath('read', { slug: 'a-b' });
 			expect(read).toBe(`/api/${stated.read}/a-b`);
-			expect(readAddress(read.slice('/api/'.length))).toEqual({
+			expect(api.readAddress(read.slice('/api/'.length))).toEqual({
 				route: 'read',
 				query: { slug: 'a-b' },
 			});
-			expect(apiPath('stats')).toBe(`/api/${stated.stats}`);
-			expect(readAddress('articles/a-b/reads')).toBeUndefined();
+			expect(api.apiPath('stats')).toBe(`/api/${stated.stats}`);
+			expect(api.readAddress('articles/a-b/reads')).toBeUndefined();
 		} finally {
 			vi.unstubAllGlobals();
 			vi.resetModules();

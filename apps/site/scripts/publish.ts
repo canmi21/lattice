@@ -174,56 +174,59 @@ async function publishArticle(
 	article: Article,
 	cards: Record<string, string>,
 ): Promise<RootArticle> {
-	const views: RootArticle['views'] = {};
-	for (const code of LOCALE_CODES) {
-		const view = article.views[code];
-		const published: PublishedView = {
-			version: ARTIFACT_VERSION,
-			// The identity, never the address. An object outlives the directory it was published
-			// from, so an envelope naming the path would fail its own check the first time this
-			// article was recategorised. See platform's spec/architecture/artifacts.md.
-			slug: article.slug,
-			locale: code,
-			meta: view.meta,
-			language: {
-				tag: view.language_tag,
-				canonical: view.canonical,
-				translated: view.translation_available,
-				alternates: article.alternates,
-			},
-			body: {
-				phone_title: view.phone_title,
-				toc: view.toc,
-				blocks: view.blocks,
-				summary: view.summary,
-			},
-			metrics: { words: view.words },
-		};
-		views[code] = {
-			objects: {
-				content: await tree.put('content', JSON.stringify(published)),
-				card: cards[`${code}/${article.path}`],
-			},
-			locale: {
-				language_tag: view.language_tag,
-				canonical: view.canonical,
-				translated: view.translation_available,
-			},
-			meta: {
-				title: view.meta.title,
-				subtitle: view.meta.subtitle,
-				description: view.meta.description,
-				short: { title: view.short.title, subtitle: view.short.subtitle },
-			},
-			dates: {
-				created: view.meta.created,
-				published: view.meta.published,
-				lastmod: view.meta.lastmod,
-			},
-			metrics: { words: view.words },
-			preview: { paragraphs: paragraphs(view.text) },
-		} satisfies RootView;
-	}
+	// Each view names its own locale, so no two are one object and all are written at once.
+	const entries = await Promise.all(
+		LOCALE_CODES.map(async (code) => {
+			const view = article.views[code];
+			const published: PublishedView = {
+				version: ARTIFACT_VERSION,
+				// The identity, never the address. An object outlives the directory it was published
+				// from, so an envelope naming the path would fail its own check the first time this
+				// article was recategorised. See platform's spec/architecture/artifacts.md.
+				slug: article.slug,
+				locale: code,
+				meta: view.meta,
+				language: {
+					tag: view.language_tag,
+					canonical: view.canonical,
+					translated: view.translation_available,
+					alternates: article.alternates,
+				},
+				body: {
+					phone_title: view.phone_title,
+					toc: view.toc,
+					blocks: view.blocks,
+					summary: view.summary,
+				},
+				metrics: { words: view.words },
+			};
+			const entry = {
+				objects: {
+					content: await tree.put('content', JSON.stringify(published)),
+					card: cards[`${code}/${article.path}`],
+				},
+				locale: {
+					language_tag: view.language_tag,
+					canonical: view.canonical,
+					translated: view.translation_available,
+				},
+				meta: {
+					title: view.meta.title,
+					subtitle: view.meta.subtitle,
+					description: view.meta.description,
+					short: { title: view.short.title, subtitle: view.short.subtitle },
+				},
+				dates: {
+					created: view.meta.created,
+					published: view.meta.published,
+					lastmod: view.meta.lastmod,
+				},
+				metrics: { words: view.words },
+				preview: { paragraphs: paragraphs(view.text) },
+			} satisfies RootView;
+			return [code, entry] as const;
+		}),
+	);
 	return {
 		slug: article.slug,
 		path: article.path,
@@ -231,7 +234,7 @@ async function publishArticle(
 		markdown: await tree.put('markdown', article.markdown),
 		alternates: article.alternates,
 		canonical_urls: article.canonical_urls,
-		views,
+		views: Object.fromEntries(entries) as RootArticle['views'],
 	};
 }
 
@@ -257,6 +260,7 @@ async function publishPage(
 			blocks: view.blocks,
 		};
 		views[code] = {
+			// oxlint-disable-next-line no-await-in-loop -- the locales are one object, written once
 			content: await tree.put('page', JSON.stringify(published)),
 			card: cards[`${code}/${page.path}`],
 		};
@@ -277,14 +281,19 @@ async function publishSymlinks(tree: Tree): Promise<Root['assets']> {
 		string,
 		Record<string, string>
 	>;
+	const named = Object.entries(symlinks).flatMap(([scope, files]) =>
+		Object.entries(files).map(([file, cid]) => ({
+			scope,
+			file,
+			cid,
+			extension: file.slice(file.lastIndexOf('.') + 1),
+		})),
+	);
+	await Promise.all(named.map(({ cid, extension }) => tree.hold(cid, extension)));
 	const assets: Root['assets'] = {};
-	for (const [scope, files] of Object.entries(symlinks)) {
-		for (const [file, cid] of Object.entries(files)) {
-			const extension = file.slice(file.lastIndexOf('.') + 1);
-			await tree.hold(cid, extension);
-			assets[`${scope}/${file}`] = { cid, extension };
-			if (scope === 'site') assets[file] = { cid, extension };
-		}
+	for (const { scope, file, cid, extension } of named) {
+		assets[`${scope}/${file}`] = { cid, extension };
+		if (scope === 'site') assets[file] = { cid, extension };
 	}
 	return assets;
 }
@@ -311,11 +320,16 @@ async function publishCorpus(
 	pages: Page[],
 ): Promise<Tally> {
 	const tree = new Tree(dir, metadata);
-	const rootArticles: RootArticle[] = [];
 	const cards = await drawnCards();
-	for (const article of articles) rootArticles.push(await publishArticle(tree, article, cards));
-	const rootPages: Root['pages'] = {};
-	for (const page of pages) rootPages[page.path] = await publishPage(tree, page, cards);
+	// No two articles or pages share an object, so each set is written at once.
+	const rootArticles = await Promise.all(
+		articles.map((article) => publishArticle(tree, article, cards)),
+	);
+	const rootPages: Root['pages'] = Object.fromEntries(
+		await Promise.all(
+			pages.map(async (page) => [page.path, await publishPage(tree, page, cards)] as const),
+		),
+	);
 	// Last, and only once every object it names is on disk. A root that arrives first names
 	// objects that answer 404, and a 404 on a content-addressed key is the one answer this
 	// design cannot afford to have cached. See platform's spec/architecture/artifacts.md.

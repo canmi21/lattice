@@ -19,9 +19,9 @@ it("keeps the site's namespace out", () => {
 	expect(robotsFor('site')).toContain('Disallow: /@/');
 });
 
+const sitemaps = (text: string) => text.split('\n').filter((line) => line.startsWith('Sitemap: '));
+
 it("names every page host's sitemap, its own first", () => {
-	const sitemaps = (text: string) =>
-		text.split('\n').filter((line) => line.startsWith('Sitemap: '));
 	expect(sitemaps(robotsFor('site'))).toEqual([
 		`Sitemap: ${SITE}/sitemap.xml`,
 		`Sitemap: ${STATUS}/sitemap.xml`,

@@ -15,6 +15,7 @@ const paths = Buffer.concat(input).toString('utf8').split('\n').filter(Boolean);
 
 const ids = [];
 for (const path of paths) {
+	// oxlint-disable-next-line no-await-in-loop -- one file in memory at a time, over the whole tree
 	ids.push(bytesToHex(blake3(await readFile(path), { dkLen: 16 })));
 }
 

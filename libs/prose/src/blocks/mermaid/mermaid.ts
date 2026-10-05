@@ -218,13 +218,11 @@ async function draw(source: string, root: HTMLElement): Promise<Drawings> {
 	// One home for the corner, read from the same stylesheet the node boxes take theirs from.
 	const corner = Number.parseFloat(getComputedStyle(root).getPropertyValue('--mermaid-corner'));
 	for (const theme of THEMES) {
-		// Sequential on purpose, which is what the `no-await-in-loop` warning is about: the
-		// configuration `initialize` writes is global, so a second render started before the
-		// first finished would draw in whichever theme was configured last. `initialize` merges,
-		// and this adapter passes every value it owns on each call, so repeating it leaves none
-		// of the previous theme behind. Stated rather than suppressed; see spec/lint-format.md.
+		// `initialize` merges, and this adapter passes every value it owns on each call, so
+		// repeating it leaves none of the previous theme behind.
 		mermaid.initialize(configuration(root, theme));
 		diagramId += 1;
+		// oxlint-disable-next-line no-await-in-loop -- `initialize` is global, so one theme at a time
 		const result: RenderResult = await mermaid.render(`mermaid-diagram-${diagramId}`, source);
 		drawings[theme] = roundDecisions(result.svg, corner);
 	}

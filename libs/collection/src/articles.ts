@@ -60,7 +60,7 @@ function markdownFiles(root: string): string[] {
 		}
 	};
 	walk(root);
-	return found.sort();
+	return found.toSorted();
 }
 
 function split(source: string): { frontmatter: Frontmatter; body: string } {
@@ -121,6 +121,7 @@ export async function importArticles(
 		const type = path.includes('/') ? ARTICLE_TYPE : PAGE_TYPE;
 		const isDraft = String(frontmatter.draft ?? '').trim() === 'true';
 		const created = frontmatter.created ?? new Date().toISOString();
+		// oxlint-disable-next-line no-await-in-loop -- an id is free only of the rows already written
 		const id = await allocate(database);
 
 		database
@@ -151,6 +152,7 @@ export async function importArticles(
 		const cid = contentId(body);
 		// Bytes before rows, which is the order revise.ts publishes in and for the same reason: an
 		// object nothing names is collectable, a row naming bytes that are absent is a broken page.
+		// oxlint-disable-next-line no-await-in-loop -- in order already, for `allocate` above
 		await store.write(cid, body);
 		// The same bytes are the same row by definition, so an existing one is already right.
 		database

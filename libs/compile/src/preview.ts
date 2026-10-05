@@ -60,9 +60,13 @@ export async function previewResources(
 	records: string,
 	blocks: readonly Parameters<typeof namedResources>[0][number][],
 ): Promise<Record<string, ParsedResource>> {
+	const rids = [...namedResources(blocks)];
+	const raws = await Promise.all(
+		rids.map((rid) => readFile(join(records, `${rid}.json`), 'utf8').catch(() => '')),
+	);
 	const found: Record<string, ParsedResource> = {};
-	for (const rid of namedResources(blocks)) {
-		const raw = await readFile(join(records, `${rid}.json`), 'utf8').catch(() => '');
+	for (const [index, rid] of rids.entries()) {
+		const raw = raws[index];
 		if (raw) found[rid] = parseResource(JSON.parse(raw));
 	}
 	return found;
@@ -70,26 +74,33 @@ export async function previewResources(
 
 /** Every `::article` card's target, read from source frontmatter alone. */
 async function references(contents: string): Promise<Record<string, ArticleReference>> {
+	const categories = (await readdir(contents, { withFileTypes: true })).filter((each) =>
+		each.isDirectory(),
+	);
+	const files = (
+		await Promise.all(
+			categories.map(async (category) => {
+				const directory = join(contents, category.name);
+				return (await readdir(directory, { withFileTypes: true }))
+					.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+					.map((entry) => join(directory, entry.name));
+			}),
+		)
+	).flat();
+	const raws = await Promise.all(files.map((file) => readFile(file, 'utf8')));
 	const found: Record<string, ArticleReference> = {};
-	for (const category of await readdir(contents, { withFileTypes: true })) {
-		if (!category.isDirectory()) continue;
-		const directory = join(contents, category.name);
-		for (const entry of await readdir(directory, { withFileTypes: true })) {
-			if (!entry.isFile() || !entry.name.endsWith('.md')) continue;
-			const file = join(directory, entry.name);
-			const raw = await readFile(file, 'utf8');
-			const { title, subtitle, published } = articleFrontmatter(raw, file);
-			// A short form is asked for rather than written -- it lives in the segment layout, and
-			// a view nothing has written one for falls back to the full form. A preview is that
-			// state by construction. See spec/i18n/prose.md.
-			found[articlePath(contents, file)] = {
-				title,
-				subtitle,
-				published,
-				short_title: title,
-				short_subtitle: subtitle,
-			};
-		}
+	for (const [index, file] of files.entries()) {
+		const { title, subtitle, published } = articleFrontmatter(raws[index]!, file);
+		// A short form is asked for rather than written -- it lives in the segment layout, and a
+		// view nothing has written one for falls back to the full form. A preview is that state by
+		// construction. See spec/i18n/prose.md.
+		found[articlePath(contents, file)] = {
+			title,
+			subtitle,
+			published,
+			short_title: title,
+			short_subtitle: subtitle,
+		};
 	}
 	return found;
 }

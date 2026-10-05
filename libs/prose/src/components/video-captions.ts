@@ -40,6 +40,13 @@ const CUE_CLEAR = 0.8;
  * black", for the measurement and the alternatives it beat.
  */
 const CUE_PAD = '\u2009';
+
+function padded(value: string): string {
+	return value
+		.split('\n')
+		.map((row) => CUE_PAD + row + CUE_PAD)
+		.join('\n');
+}
 /** A caption reads at a size taken from the picture, between these two. */
 const CUE_MIN = 14;
 const CUE_MAX = 30;
@@ -84,22 +91,21 @@ function breakAt(text: string, measure: (value: string) => number, width: number
 		const punctuated = /[,.;:!?—、。，；：！？]/.test(before);
 		if (punctuated || here === ' ') candidates.push({ at: i, punctuated });
 	}
-	const scored = candidates
-		.map((c) => ({ ...c, head: text.slice(0, c.at).trim(), tail: text.slice(c.at).trim() }))
-		.filter((c) => c.head && c.tail)
-		.map((c) => ({ ...c, size: measure(c.head) }));
-	const weighed = scored
-		.map((c) => ({ ...c, rest: measure(c.tail) }))
-		.filter((c) => c.size <= width * CUE_FILL && c.rest <= width * CUE_FILL)
-		.map((c) => ({
-			...c,
-			// Lower is better: how unequal the two lines are, less a nudge for stopping at a
-			// clause rather than mid-sentence.
-			cost: Math.abs(c.size - c.rest) - (c.punctuated ? width * CUE_NUDGE : 0),
-		}));
+	const scored = candidates.flatMap(({ at, punctuated }) => {
+		const head = text.slice(0, at).trim();
+		const tail = text.slice(at).trim();
+		return head && tail ? [{ head, tail, punctuated, size: measure(head) }] : [];
+	});
+	const weighed = scored.flatMap(({ head, tail, punctuated, size }) => {
+		const rest = measure(tail);
+		if (size > width * CUE_FILL || rest > width * CUE_FILL) return [];
+		// Lower is better: how unequal the two lines are, less a nudge for stopping at a clause
+		// rather than mid-sentence.
+		return [{ head, tail, cost: Math.abs(size - rest) - (punctuated ? width * CUE_NUDGE : 0) }];
+	});
 	const chosen =
-		weighed.sort((a, b) => a.cost - b.cost)[0] ??
-		scored.filter((c) => c.size <= width * CUE_KEEP).sort((a, b) => a.size - b.size)[0];
+		weighed.toSorted((a, b) => a.cost - b.cost)[0] ??
+		scored.filter((c) => c.size <= width * CUE_KEEP).toSorted((a, b) => a.size - b.size)[0];
 	return chosen ? [chosen.head, chosen.tail].join('\n') : text;
 }
 
@@ -134,12 +140,6 @@ export function placeCaptions(element: HTMLVideoElement): void {
 	// plate is what has to fit across the picture. Both halves of a break gain the same amount,
 	// so the balance the break is chosen on is unaffected and only the thresholds move.
 	const measure = (value: string) => ruler?.measureText(CUE_PAD + value + CUE_PAD).width ?? 0;
-	const padded = (value: string) =>
-		value
-			.split('\n')
-			.map((row) => CUE_PAD + row + CUE_PAD)
-			.join('\n');
-
 	for (const track of element.textTracks) {
 		for (const cue of track.cues ?? []) {
 			(cue as VTTCue).snapToLines = false;

@@ -243,6 +243,7 @@ export async function compile(
 				lang,
 				label: languageLabel(lang),
 				...codePresentation(node.meta, sourceFile ?? url),
+				// oxlint-disable-next-line no-await-in-loop -- blocks are built in document order
 				html: await highlight(node.value, lang),
 				code: node.value,
 			});

@@ -326,11 +326,16 @@ describe('article reads', () => {
 	// A slug the corpus does not name stays unnamed until the next publication, so the refusal
 	// is held exactly as long as an answer would be. See spec/engagement.md.
 	it('refuses an unknown slug, and a missing one, for as long as it answers', async () => {
-		for (const path of ['/read?slug=made-up', '/read']) {
-			const response = await api(path, { ip: IP_ONE });
+		const responses = await Promise.all(
+			['/read?slug=made-up', '/read'].map((path) => api(path, { ip: IP_ONE })),
+		);
+		for (const response of responses) {
 			expect(response.status).toBe(404);
-			expect(await response.json()).toMatchObject({ status: 'error', code: 'no_such_article' });
 			expect(response.headers.get('Cache-Control')).toBe('public, max-age=300');
+		}
+		const bodies = await Promise.all(responses.map((response) => response.json()));
+		for (const body of bodies) {
+			expect(body).toMatchObject({ status: 'error', code: 'no_such_article' });
 		}
 	});
 

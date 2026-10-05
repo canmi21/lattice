@@ -205,11 +205,13 @@ class Client {
 	/** Applied asynchronously, so a run that returns before publication reports a stale diff. */
 	async settle(taskID: number): Promise<void> {
 		for (let attempt = 0; attempt < 120; attempt++) {
+			// oxlint-disable-next-line no-await-in-loop -- a poll, each asked after the last wait
 			const { status } = await this.call<{ status: string }>(
 				`/1/indexes/${INDEX}/task/${taskID}`,
 				'GET',
 			);
 			if (status === 'published') return;
+			// oxlint-disable-next-line no-await-in-loop -- the wait between two asks
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 		}
 		throw new Error(`task ${taskID} never published`);
@@ -225,6 +227,7 @@ class Client {
 		const found = new Map<string, string>();
 		let cursor: string | undefined;
 		do {
+			// oxlint-disable-next-line no-await-in-loop -- each page needs the last one's cursor
 			const page = await this.call<{
 				hits: { objectID: string; fingerprint?: string }[];
 				cursor?: string;
@@ -250,11 +253,16 @@ class Client {
 
 	async batch(requests: unknown[]): Promise<void> {
 		for (let i = 0; i < requests.length; i += 100) {
-			const { taskID } = await this.call<{ taskID: number }>(`/1/indexes/${INDEX}/batch`, 'POST', {
-				requests: requests.slice(i, i + 100),
-			});
-			await this.settle(taskID);
+			// oxlint-disable-next-line no-await-in-loop -- a chunk lands before the next is sent
+			await this.#send(requests.slice(i, i + 100));
 		}
+	}
+
+	async #send(requests: unknown[]): Promise<void> {
+		const { taskID } = await this.call<{ taskID: number }>(`/1/indexes/${INDEX}/batch`, 'POST', {
+			requests,
+		});
+		await this.settle(taskID);
 	}
 }
 

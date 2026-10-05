@@ -67,6 +67,7 @@ export const oneLightPro: ThemeRegistration = {
 	type: 'light',
 	// One Light's own, so the editor foreground and the surface behind the code stay its own.
 	colors: oneLight.colors,
+	// oxlint-disable-next-line no-map-spread -- the rules are One Dark Pro's own, never written to
 	tokenColors: (oneDarkPro.tokenColors ?? []).map((rule) => ({
 		...rule,
 		settings: {

@@ -42,9 +42,9 @@ describe('spacing a Latin run against CJK', () => {
 	});
 });
 
-describe('filling a slot in a rendered sentence', () => {
-	const fill = (sentence: string, value: string) => fillSlot(sentence, '\u0000', value);
+const fill = (sentence: string, value: string) => fillSlot(sentence, '\u0000', value);
 
+describe('filling a slot in a rendered sentence', () => {
 	it('spaces the join by what meets there, not by the language of the sentence', () => {
 		// Chinese types no space and needs one here; the same sentence needs none when the value
 		// is itself CJK.

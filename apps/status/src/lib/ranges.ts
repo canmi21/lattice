@@ -77,8 +77,8 @@ export function barsOf(range: Range, rows: readonly HistoryRow[], clock: number)
 	}
 	// The open minute is in both, raw as of the last read and live since: the fuller one stands.
 	for (const [minute, sum] of live) {
-		const read = raw.get(minute);
-		if (!read || sum.passed + sum.failed > read.passed + read.failed) raw.set(minute, sum);
+		const last = raw.get(minute);
+		if (!last || sum.passed + sum.failed > last.passed + last.failed) raw.set(minute, sum);
 	}
 	for (const [minute, sum] of raw) add(minute, sum.passed, sum.failed);
 	return Array.from({ length: DAYS }, (_, index) => {

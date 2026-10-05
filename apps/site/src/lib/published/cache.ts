@@ -187,8 +187,8 @@ async function throughQuery<T>(
 		});
 		return body === MISSING ? undefined : opened(body);
 	} catch (failure) {
-		const held = client.getQueryData<string>(queryKey);
-		if (held !== undefined && held !== MISSING) return opened(held);
+		const kept = client.getQueryData<string>(queryKey);
+		if (kept !== undefined && kept !== MISSING) return opened(kept);
 		throw failure;
 	}
 }

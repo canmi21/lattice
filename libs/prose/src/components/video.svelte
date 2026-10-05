@@ -111,11 +111,11 @@
 	 * -- so it shows only once there is nothing else; the blurred ground fills the wait until then.
 	 */
 	let broken = $state(false);
+	const failed = () => (broken = true);
+	const again = () => (broken = false);
 	$effect(() => {
 		const element = el;
 		if (!element) return;
-		const failed = () => (broken = true);
-		const again = () => (broken = false);
 		element.addEventListener('error', failed);
 		element.addEventListener('loadstart', again);
 		return () => {
@@ -135,6 +135,9 @@
 	const SETTLE_WITHIN = 0.5;
 	const SETTLE_DEADLINE = 2000;
 	let settled = $state(false);
+	const give = () => {
+		settled = true;
+	};
 	$effect(() => {
 		const element = el;
 		if (!element) return;
@@ -143,9 +146,6 @@
 		const ready = () => element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
 		const look = () => {
 			if (ready() && near()) settled = true;
-		};
-		const give = () => {
-			settled = true;
 		};
 		look();
 		element.addEventListener('seeked', look);
@@ -168,13 +168,13 @@
 	 * stands in for it in Firefox, which lacks it.
 	 */
 	let framed = $state(false);
+	const painted = () => {
+		framed = true;
+	};
 	$effect(() => {
 		const element = el;
 		if (!element) return;
 		let pending: number | undefined;
-		const painted = () => {
-			framed = true;
-		};
 		const watch = () => {
 			pending = element.requestVideoFrameCallback?.(painted);
 		};

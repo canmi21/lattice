@@ -245,6 +245,21 @@ describe('a refusal nothing handled', () => {
 	});
 });
 
+/** A store holding one record that does not parse and one that does. */
+async function oneUnreadable(url: string): Promise<Response> {
+	const path = new URL(url).pathname;
+	if (path === '/meta/k7m2x.json') return new Response('{ this is not json');
+	if (path === '/meta/q4w8n.json') return new Response(JSON.stringify({ resource: 'q4w8n' }));
+	return new Response('not found', { status: 404 });
+}
+
+/** A store holding one record, filed under its lowercase rid. */
+async function filedLowercase(url: string): Promise<Response> {
+	return new URL(url).pathname === '/meta/k7m2x.json'
+		? new Response(JSON.stringify({ resource: 'k7m2x' }))
+		: new Response('not found', { status: 404 });
+}
+
 describe('POST /batch', () => {
 	// One route for every question asked about many things, discriminated by `type`. A language
 	// menu is one slug and many locales; a homepage warming its list is the other way round, and
@@ -282,14 +297,16 @@ describe('POST /batch', () => {
 	});
 
 	it('refuses a body whose type it cannot read, and one that names no type at all', async () => {
-		for (const body of [
+		const bodies = [
 			{ type: 'articles', slugs: 'not-a-list', locales: ['en'] },
 			{ type: 'reads' },
 			{ type: 'nonsense', slugs: [] },
 			{ slugs: ['the-first'] },
-		]) {
-			expect((await get('/batch', { method: 'POST', body })).status).toBe(400);
-		}
+		];
+		const answers = await Promise.all(
+			bodies.map((body) => get('/batch', { method: 'POST', body })),
+		);
+		expect(answers.map((answer) => answer.status)).toEqual(bodies.map(() => 400));
 	});
 
 	it('refuses a locale that is not one, rather than dropping it quietly', async () => {
@@ -371,14 +388,8 @@ describe('POST /batch', () => {
 	 * being `no-store`.
 	 */
 	it('leaves out a record it cannot read rather than losing the whole answer', async () => {
-		const store = async (url: string): Promise<Response> => {
-			const path = new URL(url).pathname;
-			if (path === '/meta/k7m2x.json') return new Response('{ this is not json');
-			if (path === '/meta/q4w8n.json') return new Response(JSON.stringify({ resource: 'q4w8n' }));
-			return new Response('not found', { status: 404 });
-		};
 		const res = await get('/batch', {
-			fetch: store,
+			fetch: oneUnreadable,
 			method: 'POST',
 			body: { type: 'resources', resources: ['k7m2x', 'q4w8n'] },
 		});
@@ -388,13 +399,9 @@ describe('POST /batch', () => {
 	});
 
 	it('takes a rid however it was spelled, the record being filed in one case', async () => {
-		const store = async (url: string): Promise<Response> =>
-			new URL(url).pathname === '/meta/k7m2x.json'
-				? new Response(JSON.stringify({ resource: 'k7m2x' }))
-				: new Response('not found', { status: 404 });
 		const answered = await payload<BatchAnswerOf<'resources'>>(
 			await get('/batch', {
-				fetch: store,
+				fetch: filedLowercase,
 				method: 'POST',
 				body: { type: 'resources', resources: ['K7M2X'] },
 			}),

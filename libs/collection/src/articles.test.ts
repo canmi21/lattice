@@ -57,7 +57,7 @@ it('dates the one revision by lastmod, because it is the text that was last edit
 	// cannot also carry; `at` is editable afterwards for the articles where the two should differ.
 	const { database } = await imported();
 	const rows = await database.select().from(schema.revisions);
-	const earliest = rows.map((row) => row.at).sort()[0];
+	const earliest = rows.map((row) => row.at).toSorted()[0];
 	expect(earliest).toBe('2026-04-01T10:36:51Z');
 });
 

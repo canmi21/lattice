@@ -66,18 +66,18 @@ describe('markup', () => {
 	});
 });
 
-describe('groupHits', () => {
-	const hit = (path: string, heading: string): SearchHit => ({
-		objectID: `${path}:mw:${heading}`,
-		path,
-		locale: 'mw',
-		url: `https://example.test/${path}#${heading}`,
-		title: path === 'a' ? 'Cargo' : 'SeamJS',
-		subtitle: '',
-		heading,
-		text: '',
-	});
+const hit = (path: string, heading: string): SearchHit => ({
+	objectID: `${path}:mw:${heading}`,
+	path,
+	locale: 'mw',
+	url: `https://example.test/${path}#${heading}`,
+	title: path === 'a' ? 'Cargo' : 'SeamJS',
+	subtitle: '',
+	heading,
+	text: '',
+});
 
+describe('groupHits', () => {
 	it('says one title once and keeps its sections under it', () => {
 		const groups = groupHits([hit('a', 'one'), hit('a', 'two'), hit('b', 'three')]);
 		expect(groups.map((group) => group.title)).toEqual(['Cargo', 'SeamJS']);
@@ -105,18 +105,18 @@ describe('groupHits', () => {
 	});
 });
 
-describe('groupHits and one destination per row', () => {
-	const chunk = (path: string, heading: string, text: string): SearchHit => ({
-		objectID: `${path}:mw:${heading}:${text}`,
-		path,
-		locale: 'mw',
-		url: `https://example.test/${path}#${heading}`,
-		title: 'Cargo',
-		subtitle: '',
-		heading,
-		text,
-	});
+const chunk = (path: string, heading: string, text: string): SearchHit => ({
+	objectID: `${path}:mw:${heading}:${text}`,
+	path,
+	locale: 'mw',
+	url: `https://example.test/${path}#${heading}`,
+	title: 'Cargo',
+	subtitle: '',
+	heading,
+	text,
+});
 
+describe('groupHits and one destination per row', () => {
 	it('keeps one row when a long section was stored as several records', () => {
 		// Both chunks carry the same heading and the same anchor, so both go to one place.
 		const groups = groupHits([

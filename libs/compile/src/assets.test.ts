@@ -367,7 +367,7 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 
 	// All or none. `local migrate` writes the whole manifest before it rewrites anything else, so a
 	// file holding both shapes is a run that died partway rather than a state to be tolerant of.
-	const migrated = records.filter((record) => 'layers' in record);
+	const migrated = records.filter((each) => 'layers' in each);
 	if (migrated.length === 0) {
 		expect(() => readAssets(manifest)).toThrow('local migrate');
 		return;
@@ -408,8 +408,10 @@ it('reads the committed manifest, whichever side of the migration it is on', () 
 			expect(resolveIcon(`https://${icon.domain}/deep/page`), icon.domain).toBe(asset.resource);
 			expect(image?.variants, `${asset.resource} binds at icon and not at image`).toEqual([]);
 			for (const tone of TONES) {
-				const file = icon.tones[tone];
-				if (file) expect(ICON_EXTENSION[file.mime], `${asset.resource} ${tone}`).toBeDefined();
+				const toneFile = icon.tones[tone];
+				if (toneFile) {
+					expect(ICON_EXTENSION[toneFile.mime], `${asset.resource} ${tone}`).toBeDefined();
+				}
 			}
 		}
 		// A cover is a rid, and the picture it names is in this same file. A cover that resolved

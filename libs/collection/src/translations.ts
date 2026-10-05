@@ -46,7 +46,7 @@ function sidecars(contents: string): string[] {
 		}
 	};
 	walk(contents);
-	return found.sort();
+	return found.toSorted();
 }
 
 export type Survey = {

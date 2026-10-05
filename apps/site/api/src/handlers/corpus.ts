@@ -131,7 +131,7 @@ corpus.get('/homepage', async (c) => {
 
 	const articles: HomeAnswer['articles'] = listed.map(({ article, view }) => {
 		const { locale: _language, ...rest } = view;
-		return { ...rest, slug: article.slug, path: article.path, url: article.url };
+		return Object.assign(rest, { slug: article.slug, path: article.path, url: article.url });
 	});
 
 	const answer = {

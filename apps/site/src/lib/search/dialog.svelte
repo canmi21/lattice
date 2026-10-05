@@ -214,7 +214,7 @@
 		timer = setTimeout(() => run(text), QUIET_MS);
 	}
 
-	function open_(hit: SearchHit) {
+	function visit(hit: SearchHit) {
 		onOpenChange(false);
 		// An index record's address is absolute and may carry `?lang=`; `goto` keeps it a client
 		// navigation rather than a reload.
@@ -236,7 +236,7 @@
 		} else if (event.key === 'Enter') {
 			event.preventDefault();
 			const hit = rows[active];
-			if (hit) open_(hit);
+			if (hit) visit(hit);
 		}
 	}
 
@@ -417,7 +417,7 @@
 										<li>
 											<button
 												type="button"
-												onclick={() => open_(hit)}
+												onclick={() => visit(hit)}
 												onmousemove={() => (active = index)}
 												class="focus-ring block w-full px-2.5 py-1.5 text-left {stylex.attrs(
 													styles.row,

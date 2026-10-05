@@ -128,7 +128,7 @@ function sheetsOf(nodes: number[], declared: Map<number, string[]>): string[] {
 function report(load: Load): string {
 	const over = load.gzip - load.category.gzip;
 	const raised = Math.ceil(load.gzip / 1024) * 1024;
-	const biggest = [...load.sheets].sort((a, b) => b.gzip - a.gzip);
+	const biggest = load.sheets.toSorted((a, b) => b.gzip - a.gzip);
 	return [
 		`${load.route} is over the '${load.category.name}' budget:`,
 		`  budget ${load.category.gzip} bytes gzipped`,
@@ -175,7 +175,7 @@ function main(): number {
 	// A scan that skipped part of its input makes every number under it fiction, so this returns
 	// rather than joining the budget failures below and printing a table it cannot stand behind.
 	const untrusted = nodes.blind.map(unreadable);
-	for (const [route, walk] of [...chain].sort()) {
+	for (const [route, walk] of [...chain].toSorted()) {
 		for (const node of walk) {
 			if (declared.has(node)) continue;
 			untrusted.push(
@@ -213,7 +213,7 @@ function main(): number {
 	// not also accused below of claiming nothing.
 	const matched = new Set<string>();
 
-	for (const [route, nodes] of [...chain].sort()) {
+	for (const [route, walked] of [...chain].toSorted()) {
 		const owners = categories.filter((each) => each.routes.some((p) => takes(p, route)));
 		for (const each of owners) matched.add(each.name);
 		if (owners.length !== 1) {
@@ -229,7 +229,7 @@ function main(): number {
 			);
 			continue;
 		}
-		const sheets = sheetsOf(nodes, declared).map((path) => ({
+		const sheets = sheetsOf(walked, declared).map((path) => ({
 			path,
 			gzip: gzipSync(readFileSync(join(CLIENT, path)), { level: LEVEL }).length,
 		}));

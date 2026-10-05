@@ -28,10 +28,10 @@ it('spends only One Light colours, so nothing from the dark palette reaches a li
 	expect(leaked).toEqual([]);
 });
 
-it('carries a style only where One Dark Pro does', () => {
-	const styled = (rules: { settings?: { fontStyle?: string } }[]) =>
-		rules.filter((rule) => rule.settings?.fontStyle).map((rule) => rule.settings?.fontStyle);
+const styled = (rules: { settings?: { fontStyle?: string } }[]) =>
+	rules.filter((rule) => rule.settings?.fontStyle).map((rule) => rule.settings?.fontStyle);
 
+it('carries a style only where One Dark Pro does', () => {
 	// Nothing on this site reads the style a dual render emits -- see spec/architecture/fonts.md,
 	// "Only the regular cut of the monospace face is reachable, and the rest stay". Carried rather
 	// than dropped, so the derivation stays a recolouring and nothing else.

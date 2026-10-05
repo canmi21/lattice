@@ -70,15 +70,15 @@ function load(): Promise<Turnstile> {
 		const element = document.createElement('script');
 		element.src = SCRIPT;
 		element.async = true;
-		element.onload = () => {
+		element.addEventListener('load', () => {
 			const loaded = (window as { turnstile?: Turnstile }).turnstile;
 			if (loaded) resolve(loaded);
 			else reject(new Error('turnstile did not load'));
-		};
-		element.onerror = () => {
+		});
+		element.addEventListener('error', () => {
 			script = undefined;
 			reject(new Error('turnstile did not load'));
-		};
+		});
 		document.head.appendChild(element);
 	});
 	return script;

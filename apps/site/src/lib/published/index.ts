@@ -310,7 +310,9 @@ export async function publishedResources(
 		// blank article rather than a missing picture. The cap belongs to the request shape and is
 		// read from there; see `resourceQuestions` in @monoflake/sdk/artifacts.
 		const answers = await Promise.all(
-			resourceQuestions(ask).map((rids) => askBatch({ type: 'resources', resources: rids }, fetch)),
+			resourceQuestions(ask).map((question) =>
+				askBatch({ type: 'resources', resources: question }, fetch),
+			),
 		);
 		const answered: BatchAnswerOf<'resources'>['resources'] = Object.assign(
 			{},
@@ -374,6 +376,7 @@ export async function publishedFeedEntries(
 	if (!found) return undefined;
 
 	return Promise.all(
+		// oxlint-disable-next-line no-map-spread -- an entry is the cached answer's, so it is copied
 		found.entries.map(async (entry) => {
 			const view = (await (
 				await object(fetch, 'content', entry.objects.content)

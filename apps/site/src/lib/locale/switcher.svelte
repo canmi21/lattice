@@ -147,9 +147,9 @@
 	 * trigger or perceive -- which is what svelte's own a11y check says when you try.
 	 */
 	function warmOnHover(next: LocaleCode) {
+		const start = () => warm(next);
 		return (node: HTMLElement) => {
 			if (!hoverable || !prefetch) return;
-			const start = () => warm(next);
 			node.addEventListener('pointerenter', start);
 			return () => node.removeEventListener('pointerenter', start);
 		};

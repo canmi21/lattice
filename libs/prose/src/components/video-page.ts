@@ -19,10 +19,6 @@ export function holdPage(leave: () => void, restore: () => number): () => void {
 	const onKey = (event: KeyboardEvent) => {
 		if (event.key === 'Escape') leave();
 	};
-	const swallow = (event: TouchEvent) => {
-		if ((event.target as Element | null)?.closest('.player-chrome')) return;
-		event.preventDefault();
-	};
 	window.addEventListener('keydown', onKey);
 	document.addEventListener('touchmove', swallow, { passive: false });
 
@@ -33,4 +29,10 @@ export function holdPage(leave: () => void, restore: () => number): () => void {
 		document.removeEventListener('touchmove', swallow);
 		window.scrollTo({ top: restore(), behavior: 'instant' });
 	};
+}
+
+/** A touch drag goes nowhere, except over the chrome. */
+function swallow(event: TouchEvent): void {
+	if ((event.target as Element | null)?.closest('.player-chrome')) return;
+	event.preventDefault();
 }

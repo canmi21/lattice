@@ -38,6 +38,16 @@ function textHash(text: string): number {
 	return hash >>> 0;
 }
 
+/** Each step held to at most `MAX_ADJACENT_STEP` above the one before it, in one direction. */
+function flatten(from: number[]): number[] {
+	const out: number[] = [];
+	for (const step of from) {
+		const previous = out.at(-1);
+		out.push(previous === undefined ? step : Math.min(step, previous + MAX_ADJACENT_STEP));
+	}
+	return out;
+}
+
 /**
  * Bar widths, in tenths of the longest heading.
  *
@@ -60,15 +70,7 @@ export function steppedBars(widths: number[], texts: string[], ceiling: number):
 	// rather than up, and only ever toward a neighbour, never levelled with it -- see
 	// spec/styling/rail.md, "No entry stands more than three steps above a neighbor, and the
 	// outlier comes down".
-	const flatten = (from: number[]): number[] => {
-		const out: number[] = [];
-		for (const step of from) {
-			const previous = out.at(-1);
-			out.push(previous === undefined ? step : Math.min(step, previous + MAX_ADJACENT_STEP));
-		}
-		return out;
-	};
-	const shaved = flatten(flatten(steps).reverse()).reverse();
+	const shaved = flatten(flatten(steps).toReversed()).toReversed();
 
 	// The other half of the same idea: two neighbours on the same step are separated by one,
 	// toward whichever side they were already nearer. Both constraints run in one pass --

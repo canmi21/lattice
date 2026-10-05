@@ -95,11 +95,12 @@
 		if (detached) menu = open.quality || open.speed;
 	});
 
+	const pad = (value: number) => String(value).padStart(2, '0');
+
 	function clock(seconds: number): string {
 		if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
 		const whole = Math.floor(seconds);
 		const [h, mm, ss] = [Math.floor(whole / 3600), Math.floor(whole / 60) % 60, whole % 60];
-		const pad = (value: number) => String(value).padStart(2, '0');
 		return h > 0 ? `${h}:${pad(mm)}:${pad(ss)}` : `${mm}:${pad(ss)}`;
 	}
 

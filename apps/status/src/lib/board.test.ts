@@ -123,13 +123,14 @@ describe('daysOf', () => {
 	});
 });
 
+const day = (passed: number, failed: number) => ({
+	start: 0,
+	passed,
+	failed,
+	state: 'up' as const,
+});
+
 describe('dayColor', () => {
-	const day = (passed: number, failed: number) => ({
-		start: 0,
-		passed,
-		failed,
-		state: 'up' as const,
-	});
 	it('is green with no downtime, and nothing for a day with no rounds', () => {
 		expect(dayColor(day(100, 0), 5)).toBe('var(--color-green)');
 		expect(dayColor(day(0, 0), 5)).toBeNull();
@@ -153,16 +154,18 @@ describe('dayColor', () => {
 	});
 });
 
+const at = (minute: number) => new Date(Date.UTC(2026, 8, 29, 12, minute));
+
+const row = (grain: string, minute: number, passed: number, failed = 0) => ({
+	checkId: 'health.geo',
+	place: 'home',
+	grain,
+	bucketStart: at(minute),
+	passed,
+	failed,
+});
+
 describe('barsOf', () => {
-	const at = (minute: number) => new Date(Date.UTC(2026, 8, 29, 12, minute));
-	const row = (grain: string, minute: number, passed: number, failed = 0) => ({
-		checkId: 'health.geo',
-		place: 'home',
-		grain,
-		bucketStart: at(minute),
-		passed,
-		failed,
-	});
 	it('counts a rolled-up minute once, and an unrolled one from raw or live, whichever holds more', () => {
 		const bars = barsOf(
 			'minutes',

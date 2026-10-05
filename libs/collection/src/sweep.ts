@@ -154,12 +154,22 @@ export async function sweep(
 	const { collectable } = await reconcile(source, derived, now);
 	const taken: string[] = [];
 	for (const { cid } of collectable) {
-		await store.forget(cid);
-		await source.delete(contents).where(eq(contents.cid, cid));
-		await derived.update(unreferenced).set({ collected: true }).where(eq(unreferenced.cid, cid));
+		// oxlint-disable-next-line no-await-in-loop -- one at a time, so a failure leaves a clean edge
+		await take(source, derived, store, cid);
 		taken.push(cid);
 	}
 	return taken;
+}
+
+async function take(
+	source: SourceDatabase,
+	derived: DerivedDatabase,
+	store: { forget(cid: string): Promise<void> },
+	cid: string,
+): Promise<void> {
+	await store.forget(cid);
+	await source.delete(contents).where(eq(contents.cid, cid));
+	await derived.update(unreferenced).set({ collected: true }).where(eq(unreferenced.cid, cid));
 }
 
 /**
@@ -169,8 +179,7 @@ export async function sweep(
  * something is reachable, which is no help to somebody deciding whether it should be.
  */
 export async function holders(derived: DerivedDatabase, cid: string): Promise<Reference[]> {
-	const rows = await derived.select().from(references).where(eq(references.cid, cid));
-	return rows.map((row) => ({ ...row }));
+	return derived.select().from(references).where(eq(references.cid, cid));
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

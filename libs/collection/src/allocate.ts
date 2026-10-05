@@ -53,6 +53,7 @@ export async function allocate(database: SourceDatabase): Promise<string> {
 	for (let attempt = 0; attempt < 100; attempt += 1) {
 		const id = candidate();
 		if (DENIED.some((stem) => id.includes(stem))) continue;
+		// oxlint-disable-next-line no-await-in-loop -- a retry, which stops at the first free id
 		const held = await database.select().from(resources).where(eq(resources.id, id));
 		if (held.length === 0) return id;
 	}

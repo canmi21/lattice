@@ -72,7 +72,7 @@ async function answer(method: string, path: string, body: string): Promise<Answe
 		);
 		return {
 			status: 200,
-			body: rows.map((row) => ({ ...row, published: held.has(row.resource) })),
+			body: rows.map((row) => Object.assign(row, { published: held.has(row.resource) })),
 		};
 	}
 

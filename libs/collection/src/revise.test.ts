@@ -146,12 +146,13 @@ describe('revisions', () => {
 		await drafted(texts[0]!);
 		await publish(database, store, RID, { at: NOW });
 		for (const text of texts.slice(1)) {
-			await edit(text);
-			await publish(database, store, RID);
+			// oxlint-disable-next-line no-await-in-loop -- each revision is written over the last
+			await edit(text).then(() => publish(database, store, RID));
 		}
-		for (const [index, text] of texts.entries()) {
-			expect(await textAt(database, store, RID, index + 1)).toBe(text);
-		}
+		const read = await Promise.all(
+			texts.map((_, index) => textAt(database, store, RID, index + 1)),
+		);
+		expect(read).toEqual(texts);
 	});
 
 	it('refuses a reconstruction that does not hash to what the revision says', async () => {

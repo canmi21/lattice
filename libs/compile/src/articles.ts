@@ -33,9 +33,13 @@ import { ARTICLE_TITLE_BUDGET, fits } from './width.ts';
  */
 export async function newTabNotes(messages: string): Promise<Record<LocaleCode, string>> {
 	const notes = {} as Record<LocaleCode, string>;
-	for (const code of LOCALE_CODES) {
-		const catalog = JSON.parse(await readFile(join(messages, `${code}.json`), 'utf8'));
-		const note = catalog['support.new-tab'];
+	const catalogs = await Promise.all(
+		LOCALE_CODES.map(async (code) =>
+			JSON.parse(await readFile(join(messages, `${code}.json`), 'utf8')),
+		),
+	);
+	for (const [index, code] of LOCALE_CODES.entries()) {
+		const note = catalogs[index]['support.new-tab'];
 		if (typeof note !== 'string') {
 			throw new Error(`${code}.json: support.new-tab is missing`);
 		}
@@ -127,15 +131,18 @@ type BuildPaths = {
 };
 
 async function articleFiles(contents: string): Promise<string[]> {
-	const files: string[] = [];
-	for (const category of await readdir(contents, { withFileTypes: true })) {
-		if (!category.isDirectory()) continue;
-		const directory = join(contents, category.name);
-		for (const entry of await readdir(directory, { withFileTypes: true })) {
-			if (entry.isFile() && entry.name.endsWith('.md')) files.push(join(directory, entry.name));
-		}
-	}
-	return files.toSorted();
+	const categories = (await readdir(contents, { withFileTypes: true })).filter((each) =>
+		each.isDirectory(),
+	);
+	const listed = await Promise.all(
+		categories.map(async (category) => {
+			const directory = join(contents, category.name);
+			return (await readdir(directory, { withFileTypes: true }))
+				.filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+				.map((entry) => join(directory, entry.name));
+		}),
+	);
+	return listed.flat().toSorted();
 }
 
 async function pageFiles(contents: string): Promise<string[]> {
@@ -308,14 +315,20 @@ export async function buildArticles(
 		LOCALE_CODES.map((code) => [code, {} as Record<string, ArticleReference>]),
 	) as Record<LocaleCode, Record<string, ArticleReference>>;
 
-	for (const file of files) {
-		const sidecarFile = file.replace(/\.md$/, '.i18n.yaml');
-		const [raw, sidecarText] = await Promise.all([
-			readFile(file, 'utf8'),
-			// A translation sidecar is generated output. Its absence is a source-only article,
-			// not a reason the site cannot render that article at all.
-			readFile(sidecarFile, 'utf8').catch(() => ''),
-		]);
+	// Every article's files are read at once; what is made of them below is in corpus order.
+	const loaded = await Promise.all(
+		files.map(async (file) => {
+			const [raw, sidecarText, summaries] = await Promise.all([
+				readFile(file, 'utf8'),
+				// A translation sidecar is generated output. Its absence is a source-only article,
+				// not a reason the site cannot render that article at all.
+				readFile(file.replace(/\.md$/, '.i18n.yaml'), 'utf8').catch(() => ''),
+				readSummaries(file),
+			]);
+			return { file, raw, sidecarText, summaries };
+		}),
+	);
+	for (const { file, raw, sidecarText, summaries } of loaded) {
 		const sidecar = (parseYaml(sidecarText) ?? {}) as TranslationSidecar;
 		// Dropped here rather than filtered out of the result, so a withheld article is never
 		// compiled and never becomes a reference either. An `::article` card naming a draft is
@@ -323,7 +336,6 @@ export async function buildArticles(
 		// the report worth having, since the two articles were written to ship together.
 		// `draft` is not translatable, so the source frontmatter is the whole answer.
 		if (!drafts && articleFrontmatter(raw, file).draft === true) continue;
-		const summaries = await readSummaries(file);
 		const path = articlePath(paths.contents, file);
 		const url = `${URLS.apps.production.site}/${path}`;
 		// The original's own locale, read off the frontmatter before anything is compiled --
@@ -372,6 +384,7 @@ export async function buildArticles(
 		translation_available,
 		short,
 	} of prepared) {
+		// oxlint-disable-next-line no-await-in-loop -- compiling is CPU-bound, so one at a time
 		const source = await compile(raws.mw, url, {
 			newTabNote: notes.mw,
 			// Not `en-US`. On the original view an image's alt is read beside prose in the
@@ -392,6 +405,7 @@ export async function buildArticles(
 		const compiled = {
 			mw: source,
 			...Object.fromEntries(
+				// oxlint-disable-next-line no-await-in-loop -- as above
 				await Promise.all(
 					(Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]).map(async (code) => [
 						code,
@@ -509,10 +523,10 @@ export async function buildPages(
 	}
 	const pages: Page[] = [];
 
-	for (const file of files) {
-		const raw = await readFile(file, 'utf8');
+	const raws = await Promise.all(files.map((file) => readFile(file, 'utf8')));
+	for (const [index, file] of files.entries()) {
 		const path = articlePath(paths.contents, file);
-		const source = compilePage(raw, file);
+		const source = compilePage(raws[index]!, file);
 		// Every view of a page is the source. A page is not an article: the homepage is identity
 		// copy, its bio was always rendered from `mw` whatever the view, and the eight
 		// translations sitting beside it were never read by anything. Keeping them meant a

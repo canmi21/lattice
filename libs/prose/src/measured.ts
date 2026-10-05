@@ -120,8 +120,8 @@ export function fontOfClass(className: string): string {
  */
 export function fontOfProbe(chain: readonly (readonly [string, string])[]): string {
 	const key = chain.map(([tag, className]) => `${tag}.${className}`).join('>');
-	const held = fonts.get(key);
-	if (held !== undefined) return held;
+	const known = fonts.get(key);
+	if (known !== undefined) return known;
 
 	let outer: HTMLElement | undefined;
 	let inner: HTMLElement | undefined;

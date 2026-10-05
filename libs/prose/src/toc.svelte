@@ -145,18 +145,30 @@
 	let indicatorRevealing = false;
 	let geometryVersion = $state(0);
 
+	function endClickScroll() {
+		isClickScrolling = false;
+	}
+
+	/** Back at the top, nothing is being read and the address names no section. */
+	function clearAtTop() {
+		if (isClickScrolling) return;
+		if (window.scrollY <= TOP_DEAD_ZONE) {
+			activeIndex = -1;
+			if (window.location.hash) {
+				history.replaceState(null, '', window.location.pathname + window.location.search);
+			}
+		}
+	}
+
 	function jumpToSection(el: HTMLHeadingElement | undefined, idx: number) {
 		if (!el) return;
 		isClickScrolling = true;
 		activeIndex = idx;
 		el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-		const onEnd = () => {
-			isClickScrolling = false;
-		};
 		if ('onscrollend' in window) {
-			window.addEventListener('scrollend', onEnd, { once: true });
+			window.addEventListener('scrollend', endClickScroll, { once: true });
 		} else {
-			setTimeout(onEnd, 600);
+			setTimeout(endClickScroll, 600);
 		}
 	}
 
@@ -401,30 +413,18 @@
 						const top =
 							initialTarget.getBoundingClientRect().top + window.scrollY - SCROLL_OFFSET / 2;
 						window.scrollTo({ top, behavior: 'smooth' });
-						const onEnd = () => {
-							isClickScrolling = false;
-						};
 						if ('onscrollend' in window) {
-							window.addEventListener('scrollend', onEnd, { once: true });
+							window.addEventListener('scrollend', endClickScroll, { once: true });
 						} else {
-							setTimeout(onEnd, 1500);
+							setTimeout(endClickScroll, 1500);
 						}
 					},
 				);
 			}
 		});
 
-		const onScroll = () => {
-			if (isClickScrolling) return;
-			if (window.scrollY <= TOP_DEAD_ZONE) {
-				activeIndex = -1;
-				if (window.location.hash) {
-					history.replaceState(null, '', window.location.pathname + window.location.search);
-				}
-			}
-		};
-		window.addEventListener('scroll', onScroll, { passive: true });
-		cleanups.push(() => window.removeEventListener('scroll', onScroll));
+		window.addEventListener('scroll', clearAtTop, { passive: true });
+		cleanups.push(() => window.removeEventListener('scroll', clearAtTop));
 
 		/**
 		 * The last heading at or above the reading band, which is the one being read.

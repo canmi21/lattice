@@ -155,17 +155,17 @@
 
 	// A blank field is a field nobody has filled in, so it travels as absent rather than as an
 	// empty string -- which is a value, and which the collection would otherwise have to guess at.
-	const said_ = (value: string) => (value.trim() === '' ? undefined : value.trim());
+	const filled = (value: string) => (value.trim() === '' ? undefined : value.trim());
 
 	// Every field the draft carries goes back with every save: the row's metadata is replaced
 	// whole, so a field left out here would be a field a save erased.
 	async function save() {
 		const held = await saveDraft(rid, body, {
-			title: said_(title),
-			subtitle: said_(subtitle),
-			description: said_(description),
-			path: said_(category && slug ? `${category}/${slug}` : slug),
-			language: said_(language),
+			title: filled(title),
+			subtitle: filled(subtitle),
+			description: filled(description),
+			path: filled(category && slug ? `${category}/${slug}` : slug),
+			language: filled(language),
 		});
 		forget(rid);
 		said = `Saved ${held.updated.slice(11, 19)}`;
