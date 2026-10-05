@@ -62,7 +62,13 @@ export function citationsOf(blocks: readonly Block[]): object[] {
 						? {
 								'@type': 'SocialMediaPosting',
 								url: `${social.twitter}/${block.tweet.author}/status/${block.tweet.id}`,
+								text: block.tweet.text,
 								datePublished: block.tweet.created,
+								author: {
+									'@type': 'Person',
+									name: `@${block.tweet.author}`,
+									url: `${social.twitter}/${block.tweet.author}`,
+								},
 							}
 						: undefined;
 		if (!work || seen.has(work.url)) return [];

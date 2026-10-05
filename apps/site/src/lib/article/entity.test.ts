@@ -92,9 +92,12 @@ it('cites the works an article names by a card, a repository or a post, once eac
 			},
 			align: 'left',
 		},
+		{ type: 'twitter', tweet: { id: '1', author: 'canmi21', text: 'A post.', created: '2026' } },
 	] as never);
 	expect(works.map((work) => (work as { '@type': string })['@type'])).toEqual([
 		'CreativeWork',
 		'SoftwareSourceCode',
+		'SocialMediaPosting',
 	]);
+	expect(works[2]).toMatchObject({ text: 'A post.', author: { name: '@canmi21' } });
 });

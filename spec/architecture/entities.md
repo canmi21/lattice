@@ -84,7 +84,10 @@ page, and a link to a page that does not exist yet is worse than none.
 - **`citation` lists the works an article names by a block of their own**: a link card as a
   `CreativeWork` with its title, a repository as `SoftwareSourceCode`, an embedded post as a
   `SocialMediaPosting`, each once. A link inside a sentence points somewhere and cites nothing, so
-  it stays out. On the page the card's title is a `<cite>`, which is what HTML calls the title of a
+  it stays out. **A cited post carries its `author` and its `text`**: Google validates any
+  `SocialMediaPosting` as a discussion forum post, wherever it sits in the graph, and a post with
+  no author is a critical error in Search Console. The author is the handle, as `@name`, with the
+  profile as its `url` -- the record holds nothing more about them. On the page the card's title is a `<cite>`, which is what HTML calls the title of a
   cited work; a quotation is a `<blockquote>`, which the compiler already writes.
 - **Each translated view is a work of its own** with its own identifier, and says which it is a
   translation of with `translationOfWork`; the original lists every translation with
