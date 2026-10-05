@@ -1,5 +1,6 @@
 import { defineParams } from '@sveltejs/kit/params';
-import { APP_ICON_MARKS } from './lib/manifest';
+// Node loads this file itself during a build, outside Vite, so an import names its extension.
+import { APP_ICON_MARKS } from './lib/manifest.ts';
 
 /** This page's marks, as `data/record/symlinks.json` registers them under `status`. */
 export const MARKS = [
