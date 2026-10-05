@@ -62,12 +62,14 @@ eventual consistency does not promise. Ended rows are deleted whenever a new gra
 
 `trust_until` only spares the page a check it does not need; it grants nothing.
 
-## The gate is off until the secret is set
+## The gate opens on two secrets and a public key
 
-**`TURNSTILE_SECRET` and `TRUST_KEY` are Worker secrets**, kept in `secrets.json` as well; while
-the first is unset the gate lets every write through and logs that it did, and `verify` answers 503. The site key is public and in `site.config.yaml`, `turnstile.siteKey`, null until the widget
-exists, which keeps the page from running anything. So the code ships before the widget, and the
-gate opens when both are set.
+**`TURNSTILE_SECRET` and `TRUST_KEY` are Worker secrets**, kept in `secrets.json` as well. The site
+key is public and in `site.config.yaml`, `turnstile.siteKey`. All three are set, so the gate is on.
+
+Each side still stands down on its own when its half is missing, which is how the code shipped
+before the widget existed. Without the secret, the API lets every write through and logs that it
+did, and `verify` answers 503; with a null site key, the page runs nothing.
 
 **Development runs the gate with Turnstile's test keys**: the site key that passes unseen, and the
 secret that passes its dummy token, with `TURNSTILE_TEST` sparing the hostname and action that a
