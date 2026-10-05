@@ -118,6 +118,7 @@
 </script>
 
 <script lang="ts">
+	import { NAME } from '#lib/manifest.js';
 	import Title from '@canmi/kit/behavior/title.svelte';
 	import { authorRef, graph, ldJson, person, ref } from '@canmi/social/structured';
 	import { URLS } from '@monoflake/sdk';
@@ -142,8 +143,7 @@
 
 	let { data }: PageProps = $props();
 
-	/** The page's name, and what it is for a first load. See spec/architecture/titles.md. */
-	const NAME = 'Canmi Status';
+	/** What the page is for a first load; its name is shared. See spec/architecture/titles.md. */
 	const DESCRIPTION = 'Live uptime of the services I run, checked from outside every few seconds.';
 	const CANONICAL = new URL('/', URLS.internal.status.canonical).href;
 	/**

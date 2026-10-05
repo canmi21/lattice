@@ -98,6 +98,7 @@
 </script>
 
 <script lang="ts">
+	import { APP_ICON_MARKS } from '#lib/manifest.js';
 	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { settleBrevity } from '@canmi/kit/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/web/referer';
@@ -211,6 +212,10 @@
 	{/if}
 	{#if data.marks['apple-touch-icon.png']}
 		<link rel="apple-touch-icon" href={data.marks['apple-touch-icon.png']} />
+	{/if}
+	<!-- Named once every app icon resolves, since a manifest without them is not installable. -->
+	{#if APP_ICON_MARKS.every((mark) => data.marks[mark])}
+		<link rel="manifest" href="/site.webmanifest" />
 	{/if}
 	{#each early as hint (hint.href)}
 		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
