@@ -146,9 +146,9 @@ export async function askBatch<T extends BatchRequest>(
 
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
 function viewUrl(slug: string, locale: LocaleCode): string {
-	// Both identifiers in the query, and the identity alone in `slug` -- never the path. See
-	// platform's spec/architecture/artifacts.md, "A question asks with a query; a list asks with a
-	// body".
+	// The slug in the path and the locale in the query; `apiPath` writes the address from the
+	// route's shape. See platform's spec/architecture/artifacts.md, "A question names its thing in
+	// the path; a list asks with a body".
 	return apiPath('article', { slug, locale });
 }
 

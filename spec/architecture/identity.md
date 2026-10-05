@@ -4,7 +4,8 @@
 how Rust reads it are the package's, in the lib repository's `spec/me/identity.md`. Every app reads
 it; none spells the name. The site's `site.config.yaml` keeps what is the site's own and takes its
 `author` from here, so `site.author` reads as it always has. A service's address is
-`@monoflake/sdk`' and a handle is the author's: the link is the two put together.
+whoever's owns it -- a social network's base is in `@canmi/me/urls` -- and a handle is the
+author's: the link is the two put together.
 
 **`@canmi/social` is the row of links to where the author is found, and only its shape**: the row's
 layout, each icon drawn as it needs to read at the same weight as the rest, and each link's default

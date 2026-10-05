@@ -51,8 +51,8 @@ probe writes**, on the public Realtime channel `status`, from a statement trigge
 calls `realtime.send` with every check's latest result in the batch, and the page listens over one
 WebSocket through `@supabase/realtime-js`. A broadcast is Realtime's own, not a change feed, so it
 needs no grant on any table: the database says what is sent, and the anon key hears only that. The
-page folds each result into the half-hour it falls in and asks the history view again only when a
-half-hour closes; a reconnected socket asks for `status_now` once, for what it missed. The broadcast
+page folds each result into the half-hour it falls in and asks the history view again when a
+half-hour closes, and a finer range re-reads its rollups each time one of its own grain closes; a reconnected socket asks for `status_now` once, for what it missed. The broadcast
 is the heartbeat as well -- one every ten seconds while the probe writes -- so a page that hears
 nothing for a few rounds shows the probe silent, which is the truth it should tell. The anon key is granted `SELECT` on the status views and nothing else --
 no table -- under a row security policy that lets it read every row: the grant is what makes it

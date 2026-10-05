@@ -15,8 +15,8 @@ service domains' pages one Netlify builds, and the editor and `local` run on thi
 
 ## The other repositories are named, never linked
 
-The platform is `monoflake/platform` and infra `monoflake/infra`, each cloned beside this one in
-the workspace. A rule of theirs is cited by name -- `platform's spec/architecture/services.md` --
+The platform is `monoflake/platform`, infra `monoflake/infra` and the library `canmi21/lib`, each
+cloned beside this one in the workspace. A rule of theirs is cited by name -- `platform's spec/architecture/services.md` --
 and `refs` resolves it in that repository when it is cloned beside this one, so a renamed section
 still fails here. A relative link across a repository resolves only while both are cloned side by
 side, so a spec here never writes one. `mise run base` starts the platform's dev servers from its

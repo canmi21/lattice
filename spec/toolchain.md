@@ -52,8 +52,8 @@ it has been seen serving real traffic.
 ## Deploying is a consequence of pushing
 
 Cloudflare builds from the connected repository, so a push is what ships. Nobody runs a deploy
-by hand as the normal path, and an agent runs one neither by hand nor on request -- pushing is
-the user's, and so is everything downstream of it.
+by hand as the normal path, and an agent never runs `deploy-site`: it pushes settled work as the
+workspace's `spec/commits.md` says, and what ships follows from the push.
 
 `deploy-site` stays as a fallback for the case where Cloudflare's build is broken or the Worker
 has to be created before its settings exist. Using one means production now holds
