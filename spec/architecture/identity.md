@@ -15,10 +15,11 @@ inside the link rather than as an `aria-label`: a screen reader reads either, bu
 translator takes a link's text and nothing else, and to them a label-only icon is a link with no
 name.
 
-| App    | Shows                                                                          |
-| ------ | ------------------------------------------------------------------------------ |
-| site   | all nine: GitHub, X, fediverse, Bluesky, Telegram, sitemap, two webrings, feed |
-| status | the first five, the author's own accounts                                      |
+| App     | Shows                                                                          |
+| ------- | ------------------------------------------------------------------------------ |
+| site    | all nine: GitHub, X, fediverse, Bluesky, Telegram, sitemap, two webrings, feed |
+| status  | the first five, the author's own accounts                                      |
+| landing | the first five, as the status page                                             |
 
 **`@canmi/social/structured` is the author as one entity**, derived from this record, under one
 identifier every page of every app refers to. What it says and why is

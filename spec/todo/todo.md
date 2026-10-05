@@ -113,14 +113,25 @@ reasons.
 - An article written in English is told it has no English version
 - A table head wants a ground that stays the darker one in both themes
 - A wrap policy is one decision per language, and the paragraph is where it is wanted
+- A list on the page has no marker and no indent
+- The crate chart's tiles are links with no text
+- A page's markdown is its source in every language
+- The markdown target keeps both halves of a width pair
+- A section has no page, for a person or an agent
+- The author has no entity home yet
+- The structured graph stops at what today's data says
+- An application has no way to stand apart from the infrastructure it is built on
+- The service domains answer nothing of their own yet
 
 ### [cms.md](cms.md)
 
 - Publishing is a mise task and cannot become a CMS button
 - A clip is the one resource reference the compiler still resolves into bytes
+- The segment layer waits for its redesign
 
 ### [tooling.md](tooling.md)
 
-- `.gitattributes` is a list nothing keeps complete
+- `.gitattributes` is a list only a long file is held to
+- Over the line limit, and deferred
 - A commit said less than it carried, because the paths were a directory
 - A commit subject says sixteen rules where twelve were moved

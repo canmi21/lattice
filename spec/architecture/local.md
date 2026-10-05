@@ -864,23 +864,18 @@ disclosure. Neither runs anything, so neither waits on the task substrate. The l
 main pane and gains no outer box -- the opaque pane is already the surface, and a second one inside
 it is the dashboard chrome this deliberately is not.
 
-The first window is a centred 1280 by 720 logical pixels, a 16:9 default rather than a minimum or
-a fixed canvas. After that first launch, geometry belongs to the native shell: Tauri's window-state
-plugin saves size, position and maximised state in the application's config directory and restores
-them before showing the next window. `localStorage` holds page state, not coordinates whose meaning
-depends on monitors and their scale factors. The configured window begins hidden so restoration
-does not flash the default rectangle before moving to the saved one.
+**The window's geometry was the desktop shell's and left with it**: a centred 1280 by 720 first
+window, then Tauri's window-state plugin. A browser tab has no geometry of its own to keep, and
+`localStorage` still holds page state, never coordinates whose meaning depends on monitors.
 
 Theme behavior is shared separately from its color values. `@canmi/kit/tokens` remains the palette;
 `@canmi/kit/theme` owns the system dark-mode query and the site's pre-paint bootstrap. The desktop shell
 follows that system query live, while the public site can still honor its explicit `theme` cookie.
 
-The WebView is one application shell with a persistent left sidebar. Its top-level destinations are
-Overview, Articles, Segments, Media, Derived, Automations and Activity: content and resources are
-things to manage, while scheduled work and its history are separate views of what the CMS does to
-them. Segments and Derived were missing from this list, which contradicted the two sections below
-that describe them. Individual
-CLI commands do not become navigation destinations. They become tasks inside Automations, with
+The desktop window's sidebar was Overview, Articles, Segments, Media, Derived, Automations and
+Activity; the web client's column is the one "The web client is a narrow column of sections beside
+one content pane" describes. What carries over is the rule: individual CLI commands do not become
+navigation destinations. They become tasks inside Automations, with
 their runs reported by Activity, so adding another operation does not make the application's
 information architecture wider.
 

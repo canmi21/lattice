@@ -26,7 +26,7 @@ than to the prose.
 Every non-original article view places a blue note directly below the metadata row. It says in
 the current view's UI language that the reader is seeing a translation and names the source
 language in that same UI language. The source-language name is the link back to `mw`; ordinary
-activation writes the cookie and reloads like the menu, while its `?lang=mw` address remains a
+activation calls `chooseLocale` like the menu, while its `?lang=mw` address remains a
 no-JavaScript and modified-click fallback. The original view has no note, because labeling
 untouched content as untranslated would repeat what the language switcher already says.
 

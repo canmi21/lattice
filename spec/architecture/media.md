@@ -210,8 +210,8 @@ caption, each embedded post -- so a 9,102-character article reported 14,870, and
 claimed was components rather than writing. Those are not the article. What counts is body prose
 and what is inside it: inline code and quotations stay, because they are in the sentence.
 
-The count is recorded by `local segments` into `data/build/segments.json`, which the site build
-already requires and already reads per article, and the site reads it rather than counting. One
+The count is recorded by `local segments` into `data/build/segments.json`, which the publish step
+reads per article, and the site reads the published figure rather than counting. One
 rule, one implementation. A second one in TypeScript is exactly how the page and the card came to
 disagree, and what a word is across scripts is not obvious enough to be worth answering twice.
 
@@ -291,10 +291,10 @@ content-addressed object now, so `local gc` reaches it by walking the one object
 no live view accounts for goes -- which is what the sweep means everywhere else too.
 
 **The live set is derived from the corpus rather than from `data/build/opengraph.json`.** A card is
-keyed by `{view}/{slug}.png`, and the live slugs are exactly the ones `local og` would draw: every
+keyed by `{view}/{slug}`, and the live slugs are exactly the ones `local og` would draw: every
 article that is not a draft, is not the bio page, and has a title; and the home page -- crossed
 with the nine views. `local gc` asks the `opengraph`
-module for that set rather than restating it, and both sides build the path through `card_path`, so
+module for that set, `wanted`, rather than restating it, and both sides build the key through `card_key`, so
 a change to which pages get cards moves the sweep with it instead of leaving it to be discovered.
 Keying the sweep on the card record instead would have taken the whole tree in exactly the case the
 record was lost, and deleting a card a page still links to is far worse than leaving one behind:

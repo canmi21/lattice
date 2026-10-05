@@ -215,7 +215,7 @@ the remaining literals a semantic home, but that is a separate content and compi
 ## A picture in an article opens at the size of the window
 
 Two things in a body are pictures: an `svg-canvas` diagram and an `::image`. Both are bound by the
-article column, which is 48rem at its widest and 342px on a phone, and both carry detail the
+article column, which is 45rem at its widest and 342px on a phone, and both carry detail the
 column cannot always afford -- a 600-unit diagram renders at 0.57 of the size it was drawn at on a
 phone, where the palette's `0.875rem` label, 14 of the diagram's own units, lands at eight pixels.
 Pressing either one opens it on a black ground at the size of the window. They go through one
@@ -360,9 +360,10 @@ the readable non-visual fallbacks. This keeps nuance without making every visual
 same relationship twice.
 
 The container's optional `description` attribute is the author's place to explain the comparison's
-context in Markdown. It is not required for accessibility: the component always generates an English
-structural description from the horizontal and vertical axis endpoints and every item-region pairing,
-with an explicit empty-state sentence when there are no items. When authored copy exists it precedes
+context in Markdown. It is not required for accessibility: until a reading is derived for it, the component
+generates an English structural description from the horizontal and vertical axis endpoints and
+every item-region pairing, with an explicit empty-state sentence when there are no items -- see "The
+reading is its name, not a description hung off one" below. When authored copy exists it precedes
 that structural fallback rather than replacing it. The template connective language is deliberately
 English-only; author-provided labels remain in their source language, matching the code-like directive
 translation boundary.
@@ -389,10 +390,11 @@ of being concatenated into an invented combined object, and no axis line crosses
 is whitespace, not a dashed placeholder: absence already carries meaning here, while an outlined empty
 object would imply missing or loading data. Numeric ticks remain absent.
 
-The authored title is an accessible name and a non-visual fallback, not a visible title bar. A hidden
-`figcaption` gives the title and generated description separate HTML nodes; the figure's image role
-references them with `aria-labelledby` and `aria-describedby` instead of flattening everything into
-one oversized accessible name. The visual stage remains `aria-hidden`, so a screen reader receives
+The authored title is an accessible name and a non-visual fallback, not a visible title bar. A figure
+with a derived reading is named by it, `aria-label`; one without falls back to a hidden
+`figcaption` giving the title and generated description separate HTML nodes, which the figure's
+image role references with `aria-labelledby` and `aria-describedby` instead of flattening
+everything into one oversized accessible name. The visual stage remains `aria-hidden`, so a screen reader receives
 the semantic summary once rather than traversing decorative axis and card markup.
 
 The outer frame therefore contains only the visible comparison. It matches a code block or Mermaid

@@ -115,7 +115,7 @@ so its entries sit left of center with space to their right. That space buys a c
 not move.
 
 **The number lives in more than one place, and nothing but a pointer connects them.** It is
-declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css), argued
+declared as `--rail-width` in [rail.css](../../libs/prose/src/rail.css), argued
 here, and turned into a column budget across the language boundary by `ONE_LINE` in
 [width.rs](../../apps/local/src/i18n/width.rs), which the CMS holds a translated heading to and which
 [i18n/segments.md](../i18n/segments.md) explains under "A section heading is also a label, and the rail is narrow".
@@ -228,9 +228,10 @@ So neither end of the scale is guaranteed. The first step is reached by an artic
 has a two-character heading among longer ones; the last by one that has a heading long enough to
 earn it. The middle is where every column lives.
 
-**A bar may never be wider than the widest label.** The box is `fit-content` around the entries
-at full expansion, which holds only while the text is the widest thing in it -- and in an
-article whose headings are all short it is not. Two of them had a longest label of 52px against
+**A bar may never be wider than the widest label.** The entries were once a `fit-content` box at
+full expansion -- the box is the declared 8.5rem now, see "The rail's box is one declared width" --
+and that held only while the text was the widest thing in it; in an article whose headings are
+all short it was not. Two of them had a longest label of 52px against
 a 64px bar, so the bars sized the box, and hydrating them from their served width to their real
 one widened it under a control centred on the same box: the rail sat still while `Back` slid 6px
 left, over the whole length of the bar animation. Capping the bars at the widest label as drawn
@@ -326,7 +327,7 @@ and was built to see. It moves the article -- right by half the rail as the rail
 the window's center from then on. The article holding still is worth more than the balance.
 
 The lengths this is computed from sit together on `:root` in
-[utilities.css](../../apps/site/src/styles/utilities.css) so they can be argued with in one place. One
+[rail.css](../../libs/prose/src/rail.css) so they can be argued with in one place. One
 is repeated by hand: the width at which the rail appears is written as a number in the media query
 and has to be kept in step with the ones it is derived from.
 
@@ -384,7 +385,7 @@ sitting nearer says _this belongs to what is above it_, which is exactly the rel
 default root size -- and collapses to a column of bars: a way to reach a section rather than an
 outline of the article. A subsection is reached by arriving at its parent and reading on. The
 figure here read 192px, which is a correction: `--rail-width` in
-[utilities.css](../../apps/site/src/styles/utilities.css) declares `8.5rem`, and "The rail's box is
+[rail.css](../../libs/prose/src/rail.css) declares `8.5rem`, and "The rail's box is
 one declared width" above said so while this sentence said otherwise.
 
 The two rules hold each other up, and neither works alone. Filtering the rail while the two
@@ -474,8 +475,8 @@ back the way the reader came, which is the homepage only when that is where they
 reader who followed a card from one article into another and is then sent home has lost the
 thread they were reading, and the control that did it looked like the way back.
 
-The trail is a list of paths in `sessionStorage["trail"]`, named the way the `localStorage` keys
-in [engagement.md](../engagement.md) are -- one lowercase noun, no prefix. The storage was chosen
+The trail is a list of paths under `trail` in the tab record, `sessionStorage["state"]`, named the
+way the keys in [engagement.md](../engagement.md) are -- one lowercase noun, no prefix. The storage was chosen
 for its lifetime rather than its convenience: one tab, surviving reloads, gone when the tab
 closes. Two tabs on one site are two readers here, and they get two trails.
 

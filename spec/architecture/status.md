@@ -30,8 +30,8 @@ by following the alias layer; see platform's `spec/architecture/delivery.md`, "A
 name for the browser". While Cloudflare is down
 the page goes without it.
 
-**It connects early to its fonts, our hosts and its database, and only resolves its analytics'**,
-as [hints.md](hints.md) declares for it.
+**It connects early to its fonts and its database, and nothing else**, as [hints.md](hints.md)
+declares for it.
 
 **It is styled as the site is**: the three layers of
 [css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves (lib's `spec/kit/motion.md`), and the `mono`

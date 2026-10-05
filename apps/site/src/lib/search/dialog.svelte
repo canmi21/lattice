@@ -15,8 +15,8 @@
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps its whole length: overlay and panel are portalled out
-	 * of reach (spec/todo/todo.md, "A portalled surface is out of Svelte's reach and not out of the
-	 * visual layer's"), and so does `shadow-lg`'s own variables (spec/todo/todo.md, "A shadow is one
+	 * of reach (spec/todo/css.md, "A portalled surface is out of Svelte's reach and not out of the
+	 * visual layer's"), and so does `shadow-lg`'s own variables (spec/todo/css.md, "A shadow is one
 	 * utility, two declarations and four variables the visual layer cannot restate").
 	 */
 	const styles = stylex.create({

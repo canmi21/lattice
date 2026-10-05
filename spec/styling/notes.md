@@ -49,8 +49,7 @@ through one document rather than as a page being replaced.
 The reserved space is **a share of the viewport rather than a fixed length**, because what is
 being reserved is a share of what the reader can see. A constant that reads as a tenth of a
 laptop window is a fifteenth of a tall monitor and a third of a phone held sideways. The default
-answer is the `jump-target` utility in
-[utilities.css](../../apps/site/src/styles/utilities.css).
+answer is the `jump-target` utility in [prose.css](../../libs/prose/src/prose.css).
 
 **The offset belongs to the target, as `scroll-margin-top`.** A native hash jump, a scripted
 `scrollIntoView` and anything else that moves to the same element then land in the same place

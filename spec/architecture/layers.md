@@ -19,7 +19,7 @@ repositories cite it by name rather than keep a copy.
   and the alias layer, storage and databases, the scheduler, the ledger, capture, probing,
   telemetry, and `apt`, the Linux machine's own capabilities offered as a service.
 - **services** is what runs on the platform: the site and its API, the editor and `local`, the
-  status page, and the apexes' placeholder pages when they come. This repository is that layer.
+  status page, and the service domains' pages, `landing`. This repository is that layer.
 
 The status page is a service and not the platform's, though it shows the platform: it is a page
 built from the site's own libraries, and the probe and the schema it reads stay in the platform.
@@ -54,12 +54,12 @@ holds that rule now.
 
 ## Who owns what
 
-| Repository           | apps                                                                                                      | libs                                                             |
-| -------------------- | --------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `canmi21/lib`        | --                                                                                                        | me and canmi, ui, kit, web, response, whereabouts, axum-governor |
-| `monoflake/infra`    | host, keeper, panel, meter, caddy, tunnel, resolver                                                       | deploy, urls                                                     |
-| `monoflake/platform` | gateway, quota, cdn, aka, hook, geo, objects, postgres, ledger, cron, apt, shot, probe, telemetry, gemini | sdk, probe, ledger                                               |
-| `canmi21/web`        | site and its API, cms, local, status                                                                      | prose, compile, collection, messages, social, hints, fonts       |
+| Repository           | apps                                                                                                      | libs                                                               |
+| -------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `canmi21/lib`        | --                                                                                                        | me and canmi, ui, kit, web, response, whereabouts, axum-governor   |
+| `monoflake/infra`    | host, keeper, panel, meter, caddy, tunnel, resolver                                                       | deploy, urls                                                       |
+| `monoflake/platform` | gateway, quota, cdn, aka, hook, geo, objects, postgres, ledger, cron, apt, shot, probe, telemetry, gemini | sdk, probe, ledger                                                 |
+| `canmi21/web`        | site and its API, cms, local, status, landing                                                             | prose, compile, collection, messages, social, hints, fonts, robots |
 
 `geocode` took `geo`'s address lookup in beside the coordinate one and is published as
 `whereabouts`: one crate answering where something is, each lookup behind a feature, the data
@@ -71,8 +71,9 @@ a library's, and so does the credit GeoLite2's license asks an answer to carry.
 What the services read of the platform is published, since they are another repository, and cut
 the way the library is: where installing one changes what it brings. **The sdk is one package**:
 the addresses at its root and every small part behind a subpath of its own --
-`@monoflake/sdk/artifacts`, `/cache`, `/imgsrc`, `/limits`, `/robots`, `/security`, `/store`,
-`/symlink`. Each is a client of a platform service or one of its policies, and none brings more
+`@monoflake/sdk/artifacts` (with `/artifacts/types` and `/artifacts/anchors`), `/cache`, `/imgsrc`,
+`/limits`, `/store`, `/symlink`. What every host says in its robots.txt and security.txt is the
+library's, `@canmi/me/robots`. Each is a client of a platform service or one of its policies, and none brings more
 than valibot or `@canmi/response`, so one name says them all. **`@monoflake/probe` is the status
 database's schema**, the probe's records, alone because it brings drizzle. `ledger` is Rust, and
 read by nothing outside the platform. Infra publishes `@monoflake/urls` alone.

@@ -210,7 +210,7 @@ on one side turns the other side's tests red.
 
 ## The metadata row sheds a control on a phone rather than wrapping raggedly
 
-The row under the title carries a date, a character count, a read count, the summary disclosure
+The row under the title carries a date, a word count, a read count, the summary disclosure
 and the language switcher. On a laptop that is one line. On a phone's 354px column it was two,
 and which item fell to the second line depended on how long the words came out in that language,
 which is the shape a row takes just before it stops looking designed.
@@ -273,7 +273,7 @@ goes from 8px to 6px below `sm`. Measured on a 390pt iPhone, where the column is
 
 All nine views are one line on both, which is the shape this row now has everywhere rather than
 one it reaches in some languages. Spanish and the original view are the ones with nothing to
-spare: a character count that grows a sixth digit takes about eleven pixels and would wrap them
+spare: a word count that grows a sixth digit takes about eleven pixels and would wrap them
 again on the narrow phone. The next pixels available are the gap at 4px, and after that there is
 nothing left that is not information.
 

@@ -137,11 +137,11 @@ spelling writes four; no utility translates a `transform` declaration, because T
 condition the original did not have. [migration.md](migration.md) names the artefact to inspect for
 each, which is what makes the rule followable.
 
-**A vocabulary class may silently outrank your vocabulary key.** Named recipes written before there
-was a layer to write them in still sit unlayered in `utilities.css`, and an unlayered rule outranks
-every layered one, so an element carrying one of those names can lose the same property out of
-StyleX with nothing reporting it -- [layers.md](layers.md), "There is a fourth participant, and it
-sits above the visual layer".
+**A vocabulary class and a vocabulary key can both set one property.** The named recipes written
+before there was a layer to write them in now sit in Tailwind's `components` layer -- in
+`libs/prose` and `@canmi/kit/tokens` -- below every StyleX layer, so the key wins; while they sat
+unlayered in `utilities.css` the class won, with nothing reporting it -- [layers.md](layers.md),
+"There is a fourth participant, and it sits above the visual layer", records how that was.
 
 ## A property the enumeration does not name is written into it in the same change
 

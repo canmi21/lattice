@@ -76,10 +76,10 @@ is marked `Original`, because `mw` names authorship rather than a language. Cons
 original Chinese view and the Simplified Chinese translation may share a displayed language
 name while remaining visibly distinct rows.
 
-Selection compares internal codes. Equal codes close the menu; different codes write the
-preference cookie and reload the document. Comparing public language tags would make a
-same-language translation unreachable, while client routing would leave the worker's resolved
-document language behind the content being shown. The query URLs remain crawler addresses and
+Selection compares internal codes. Equal codes close the menu; different codes call
+`chooseLocale`, which writes the preference cookie and re-runs the page's load, the document's
+language following page data with the article. Comparing public language tags would make a
+same-language translation unreachable. The query URLs remain crawler addresses and
 the no-JavaScript fallback, not the interactive switching transport.
 
 The trigger exposes its expanded state, the selected row is announced, and the menu supports
@@ -146,7 +146,8 @@ ES2022, type-checks, and survives the production build -- and is `undefined` at 
 the dev server's transform, which turns every article page into a 500 that no check catches
 because the tests and the build both pass. It was tried; the namespace is not a preference.
 
-The namespace is written one way: `import * as m from '$lib/paraglide/messages'`. The generated
+The namespace is written one way: `import * as m from '@canmi/messages'`, the workspace package
+the catalog compiles into. The generated
 module also re-exports itself as a named `m`, put there so an editor can auto-import it, and
 `import { m }` names the same object -- five files were written that way once and read the same.
 One spelling, because a reader grepping for how messages are imported should find one answer.

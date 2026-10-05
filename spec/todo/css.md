@@ -36,8 +36,8 @@ applications depend on rather than the inside of one component.
 
 `--rail-width`, `--rail-hold`, `--rail-left-max`, `--rail-icon-overhang`, `--pill-height`,
 `--pill-radius`, `--pill-overhang`: a length is declared on an ancestor and the elements below it
-compute from it. Roughly a third of `utilities.css` is this, and the newsletter's pill is the same
-shape at component scale.
+compute from it. Roughly a third of `utilities.css` was this before it dissolved -- the rail's lengths
+are `libs/prose/src/rail.css` now -- and the newsletter's pill is the same shape at component scale.
 
 It works, it is readable, and it is the pattern the visual layer is least able to hold: StyleX's
 model is that everything on an element comes from a class on that element. The question this file
@@ -91,7 +91,7 @@ would have the outer one's hover reveal the inner one's control.
 The second half of that error message named a blocker that is gone, and saying so here is a
 correction: `unstable_moduleResolution` **is** set in the vite plugin -- see
 [architecture/css/layers.md](../architecture/css/layers.md), "The module resolution is stated rather than defaulted,
-because it is what makes `$lib` reachable" -- and `lib/vocabulary.stylex.ts` is already the
+because it is what makes `#lib` reachable" -- and `@canmi/kit/tokens`'s `vocabulary.stylex.ts` is already the
 `.stylex.ts` home a marker would live in. Neither is a cost this decision still has to pay, and
 the entry priced both.
 
@@ -1180,6 +1180,10 @@ file beside it, and nothing will say they forgot any of the four.
 
 ## The three-component threshold is a memory, and nothing counts the components
 
+**Since answered: `check-css-extraction` counts the components behind every name** -- see
+[architecture/css/procedure.md](../architecture/css/procedure.md). What follows is the finding as it
+was, kept for why the gate exists.
+
 [architecture/css/extraction.md](../architecture/css/extraction.md) admits a value to the vocabulary at
 three components, and a declaration group on the same bar plus one more. Nothing counts them. Every
 admission and every refusal so far is a number somebody held in their head at the moment they wrote
@@ -1199,6 +1203,10 @@ that has to be right on the days nobody is thinking about it.
 
 ## The enumeration is normative and the code has drifted from it
 
+**Since answered: `check-css-enumeration` holds every StyleX declaration to the layer the
+enumeration gives its property**, read from `apps/site/scripts/css-owners.ts`. What follows is the
+finding as it was.
+
 [architecture/css/layers.md](../architecture/css/layers.md), "The enumeration is the rule, and the test
 is only how the enumeration grows", makes the property list the thing that decides, on the argument
 that a lookup can be checked by somebody who was not in the argument. The list is prose inside
@@ -1216,6 +1224,9 @@ why `will-change` belongs to no ramp, and the pair of mirror-image errors that p
 line all sit beside entries a machine would rather have alone.
 
 ## The `// unnamed:` ledger has no entries and no counter
+
+**Since answered in part: `check-css-ramp` counts the ramp values written as a literal**; whether
+the marks themselves are kept is still open. What follows is the finding as it was.
 
 [architecture/css/authoring.md](../architecture/css/authoring.md), "An unnamed ramp value is marked, so
 it can be counted", asks for a mark beside every ramp property written with a literal and a gate

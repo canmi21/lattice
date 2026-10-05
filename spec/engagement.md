@@ -10,7 +10,7 @@ number about the site -- how many have subscribed, how many have liked, how many
 article -- is the same for every reader, so a shared cache may hold it and the server may render
 it. A fact about whoever is asking is never either: a page cached for one reader would tell the
 next one they had clicked something they had not. That is the line `/stats` and `/like` are split
-along, and the one `GET /read` and `POST /read` are split along below.
+along, and the one a read's `GET` and `POST` are split along below.
 
 ## The count is asked for and recorded separately
 
@@ -21,10 +21,10 @@ could not be rendered on the server and arrived after hydration, into a gap held
 
 So the question and the visit are two methods on one resource:
 
-|                   | what it is              | who does it                                              | cache                          |
-| ----------------- | ----------------------- | -------------------------------------------------------- | ------------------------------ |
-| `GET /read?slug=` | how many have read this | the load, on the server and on a client navigation alike | `PUBLISHED`, refusals included |
-| `POST /read`      | one more has            | the browser, once it has hydrated                        | `no-store`                     |
+|                              | what it is              | who does it                                              | cache                          |
+| ---------------------------- | ----------------------- | -------------------------------------------------------- | ------------------------------ |
+| `GET articles/{slug}/reads`  | how many have read this | the load, on the server and on a client navigation alike | `PUBLISHED`, refusals included |
+| `POST articles/{slug}/reads` | one more has            | the browser, once it has hydrated                        | `no-store`                     |
 
 One name and two methods rather than two names, because they are the same fact approached twice.
 They share an answer shape for the same reason, the `POST`'s figure differing only in that it
@@ -296,8 +296,9 @@ An article's read count follows its slug -- the site's own article path, such as
 `development/rust-cargo-cranelift-tuning` -- and not any one of its nine language views. The
 same article read in Japanese and in the original is the same article being read.
 
-`POST /read` takes the slug in the body and answers with the count it now has. The slug is not
-a path parameter because an article path contains a slash. The count is incremented and read in
+The `POST` names the article in its address, `articles/{slug}/reads`, and answers with the count
+it now has; the address is read into `slug` before the handler is asked -- see
+[architecture/site-api.md](architecture/site-api.md). The count is incremented and read in
 one `INSERT ... ON CONFLICT DO UPDATE ... RETURNING` statement, so concurrent readers cannot be
 handed the same number and an article's first read is the row's creation rather than a case of
 its own.
@@ -317,11 +318,10 @@ it. See platform's `spec/architecture/artifacts.md`.
 A newly published article is still briefly unknown here, for a different and smaller reason: the
 root is cached, so the window is the cache rather than a deploy. It heals itself.
 
-**Asking is not reading, and it is a different route.** `POST /read-counts` answers a count per
-slug for a list of them and records nothing. A list is a body, so it is a batch entry rather than
-a parameter repeated in a URL, and it is `read-counts` rather than `reads` because `/read` sits
-beside it and has an effect -- two routes a letter apart where only one writes is a name waiting
-to be called by mistake.
+**Asking is not reading, and it is not a route of its own.** The `reads` question of `POST /batch`
+answers a count per slug for a list of them and records nothing. A list is a body, so it is a
+batch entry rather than a parameter repeated in a URL; a route of its own beside the read would
+have been a second name, a letter apart, for something that does not write.
 
 It is not cached, for the reason everything else here is not: a counter is a statement about right
 now. That is also why the count does not travel with an article's metadata, which is cached for
@@ -329,8 +329,8 @@ five minutes per locale -- nine snapshots of one number that could disagree. A s
 article is dropped from the answer rather than refusing it, so one bad entry in a listing does not
 cost the rest.
 
-Deduplication is one Cloudflare rate limit of one count per IP per article per minute, in the
-route itself, with the wider per-IP engagement allowance above it to bound somebody walking every
+Deduplication is one count per IP per article per minute, asked of `quota` as a bucket of one in
+the route itself -- one that cannot answer counts the read -- with the wider per-IP engagement allowance above it to bound somebody walking every
 slug in turn. **Being
 deduplicated is answered with the current count, not with `429`.** The page still needs the number
 to display, and a second look inside the minute is the same read rather than a failure.
@@ -453,7 +453,7 @@ server. It is two routes now:
 | Route    | Answers                        | Lifetime              |
 | -------- | ------------------------------ | --------------------- |
 | `/stats` | subscriber count, like count   | `public, max-age=300` |
-| `/liked` | whether this address has liked | `private, no-cache`   |
+| `/like`  | whether this address has liked | `private, no-cache`   |
 
 **What forced the split is not tidiness.** A page cached for one reader would have told the next
 one they had clicked something they had not, so as long as the two traveled together the counts
@@ -498,9 +498,10 @@ refresh triggers update them. Unused in-memory data and cross-reload persistence
 to three days as a fallback while a stale query refreshes in the background.
 
 The read count is a query rather than a mutation despite having an effect, because what the page
-wants back is the number and the number is what has to survive a reload. That makes the count and
-the request that produces it the same thing, so its refetch triggers are off: a read is somebody
-opening the article, not somebody returning to the tab.
+wants back is the number and the number is what has to survive a reload. The first ask records the visit
+and every ask after it only looks up, so the count may refresh on a timer: the interval is its one
+trigger, and focus and reconnect stay off, since a read is somebody opening the article, not
+somebody returning to the tab.
 
 Mutations and errors are never persisted. Email addresses and cancellation tokens never enter the
 query cache. The dedicated `localStorage["email"]` capability record is independent application

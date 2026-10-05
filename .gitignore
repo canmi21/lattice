@@ -76,7 +76,7 @@ coverage/
 
 # The real age key lives in ~/.config/sops/age; these patterns catch a stray copy before it
 # is committed in the clear. secrets.json is deliberately NOT ignored -- it is committed
-# encrypted. See spec/toolchain.md, "Secrets".
+# encrypted. See the workspace's spec/toolchain.md, "Secrets".
 *.age
 keys.txt
 age-key*.txt

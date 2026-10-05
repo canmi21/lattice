@@ -1,8 +1,8 @@
 # The repository
 
 The author's site and what is built around it: `site`, canmi.net and its API, a Worker Cloudflare
-builds; `status`, the status page; `cms`, the editor; and `local`, the resident service that
-compiles, publishes and keeps the corpus. `libs/` holds what they share -- the article renderer,
+builds; `status`, the status page; `landing`, the service domains' pages; `cms`, the editor; and
+`local`, the resident service that compiles, publishes and keeps the corpus. `libs/` holds what they share -- the article renderer,
 the compiler, the collection, the messages, the fonts -- and `contents/` and `data/` the corpus and
 its records. Why the system is cut into this layer, the platform's and infra's, is
 [architecture/layers.md](architecture/layers.md).
@@ -10,8 +10,8 @@ its records. Why the system is cut into this layer, the platform's and infra's, 
 ## `apps/` is deployed, `libs/` is imported
 
 Every app has a directory under `apps/`, every library one under `libs/`. Nothing here runs on the
-node any more: the site is a Worker, the status page a SvelteKit app Vercel builds and serves, and
-the editor and `local` run on this machine, so this repository builds no image and has no deploy workflow of its own.
+node any more: the site is a Worker, the status page a SvelteKit app Vercel builds and serves, the
+service domains' pages one Netlify builds, and the editor and `local` run on this machine, so this repository builds no image and has no deploy workflow of its own.
 
 ## The other repositories are named, never linked
 

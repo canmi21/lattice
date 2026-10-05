@@ -17,10 +17,12 @@ data/
   record/   text a person curates, all of it committed
   source/   the bytes nothing derives: originals, fonts, a geocoding database, the marks
   build/    generated records; see below for which of them git keeps
+  collection/  the authored database `local` writes, in no version control
 ```
 
-Four directories, and each answers a different question: is it compiled, did a person write it,
-did anything derive it, did a tool make it.
+Five directories, and each answers a different question: is it compiled, did a person write it,
+did anything derive it, did a tool make it, is it the collection `local` keeps -- see
+[local.md](local.md).
 
 There was a third tree here, `draft/`, holding a second root that named the unpublished articles
 so a development site could open one. The CMS renders a draft from its draft row now, so nothing
@@ -65,14 +67,14 @@ until a clone cannot build. A directory cannot be forgotten the way a line can.
 | `licenses.yaml` | the license a person worked out for a package that declared none                                                                                                              |
 | `fonts.json`    | which families are split, and how                                                                                                                                             |
 | `diagram.json`  | what each diagram says, bought one model call at a time and keyed by block hash                                                                                               |
+| `symlinks.json` | which fixed name each scope's files answer to, by content id; nothing derives a name a person chose                                                                           |
 | `indexnow.json` | what has already been announced; losing it cannot be recomputed, only re-sent, which is the one thing that protocol asks us not to do -- see [../indexing.md](../indexing.md) |
 
 ### Generated build inputs live under `data/build/`
 
-A record a person writes and a record a tool regenerates are both text worth committing, and
-they still do not belong side by side. `data/build/segments.json` is the derived article
-segment layout the site assembles from; nobody edits it, and a diff of it is a consequence
-rather than a decision.
+A record a person writes and a record a tool regenerates do not belong side by side.
+`data/build/segments.json` is the derived article segment layout the publish step assembles from;
+nobody edits it, and git does not keep it -- see below.
 
 The split is there to keep the top of `data/` readable. Everything directly under it is
 something a person curates and may be asked about; `data/build/` is output, and it may grow a
@@ -165,7 +167,7 @@ rest of `data/`. A directory added later is excluded because it was never in sco
 write, none to forget.
 
 **The one mistake that shape allows is naming the parent instead of a leaf**, which would publish
-the draft tree sitting beside them. That is the single case a source path cannot fail closed on by
+whatever else sits beside the two mirrors. That is the single case a source path cannot fail closed on by
 itself, so it is checked: `sync` exits before any transfer if a source it was handed is the
 directory holding the mirrors rather than a mirror.
 
@@ -309,10 +311,9 @@ Every published image asset -- an original and each variant derived from it -- i
 the hash of its own bytes, BLAKE3 truncated to 128 bits. The identity of a whole asset is its
 original's hash; a variant is a separate object with a separate one.
 
-This is what makes long caching safe without a promise to keep. CJK font chunks use the same
-property through `cn-font-split`'s own 128-bit content hash, while the small Latin subsets
-deliberately keep readable Google-Fonts-style names and therefore still carry the promise that
-bytes at an existing name never change. A content-addressed key cannot denote different bytes
+This is what makes long caching safe without a promise to keep. Font chunks use the same
+property, CJK and Latin alike: every chunk is an object named by its content -- see
+[fonts.md](fonts.md). A content-addressed key cannot denote different bytes
 than it did before, because changing the bytes changes the key. Re-encoding at a new quality
 produces a new object rather than a redefinition of an old one.
 
@@ -394,7 +395,7 @@ of BLAKE3 over the bytes. It does not survive one `list()`.
 So there is no listing anywhere a request can reach. `findOne` was the last one and went with the
 favicon lookup that needed it; a new one is a decision to make here first, not a convenience to
 reach for. The CDN has no route that answers for whatever happens to be in the bucket either --
-see platform's `spec/architecture/delivery.md`, "The CDN is four route groups and a refusal".
+see platform's `spec/architecture/delivery.md`, "The CDN is three route groups and a refusal".
 
 This is the reason a sweep is careful rather than clever: what keeps an object alive is being
 named, and nothing else can be asked what is there.
@@ -582,7 +583,8 @@ and `/licenses/{type}/{name}@{version}.txt`. They are stable legal artefacts rat
 package pages, so reorganising the browser surface is not a reason to move them.
 
 The page is locale-negotiated like every other page, while the three plain-text routes beside
-it are prerendered. A license is not translated, and those routes vary on nothing.
+it vary on nothing, since a license is not translated: `/licenses.txt` is prerendered, and the
+other two answer per request, since prerendering them would fetch the CDN during the build.
 
 A package resolved for another platform is not in the record at all. A dependency tree carries
 an optional binary for every operating system and only one is ever installed; reporting the
@@ -619,8 +621,8 @@ relaid twice; that this repository publishes to buckets at all has not changed o
 **Writing is `local`'s and the sync task's** -- `local` because it is a machine-wide singleton
 on its pinned port, the sync because a mirror with two sources is not a mirror. The port is
 what holds the first of those: a second copy collides on `LOCAL_PORT` rather than quietly writing
-`data/` alongside the first. That is the same protection the overlay rule above was written
-for, obtained from the operating system instead of from a directory layout.
+`data/` alongside the first -- protection obtained from the operating system rather than from a
+directory layout.
 
 ## What happens to an asset after it is stored
 

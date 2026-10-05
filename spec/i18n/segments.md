@@ -16,7 +16,7 @@ ninth is the article.
 
 ## A draft is written, not owed
 
-`draft: true` in the frontmatter takes an article out of every sweep that spends money: `cms
+`draft: true` in the frontmatter takes an article out of every sweep that spends money: `local
 i18n`, `local tn`, `local summary` and `local diagram` pass over it, and `local derived` stops counting it
 as work outstanding. It is not a visibility rule borrowed from the site build, it is an
 arithmetic one. A draft is going to be edited again, every edit rewrites the canonical form of
@@ -274,7 +274,7 @@ cheap true measure rather than the exact one -- real shaping knows `i` from `m`,
 the CMS has no other reason to load.
 
 The layout supplies the numbers, and it supplies them from another language. The rail's width is
-declared as `--rail-width` in [utilities.css](../../apps/site/src/styles/utilities.css) and argued in
+declared as `--rail-width` in [rail.css](../../libs/prose/src/rail.css) and argued in
 [styling/rail.md](../styling/rail.md) under "The rail's box is one declared width"; what this file's
 rule reads are `ONE_LINE` and `CLAMP` in [width.rs](../../apps/local/src/i18n/width.rs). A label is given
 the rail's whole 136px at 13px type, which holds ten Han characters or nineteen Latin ones, so one
@@ -319,7 +319,7 @@ or lag behind the existing motion path.
 Rust is the only implementation of those block boundaries and hashes. `local segments` writes
 the ordered translatable segment ids and their source byte ranges to
 `data/build/segments.json`; `local i18n` refreshes the same record before making any paid
-request. The publish step assembles the views from that committed record and never splits or
+request. The publish step assembles the views from that record, regenerated and not committed, and never splits or
 hashes an article itself, which makes a stale record fail the CMS regression test instead of
 silently turning every translation lookup into a miss.
 

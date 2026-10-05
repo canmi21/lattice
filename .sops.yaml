@@ -1,5 +1,5 @@
 # The recipient is an age *public* key, which is why committing it is the point. JSON rather
-# than dotenv is required and not cosmetic. See spec/toolchain.md, "Secrets".
+# than dotenv is required and not cosmetic. See the workspace's spec/toolchain.md, "Secrets".
 creation_rules:
   - path_regex: secrets\.json$
     age: age1xzcpcdwvddywenmcdr6phshd0mjvjs9k78nk20s66x0g4d8079asntsfce

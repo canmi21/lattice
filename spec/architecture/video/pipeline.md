@@ -129,11 +129,12 @@ a vertical video snaps to the wrong one. Scaling preserves the aspect ratio; not
 tier's exact frame. **Upscaling is never done**, which is [media.md](../media.md)'s rule for pictures
 and holds for the same reason.
 
-**Why 1080 and not 720.** The column an article renders a picture in is `48rem`, which is 768 CSS
-pixels, and `picture.svelte` already names that number in its `sizes`. At the two-times pixel ratio
-of a retina desktop or an iPad that is **1536 physical pixels**, and on a phone -- 342 CSS, which is
-390 less two 1.5rem gutters -- three times is 1026. So 720p at 1280 wide covers the phone with room
-and falls a fifth short of the desktop, where it would be enlarged; 1080p at 1920 covers both with
+**Why 1080 and not 720.** The column an article renders a picture in is `45rem`, which is 720 CSS
+pixels -- `--rail-column` in `libs/prose/src/rail.css` -- and `picture.svelte` names that number in
+its `sizes`. At the two-times pixel ratio of a retina desktop or an iPad that is **1440 physical
+pixels**, and on a phone -- 342 CSS, which is 390 less two 1.5rem gutters -- three times is 1026. So
+720p at 1280 wide covers the phone with room and falls about a ninth short of the desktop, where it
+would be enlarged; 1080p at 1920 covers both with
 margin. 4K is two and a half times what the column can show and exists for the full-screen view
 only.
 

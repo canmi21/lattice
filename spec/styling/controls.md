@@ -12,8 +12,9 @@ panel and the thing that summoned it share an edge rather than the panel hanging
 control that is itself against the frame.
 
 The condition is the rail's again, and it is read off whether the rail is rendered -- the computed
-`display` of `.article-rail` -- rather than from a width. That keeps the breakpoint the one number
-in `utilities.css`, which a script asking `matchMedia` for `68rem` would have quietly copied.
+`display` of `.article-rail` -- rather than from a width. That keeps the breakpoint in the stylesheets
+that own it -- `libs/prose/src/rail.css` -- which a script asking `matchMedia` for `68rem` would have
+quietly copied.
 
 **This one is decided in script, and the rule about CSS choosing does not apply to it.** A panel is
 not in the document until it is opened, so there is no server render for the choice to survive and
@@ -78,7 +79,7 @@ would be permanent clutter for the readers who never do either.
 Which one is showing is decided from two stores, and each answers a different question about the
 same click. `support.preferred` in the reader's state record -- see [engagement.md](../engagement.md)
 -- says this reader was sent to Google at some point, which is what moves the slot on.
-`sessionStorage["support.preferred"]` says it was this tab that did it, which is what stops the
+`support.preferred` in the tab record, `sessionStorage["state"]`, says it was this tab that did it, which is what stops the
 slot moving under them: a reader who clicks and then reloads, or navigates away and comes back,
 would otherwise find a different control where they just pressed one, and a page that changes its
 mind about what it is asking for reads as a page that lost track. Within the tab that did it, the

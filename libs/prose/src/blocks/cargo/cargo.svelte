@@ -67,7 +67,7 @@
 		 * One of the three registry links in the footer.
 		 *
 		 * One property transitions, so the four lists are single-item and `transition-behavior` is
-		 * left to the initial value the shorthand also set. See spec/todo/todo.md, "A `transition`
+		 * left to the initial value the shorthand also set. See spec/todo/css.md, "A `transition`
 		 * shorthand sets five lists and the migrated form writes three".
 		 */
 		link: {

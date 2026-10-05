@@ -168,7 +168,7 @@ at a blank tab again either way, and nothing in it survives to be continuous wit
 The reading ring is the worked example. Its entry transition is armed from the markup the server
 wrote, so the browser has a starting frame to animate from, and it is taken off once the settle
 has had its 260 milliseconds -- every move after that one belongs to a hand. See
-`article/reading-progress.svelte`.
+`libs/prose/src/reading-progress.svelte`.
 
 ## A class armed after mount is itself the change it was meant to exclude
 

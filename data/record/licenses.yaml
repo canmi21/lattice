@@ -1,6 +1,7 @@
-# Licences worked out by reading a package, because the package never declared one. An entry
-# only ever fills a gap, and `cms licenses` reports one whose package has since declared its
-# own, so the list shrinks by itself. See spec/architecture/data.md, "A dependency's licence".
+# Licenses worked out by reading a package, because the package never declared one. An entry
+# only ever fills a gap, and `local licenses` reports one whose package has since declared its
+# own, so the list shrinks by itself. See spec/architecture/data.md, "A dependency's license is
+# an asset like any other".
 
 version: 1
 

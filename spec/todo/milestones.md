@@ -165,12 +165,12 @@ never its test.
 `media.image`, 16 screenshots, 8 icons, 6 photographs, 3 frames, 3 clips -- and the three
 `document` rows describe nothing that exists.
 
-**Two curated records are being written outside git.** The commit that moved the records into one
-directory changed the doc comments in `media.rs` and `tags.rs` and not the code: `path_for` still
-returns `data/media.yaml` and `data/tags.yaml`, which `.gitignore` excludes. So `data/record/*`
-holds 46 records with 42 paid descriptions, last written on the 14th, while the files the commands
-actually read hold 38 records of newer categories and tags, no descriptions at all, and no history.
-Running `local alt` against that file would buy all 42 descriptions a second time.
+**Two curated records were being written outside git**, until A0 closed it. The commit that moved
+the records into one directory changed the doc comments in `media.rs` and `tags.rs` and not the
+code: `path_for` returned `data/media.yaml` and `data/tags.yaml`, which `.gitignore` excludes. So `data/record/*`
+held 46 records with 42 paid descriptions while the files the commands actually read held 38
+records of newer categories and tags, no descriptions at all, and no history; running `local alt`
+against that file would have bought all 42 descriptions a second time.
 
 **Re-keying `metadata.json` is deliberately not a milestone.** The site never reads its top-level
 key -- `readAssets` walks the map and indexes by the `resource` field inside each record -- and the
@@ -337,8 +337,9 @@ paid descriptions. Losing them is not a rebuild, it is a re-purchase or a perman
 identity. So the backup exists before the corpus stops being committed, not after. A0 is the
 evidence that this is not hypothetical -- five days of curation are already outside git today.
 
-**C5 is the end of this group and the measure of whether the rest worked.** `data/` is tracked in
-36 files today, and each one is tracked for a reason that some milestone above removes:
+**C5 is the end of this group and the measure of whether the rest worked.** `data/` was tracked in
+30 files, measured on 2026-10-05, and each one is tracked for a reason that some milestone above
+removes:
 
 | what                                                                             | files | what has to happen first                                       |
 | -------------------------------------------------------------------------------- | ----- | -------------------------------------------------------------- |
@@ -346,8 +347,8 @@ evidence that this is not hypothetical -- five days of curation are already outs
 | `record/diagram.json`, `fonts.json`, `indexnow.json`, `licenses.yaml`, `tn.yaml` | 5     | each is decided: a row in the collection, or a file that stays |
 | `build/*.json`                                                                   | 4     | derived, but fetched over a network; they become derived rows  |
 | `record/symlinks.json`                                                           | 1     | done for the bytes: they are objects, the record names them    |
-| `source/favicon/*`                                                               | 14    | bytes, refetchable, and cheaper to back up than to refetch     |
-| `bucket/*/.gitkeep`                                                              | 3     | the skeleton, which goes when the tree it marks does           |
+| `source/favicon/*`                                                               | 15    | bytes, refetchable, and cheaper to back up than to refetch     |
+| `bucket/*/.gitkeep`                                                              | 2     | the skeleton, which goes when the tree it marks does           |
 
 The site's own marks were the row that decided the order: losing them is not a rebuild. They left
 git before C0 by the author's decision, as objects named by a record -- the bucket and its mirror

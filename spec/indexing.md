@@ -39,7 +39,7 @@ edit has to move both, which means only one of them may be written down.
 `keyLocation` must be **on the same host** as the URLs being submitted. The CDN is a different
 domain entirely, so a key file there proves nothing about this site, and a redirect from the
 site to it is undefined in the protocol rather than allowed -- a bet whose losing outcome is,
-again, a silent `403`. The site already serves `robots.txt`, `llms.txt` and `licenses.txt` from
+again, a silent `403`. The site already serves `robots.txt` and `licenses.txt` from
 prerendered routes; this is one more of those and costs the same.
 
 ## Only what changed is submitted
@@ -100,8 +100,9 @@ Paths, not URLs: the record describes one site, and storing the origin on every 
 one string a few hundred times. It is machine-written JSON in `data/`, not hand-edited YAML,
 because nothing about it is a judgment a person makes.
 
-**The license directories are not announced.** They are in the sitemap so they can be crawled,
-and that is all they need: derived pages nobody is waiting on, whose only timestamp is the
+**The license directories are not announced.** They are not in the sitemap either -- see
+[architecture/data.md](architecture/data.md), "The sitemap lists no license route" -- and are
+reached by their links: derived pages nobody is waiting on, whose only timestamp is the
 build's. Announcing them would mean announcing thirty URLs on every deploy.
 
 `--seed` records what is live without announcing it, for when the engines already hold these

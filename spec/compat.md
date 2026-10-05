@@ -43,7 +43,7 @@ Stated rather than left to Vite's default, which is a baseline of somebody else'
 move under a major -- it was `chrome111, edge111, firefox114, safari16.4` when this was written,
 which is above the canary for Firefox and would have had precisely the effect described above.
 
-The site and the status page declare one, the same, through `@canmi/web/compat`, which holds the
+The site, the status page and the service domains' pages declare one, the same, through `@canmi/web/compat`, which holds the
 canary, the lazy import and the reading of `browserslist` into esbuild's target, so the two cannot
 drift. The site's API runs on workerd inside the site's Worker, and the CMS is opened in whatever browser
 its author uses; neither meets an arbitrary browser.

@@ -102,9 +102,10 @@ of those are Tailwind's, all four sit below every StyleX layer, and `utilities` 
 four rather than the whole of them. The frame is the four.
 
 **This is not a new layer, and it buys no new position.** Those positions exist, they are already
-Tailwind's, and [utilities.css](../../../apps/site/src/styles/utilities.css) already writes into
-two of them -- `@layer base` for the focus backstop at the top of the file, `@layer components`
-for the focus utilities below it, each under a comment arguing the position it sits in. The code
+Tailwind's, and the shared stylesheets already write into two of them --
+`@canmi/kit/tokens/interaction.css` puts the focus backstop in `@layer base` and the focus
+utilities in `@layer components`, and `libs/prose`'s `prose.css` and `rail.css` are in
+`components` too, each under a comment arguing the position it sits in. The code
 has been doing this all along and only this file had stopped naming it, which is why the section
 above does not refuse this the way it refuses a fourth layer.
 
@@ -180,8 +181,8 @@ the markup, visual in TypeScript, the selector in the block. Layout and visual a
 an adjective cannot be looked up. Every property nobody had thought of needed a fresh ruling, and
 the rulings piled up here -- `cursor`, `pointer-events`, `user-select`, `visibility` and
 `transform`, five properties settled one at a time in a file that was supposed to have settled
-them all with one sentence. The rest of the arguing moved to [todo.md](../../todo/todo.md), which is now
-the largest file in `spec/` and is largely made of it.
+them all with one sentence. The rest of the arguing moved to the deferred list, whose CSS file,
+[todo/css.md](../../todo/css.md), is the largest in `spec/` and is largely made of it.
 
 The clearest evidence that the adjective does not decide is in the tree, where one property has
 already been ruled both ways by two people applying the same test in good faith. `white-space:
@@ -449,7 +450,7 @@ Measured in Chrome against a build and a dev server, both giving the same answer
 | StyleX against Tailwind        | StyleX        |
 
 The mechanism is cascade layers and the order they are declared in. Tailwind emits `theme`, `base`,
-`components` and `utilities`; StyleX appends `priority1`, `priority2` and `priority3` after them in
+`components` and `utilities`; StyleX appends `priority1` through `priority7` after them in
 the same stylesheet; Svelte's scoped rules are unlayered, and an unlayered rule outranks every
 layered one. The order in a `class` attribute decides nothing.
 
@@ -745,8 +746,8 @@ plugins: [
 	{
 		...stylex({
 			useCSSLayers: true,
-			aliases: { '$lib/*': ['/ROOT/src/lib/*'] },
-			unstable_moduleResolution: { type: 'commonJS', rootDir: SITE },
+			aliases: { '#lib/*': ['/ROOT/src/lib/*'] },
+			unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
 			lightningcssOptions: { minify: true },
 		}),
 		enforce: undefined,
@@ -834,19 +835,21 @@ this arrangement was arrived at.
 **Nothing tests this.** Getting it wrong fails the build, by name, with a line number. A loud
 failure needs no test; it needs the comment that is beside the line.
 
-### The module resolution is stated rather than defaulted, because it is what makes `$lib` reachable
+### The module resolution is stated rather than defaulted, because it is what makes `#lib` reachable
 
-StyleX resolves an import itself, at compile time, and understands neither SvelteKit's aliases nor
-a `rootDir` other than the working directory it happened to be started from. Left to the default it
-silently declines to resolve `$lib/vocabulary.stylex.ts` and every component importing it fails the
-build with `nonStaticValue`.
+StyleX resolves an import itself, at compile time, and understands neither the app's `#lib`
+import map nor a `rootDir` other than the working directory it happened to be started from. Left to
+the default it silently declines to resolve a `.stylex.ts` module -- the shared vocabulary, now
+`@canmi/kit/tokens`'s `vocabulary.stylex.ts` -- and every component importing it fails the build
+with `nonStaticValue`.
 
 The plugin call in [vite.config.ts](../../../apps/site/vite.config.ts) states both, in two options
-side by side: `unstable_moduleResolution: { type: 'commonJS', rootDir: SITE }` and
-`aliases: { '$lib/*': ['/ROOT/src/lib/*'] }`. This read as though `aliases` were a field of
+side by side: `unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT }` and
+`aliases: { '#lib/*': ['/ROOT/src/lib/*'] }`. This read as though `aliases` were a field of
 `unstable_moduleResolution`, which is a correction -- it is a sibling of it, a top-level option of
-the plugin. `/ROOT/` is StyleX's own marker for a path under `rootDir`, which is set to this app
-rather than the workspace. The other setting this option takes, and why it is not the one
+the plugin. `/ROOT/` is StyleX's own marker for a path under `rootDir`, which is the workspace root,
+because the visual layer is written in two trees -- this app and the packages under `libs/` --
+and StyleX hashes a class from its file's path relative to it. The other setting this option takes, and why it is not the one
 configured here, is under "The option that would have preserved the hash has never worked".
 
 ## The older names, which have not been renamed anywhere else
@@ -861,7 +864,7 @@ correcting them is work this file records rather than work it does.
 
 ## Every app compiles its own StyleX
 
-**StyleX runs in each app's own build -- the site, the status page, the editor -- and never once
+**StyleX runs in each app's own build -- the site, the status page, the service domains' pages, the editor -- and never once
 for the workspace.** StyleX gathers every rule an app's routes use into the one sheet it loads first;
 compiled per app, that sheet is one app's routes and no more. What the apps share lives in
 `@canmi/kit/tokens` as `defineConsts`, which a build inlines where it is read, so a library's names cost

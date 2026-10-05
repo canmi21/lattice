@@ -6,7 +6,8 @@ repository's `spec/web/referer.md`. What the site sends to others is a different
 [referrer.md](../referrer.md). Nothing reads the values yet; a report of where readers arrive from is
 one more line where they are taken.
 
-| App    | Takes                                                    |
-| ------ | -------------------------------------------------------- |
-| site   | `ref` on mount; `lang` on load, per locale/addressing.md |
-| status | `ref` on mount                                           |
+| App     | Takes                                                    |
+| ------- | -------------------------------------------------------- |
+| site    | `ref` on mount; `lang` on load, per locale/addressing.md |
+| status  | `ref` on mount                                           |
+| landing | `ref` on mount                                           |

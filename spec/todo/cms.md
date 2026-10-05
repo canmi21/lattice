@@ -21,8 +21,8 @@ it spends time rather than money, which makes an accidental second run cheaper, 
 **What deciding it would cost.** Moving it means an in-process application operation in Rust with
 a TypeScript compile behind it, which is the subprocess boundary
 [i18n/segments.md](../i18n/segments.md) already accepts in the other direction and cms.md has not
-ruled on in this one. The entry above, on where the compiler lives, is the same question arriving
-from the other side -- and answering either one first mostly decides the other. Neither is worth
+ruled on in this one. Where the compiler lives is the same question arriving from the other side
+-- and answering either one first mostly decides the other. Neither is worth
 taking while the publish path is still new enough that its shape may move.
 
 ## A clip is the one resource reference the compiler still resolves into bytes

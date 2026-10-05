@@ -116,7 +116,7 @@ over the ceiling still gets its own record: cutting mid-sentence would cut a mat
 which is worse than one record running long.
 
 The URL is `views[code].canonical` with the section's slug appended, taken as-is.
-`build/indexing.ts` already decides whether a view keeps its own `?lang=` address or collapses
+`libs/compile/src/indexing.ts` already decides whether a view keeps its own `?lang=` address or collapses
 onto the source's, and deciding it a second time here is how the two come to disagree.
 
 ### The fingerprint is over the record, not over its sources

@@ -45,7 +45,7 @@ route -- a `+server.ts` is in `src/` too, and would give up the Hono app, the ad
 the limits the API answers through. It was `libs/site-api` for a while, which put the site's API
 among code every app may take, and it is nobody's but the site's.
 
-**It is named `server`, and the SvelteKit app stays at the site's root.** The half with no page is
+**It is named `api`, and the SvelteKit app stays at the site's root.** The half with no page is
 the server's; the other half renders on the server as well -- its hooks, its SSR, the dispatch into
 this one -- so calling it `client/` would say something false about it, and moving it would have
 moved every path the site's tooling and its build configuration name for no gain but symmetry.

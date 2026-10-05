@@ -97,14 +97,18 @@ of it.
 
 ## The site's non-page routes are SvelteKit's, and every other worker's are hono's
 
-`apps/site/api` is hono, as the platform's Workers are. `apps/site` is not, and it serves eight `+server.ts` routes
-plus a handle that answers `<url>.md` before the router sees it:
+`apps/site/api` is hono, as the platform's Workers are. `apps/site` is not, and it serves thirteen `+server.ts`
+routes, measured on 2026-10-05, plus a handle that answers `<url>.md` before the router sees it:
 
 | Route                                                           | Answers                                     |
 | --------------------------------------------------------------- | ------------------------------------------- |
 | `/atom.xml`                                                     | the assembled feed                          |
 | `/sitemap.xml`                                                  | the assembled sitemap                       |
-| `/llms.txt`                                                     | the assembled index                         |
+| `/llms.txt`, `/llms-full.txt`                                   | the assembled index, and every agent view   |
+| `/sitemap.xsl`                                                  | the sitemap's stylesheet                    |
+| `/site.webmanifest`                                             | the install manifest                        |
+| `/favicon.ico`                                                  | the site's mark, followed for the browser   |
+| `/.well-known/security.txt`                                     | the security contact                        |
 | `/robots.txt`                                                   | a constant                                  |
 | `/{key}.txt`                                                    | the IndexNow key                            |
 | `/licenses.txt`, `/licenses/full.txt`, `/licenses/{...package}` | license text                                |
@@ -113,7 +117,7 @@ plus a handle that answers `<url>.md` before the router sees it:
 The intent is that a page stays SvelteKit's and everything else becomes one hono app mounted
 inside it, so that every non-HTML response this project serves is written the same way: one
 router, one `failure` helper, one place a cache header is decided. Today the site answers those
-questions in eight files and a handle, none of which share the helpers `apps/site/api`
+questions in thirteen files and a handle, none of which share the helpers `apps/site/api`
 already has.
 
 **What has to be decided before it can be done.** Where the hono app is mounted -- a catch-all
@@ -328,7 +332,8 @@ with it, and none of the platform's leaks into it.
 
 The platform's service domains have no page at their apex: `ixc.one` and `monoflake.*` answer
 nothing, `symlink.si`'s root redirects to the site, and `ill.li`'s root is the short links'
-redirect, so it has no page anywhere. What is decided, and is to be built here as this layer's:
+redirect, so it has no page anywhere. The shared app below is built and checked here; what is left
+is the records that send the hosts to it. What is decided, as this layer's:
 
 - **`ixc.one`, `symlink.si` and `il.lli.lil.ill.li` share one app, on Netlify.** `ill.li` was bought
   for the joke -- a capital I and a small l are one stroke in any proportional face, so the name

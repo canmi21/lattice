@@ -5,8 +5,8 @@
 LOCAL_PORT = "26521"
 
 # Credentials, decrypted by mise on entering the directory. The file is committed encrypted;
-# only the age private key opens it -- see spec/toolchain.md, "Secrets", for the key setup and
-# for why this is JSON rather than a dotenv.
+# only the age private key opens it -- see the workspace's spec/toolchain.md, "Secrets", for the
+# key setup and for why this is JSON rather than a dotenv.
 _.file = "secrets.json"
 
 # A local build was publishing source maps for a worker nobody deploys: the Sentry credential
@@ -16,7 +16,7 @@ SENTRY_SKIP_UPLOAD = "1"
 
 # oxfmt lives in package.json rather than [tools]: its svelte option resolves `svelte/compiler`
 # through node's module graph, which a mise-installed binary can never reach. This keeps what
-# pnpm carries invocable from the shell and from `jj fix`. See spec/toolchain.md.
+# pnpm carries invocable from the shell and from `jj fix`. See the workspace's spec/toolchain.md.
 _.path = ["{{config_root}}/node_modules/.bin"]
 
 # rclone is configured entirely through the environment, so there is no rclone.conf holding a

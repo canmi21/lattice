@@ -87,8 +87,8 @@ invisible if the control grew.
 **What it costs to have this answer is worth stating.** Two full captures at roughly seventy
 minutes each, one dev server restart between them with every route warmed, and a working copy moved
 to the old commit and back. Nothing about it is per-component and nothing about it is cheap enough
-to run on every edit, which is why the only permanent test this arrangement leaves behind is the
-one holding the layer order.
+to run on every edit, which is why the snapshot harness is not kept; what stays are the CSS gates
+in [procedure.md](procedure.md), the layer order first among them.
 
 ### Coverage is counted in components, not in URLs
 
@@ -237,5 +237,5 @@ count what it could not read and say the number rather than treat it as zero.
 **It proves sameness against today, not correctness.** Two errors that cancel at the width being
 measured read as clean.
 
-The harness that takes those snapshots is migration scaffolding and is not kept. The only permanent
-test this arrangement adds is the one holding the layer order.
+The harness that takes those snapshots is migration scaffolding and is not kept. The permanent tests
+are the CSS gates [procedure.md](procedure.md) lists, the layer order first among them.

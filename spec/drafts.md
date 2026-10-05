@@ -68,8 +68,10 @@ thing to be told about before deploying rather than after.
 
 ## The draft still exists everywhere a draft should
 
-It is committed. Being unpublished is a fact about the article, not a reason to keep it out of
-history, and a draft that lives only on one machine is one crash away from gone.
+A draft in `contents/`, `draft: true` in its frontmatter, is committed. Being unpublished is a
+fact about the article, not a reason to keep it out of history, and a draft that lives only on one
+machine is one crash away from gone. A draft row in the collection is not yet: the collection is in
+no version control -- see [architecture/local.md](architecture/local.md).
 
 Its slug is in no compiled list until it is published, because nothing compiles it. The read
 counter therefore starts at publication rather than at preview -- which is the honest reading of

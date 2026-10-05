@@ -85,8 +85,9 @@ the workspace's `spec/code.md` names that shape as a defect waiting for the
 first input that separates them.
 
 The resolved code reaches the client as page data and is carried from there. Changing language
-still writes the cookie and reloads, which is the client choosing an input and the server
-deciding again; nothing about that changes.
+writes the cookie and re-runs the page's load, which is the client choosing an input and
+predicting what the server would decide from it -- see "After hydration that takes effect without
+a document load" above.
 
 ### Every page negotiates; the exceptions are documents
 
@@ -162,9 +163,8 @@ Once the page has loaded, the parameter is removed through `@canmi/web/referer`,
 [architecture/referer.md](../architecture/referer.md) removes `ref`. The reader
 keeps a clean URL, the cookie already holds the choice, and nothing about the page depends on
 the parameter still being there. Interactive selection creates no query at all: it writes the
-cookie and calls `location.reload()` on the clean address. A reload preserves the current
-history entry, so switching language cannot leave an extra, visually identical entry behind
-the reader.
+cookie and re-runs the page's load in place, through `chooseLocale`. Nothing is navigated, so
+switching language cannot leave an extra, visually identical history entry behind the reader.
 
 The preference cookie is deliberately client-writable. It contains only one value from the
 closed locale-code set, and the worker validates it again before use. The server rewrites it on
@@ -271,7 +271,7 @@ selects its translated feed.
 The response body for a page depends on a cookie, so **HTML is served with `Cache-Control:
 private, no-store`**. A cached page is a page some other reader's language is about to be
 served from. Atom is the deliberate opposite: its language is wholly in the URL, so it remains
-`public, max-age=360, s-maxage=360` and is safe in shared caches.
+`public, max-age=300, s-maxage=300` and is safe in shared caches.
 
 This is the deliberate exception to the rule in [fonts.md](../architecture/fonts.md) that a
 hashed name is cached for a year. HTML carries no hash in its name, so it was never covered by
@@ -279,6 +279,6 @@ that rule; saying so here is what stops a later reader from assuming the general
 Everything the page references — images, fonts, styles — keeps its usual lifetime, because none
 of it varies by language.
 
-The site worker is not a cache tier and does not need to be. Articles are compiled into it at
-build time with all nine views present, so a request is a lookup and a return; there is no
-origin to protect and nothing expensive to avoid repeating.
+The site worker is not a cache tier and does not need to be. Every view is published ahead of
+time as an object, so a request is a lookup of a compiled view and a return; there is nothing
+expensive to avoid repeating.

@@ -14,7 +14,7 @@ real outline also remains available to forced-colours mode; a `box-shadow` is no
 The focusable DOM box does not always represent the control. A padded row whose identity is an
 icon puts the outline on that icon; a focusable code child puts it on the surrounding code frame.
 The shared focus utilities in
-[utilities.css](../../apps/site/src/styles/utilities.css) cover direct, inner-child and containing-frame
+`@canmi/kit/tokens/interaction.css`, which the CMS draws with too, cover direct, inner-child and containing-frame
 placement so components do not redraw the same geometry locally. Controls with a visible border
 may recolour that border instead when adding an outline would duplicate the edge.
 

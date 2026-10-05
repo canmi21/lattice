@@ -17,7 +17,7 @@
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
-	 * a little geometry beside it -- see spec/todo/todo.md, "The article body's typography reaches
+	 * a little geometry beside it -- see spec/todo/css.md, "The article body's typography reaches
 	 * elements no component renders". See spec/architecture/css/authoring.md, "A comment in the
 	 * module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
