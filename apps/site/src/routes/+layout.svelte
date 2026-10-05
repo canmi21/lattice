@@ -20,6 +20,7 @@
 	import { languageTag, localeUrl, SITE_LANGUAGE } from '#lib/locale/index.js';
 	import { queryClient, QUERY_CACHE_MAX_AGE } from '#lib/query.js';
 	import { site } from '#lib/site.js';
+	import { APP_ICON_MARKS } from '#lib/manifest.js';
 	import type { LayoutProps } from './$types';
 	import '../styles/app.css';
 	import '@canmi/fonts/mono.css';
@@ -256,6 +257,10 @@
 	{/if}
 	{#if data.marks['apple-touch-icon.png']}
 		<link rel="apple-touch-icon" href={data.marks['apple-touch-icon.png']} />
+	{/if}
+	<!-- Named once every app icon resolves, since a manifest without them is not installable. -->
+	{#if APP_ICON_MARKS.every((mark) => data.marks[mark])}
+		<link rel="manifest" href="/site.webmanifest" />
 	{/if}
 	<!-- Loaded in development too; data-domains keeps a dev session from reporting.
 	     See spec/analytics.md. -->

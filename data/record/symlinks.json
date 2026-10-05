@@ -15,7 +15,9 @@
 		"favicon-96x96.png": "5136e061259dfdddb24c63145ba63348",
 		"favicon.ico": "afaf184af88b9a2378af18c8604a7288",
 		"favicon.svg": "01a9fe5fb7c608214e1b9effb40b79f8",
-		"sitemap.xsl": "ea87a8f8a265f05eb9151e7f76756088"
+		"sitemap.xsl": "ea87a8f8a265f05eb9151e7f76756088",
+		"web-app-manifest-192x192.png": "d50c91bdac8b2f9e009d084251039e1b",
+		"web-app-manifest-512x512.png": "19a6408dfe2a32f61ac8b79810e6a14e"
 	},
 	"status": {
 		"apple-touch-icon.png": "5cb161b09302a5c9356661c28e9f2d68",

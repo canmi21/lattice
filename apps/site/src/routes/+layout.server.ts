@@ -3,6 +3,7 @@ import { marksOf } from '@monoflake/sdk/symlink';
 import { pickUrls } from '@monoflake/sdk';
 import { SITE_LANGUAGE } from '#lib/locale/index.js';
 import { siteStats } from '#lib/published/index.js';
+import { APP_ICON_MARKS } from '#lib/manifest.js';
 import type { LayoutServerLoad } from './$types';
 
 // The path's spelling is the entry point's to settle, by the one rule every server shares, before
@@ -43,4 +44,5 @@ const MARKS = [
 	'favicon-512x512.png',
 	'favicon.svg',
 	'apple-touch-icon.png',
+	...APP_ICON_MARKS,
 ] as const;
