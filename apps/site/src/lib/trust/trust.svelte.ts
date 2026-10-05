@@ -1,4 +1,5 @@
 import { dev } from '$app/env';
+import { EXTERNAL } from '@canmi/me/urls';
 import { apiPath } from '#lib/api.js';
 import { site } from '#lib/site.js';
 
@@ -12,7 +13,7 @@ import { site } from '#lib/site.js';
 /** Turnstile's documented test key that passes without interaction, for development alone. */
 const TEST_SITE_KEY = '1x00000000000000000000AA';
 
-const SCRIPT = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+const SCRIPT = `${EXTERNAL.turnstile.script}?render=explicit`;
 
 /** The action the API holds a token to, so one minted for something else is refused. */
 const ACTION = 'trust';

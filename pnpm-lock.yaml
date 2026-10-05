@@ -218,8 +218,8 @@ importers:
         specifier: ^2026.1005.0
         version: 2026.1005.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -297,8 +297,8 @@ importers:
         specifier: ^2026.1005.0
         version: 2026.1005.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/social':
         specifier: workspace:*
         version: link:../../libs/social
@@ -379,8 +379,8 @@ importers:
         specifier: ^2026.1005.0
         version: 2026.1005.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/messages':
         specifier: workspace:*
         version: link:../../libs/messages
@@ -581,8 +581,8 @@ importers:
   apps/site/api:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/response':
         specifier: ^2.0.0
         version: 2.0.0
@@ -624,8 +624,8 @@ importers:
         specifier: ^2026.1005.0
         version: 2026.1005.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/robots':
         specifier: workspace:*
         version: link:../../libs/robots
@@ -721,8 +721,8 @@ importers:
   libs/compile:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@monoflake/sdk':
         specifier: ^2026.1004.6
         version: 2026.1004.6(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)
@@ -796,8 +796,8 @@ importers:
         specifier: ^2026.1005.0
         version: 2026.1005.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/messages':
         specifier: workspace:*
         version: link:../messages
@@ -869,8 +869,8 @@ importers:
   libs/robots:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@monoflake/sdk':
         specifier: ^2026.1004.6
         version: 2026.1004.6(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)
@@ -878,8 +878,8 @@ importers:
   libs/social:
     dependencies:
       '@canmi/me':
-        specifier: ^2026.1005.1
-        version: 2026.1005.1
+        specifier: ^2026.1005.2
+        version: 2026.1005.2
       '@canmi/prose':
         specifier: workspace:*
         version: link:../prose
@@ -1148,8 +1148,8 @@ packages:
       svelte:
         optional: true
 
-  '@canmi/me@2026.1005.1':
-    resolution: {integrity: sha512-FSp49jLIoJJEZoL+XmRbXmpR8ZxJ4fima2Qu1s42c1ukd5+aSotFbcQrkWS73pxHj+AOWruKy+AqZnEtlinJhw==}
+  '@canmi/me@2026.1005.2':
+    resolution: {integrity: sha512-nV5vL+NS6goYw6hvGgAIg5DiDtntfYM9uLoUPCK50fWDco0AO++2/ToJqurrEID7+9VAhdv90onB+MZKqjwg0g==}
 
   '@canmi/response@2.0.0':
     resolution: {integrity: sha512-fQh5D0dAcdvccqWLcGQKzpGNa1TbyhZ+4B5kq5/LWPOnacdq5OY8uJoCn7zgdM0MNZMsZiDVsOXSu9fIQEdC4w==}
@@ -5652,7 +5652,7 @@ snapshots:
       - react
       - react-dom
 
-  '@canmi/me@2026.1005.1': {}
+  '@canmi/me@2026.1005.2': {}
 
   '@canmi/response@2.0.0': {}
 
@@ -6348,7 +6348,7 @@ snapshots:
 
   '@monoflake/sdk@2026.1004.6(@cloudflare/workers-types@5.20261004.1)(typescript@6.0.3)':
     dependencies:
-      '@canmi/me': 2026.1005.1
+      '@canmi/me': 2026.1005.2
       '@canmi/response': 2.0.0
       '@monoflake/urls': 2026.1004.4
       valibot: 1.5.0(typescript@6.0.3)
@@ -6359,7 +6359,7 @@ snapshots:
 
   '@monoflake/sdk@2026.1004.6(@cloudflare/workers-types@5.20261004.1)(typescript@7.0.2)':
     dependencies:
-      '@canmi/me': 2026.1005.1
+      '@canmi/me': 2026.1005.2
       '@canmi/response': 2.0.0
       '@monoflake/urls': 2026.1004.4
       valibot: 1.5.0(typescript@7.0.2)

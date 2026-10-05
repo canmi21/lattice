@@ -1,3 +1,4 @@
+import { EXTERNAL } from '@canmi/me/urls';
 import { and, eq, gt, lt } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/d1';
 import type { Context, MiddlewareHandler } from 'hono';
@@ -14,9 +15,6 @@ import { failure } from './respond';
 export const TRUST_SECONDS = 24 * 60 * 60;
 export const TRUST_COOKIE = 'trust';
 export const TRUST_UNTIL_COOKIE = 'trust_until';
-
-/** What Turnstile's tokens are checked against; the token itself is never kept. */
-const SITEVERIFY = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
 
 /** The action the page's widget names, so a token minted for another purpose is refused. */
 export const TRUST_ACTION = 'trust';
@@ -125,7 +123,8 @@ function grantId(): string {
  */
 export async function verify(c: Context<Env>, token: string): Promise<Response> {
 	if (!gated(c.env)) return failure(c, 503, 'service_unavailable', NO_STORE);
-	const asked = await fetch(SITEVERIFY, {
+	// What Turnstile's tokens are checked against; the token itself is never kept.
+	const asked = await fetch(EXTERNAL.turnstile.siteverify, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({

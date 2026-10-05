@@ -1,3 +1,4 @@
+import { URLS } from '@monoflake/sdk';
 import { Miniflare } from 'miniflare';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import app from '../app';
@@ -48,7 +49,12 @@ function ask(path: string, init: RequestInit, bindings: Bindings, cookie?: strin
 	const headers = new Headers(init.headers);
 	headers.set('CF-Connecting-IP', IP);
 	if (cookie) headers.set('Cookie', cookie);
-	return app.request(`https://canmi.net${path}`, { ...init, headers }, bindings, context);
+	return app.request(
+		`${URLS.apps.production.site}${path}`,
+		{ ...init, headers },
+		bindings,
+		context,
+	);
 }
 
 /** Siteverify, answering `outcome` once. */

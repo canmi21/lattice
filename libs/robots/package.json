@@ -6,7 +6,7 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@canmi/me": "^2026.1005.1",
+		"@canmi/me": "^2026.1005.2",
 		"@monoflake/sdk": "^2026.1004.6"
 	}
 }
