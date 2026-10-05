@@ -83,8 +83,8 @@
 	const OBJECT = '/object/';
 	const DERIVE = '/derive/';
 
-	// Sized against the article column, which is what actually bounds these.
-	const SIZES = '(max-width: 48rem) 100vw, 48rem';
+	// Sized against the article column, `--rail-column` in rail.css, which is what bounds these.
+	const SIZES = '(max-width: 45rem) 100vw, 45rem';
 	// And against the window, in the view whose whole point is that the column is not the bound.
 	const FULL_SIZES = '100vw';
 
