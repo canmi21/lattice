@@ -6,6 +6,6 @@
 		".": "./src/index.ts"
 	},
 	"dependencies": {
-		"@monoflake/sdk": "^2026.1004.3"
+		"@monoflake/sdk": "^2026.1004.6"
 	}
 }

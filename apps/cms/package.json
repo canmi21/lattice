@@ -15,16 +15,16 @@
 		"@canmi/collection": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
-		"@canmi/kit": "^2026.1004.4",
-		"@canmi/me": "^2026.1004.4",
+		"@canmi/kit": "^2026.1005.0",
+		"@canmi/me": "^2026.1005.0",
 		"@canmi/messages": "workspace:*",
 		"@canmi/prose": "workspace:*",
-		"@canmi/ui": "^2026.1004.2",
+		"@canmi/ui": "^2026.1005.0",
 		"@codemirror/commands": "^6.11.1",
 		"@codemirror/state": "^6.7.6",
 		"@codemirror/view": "^6.43.13",
 		"@lucide/svelte": "^1.51.0",
-		"@monoflake/sdk": "^2026.1004.3"
+		"@monoflake/sdk": "^2026.1004.6"
 	},
 	"devDependencies": {
 		"@stylexjs/stylex": "^0.19.1",

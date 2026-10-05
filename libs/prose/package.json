@@ -29,13 +29,13 @@
 		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
-		"@canmi/kit": "^2026.1004.4",
-		"@canmi/me": "^2026.1004.4",
+		"@canmi/kit": "^2026.1005.0",
+		"@canmi/me": "^2026.1005.0",
 		"@canmi/messages": "workspace:*",
-		"@canmi/ui": "^2026.1004.2",
+		"@canmi/ui": "^2026.1005.0",
 		"@chenglou/pretext": "^0.0.9",
 		"@lucide/svelte": "^1.51.0",
-		"@monoflake/sdk": "^2026.1004.3",
+		"@monoflake/sdk": "^2026.1004.6",
 		"@stylexjs/stylex": "^0.19.1",
 		"@videojs/core": "10.0.1",
 		"@videojs/media": "10.0.1",

@@ -365,9 +365,9 @@ checksum = "fc652a48c352aef3ea3aed32080501cf3ef6ed5da78602a020c991775b0aff04"
 
 [[package]]
 name = "canmi"
-version = "2026.1004.4"
+version = "2026.1005.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9bb8e2cd275a770319ea0cb51b13d99bd7737dab63dee76dbadd8be6f17c5b58"
+checksum = "3d30ee1ca5b2ca062fee690b51cfcb0bbaa0e3ca9b50f9833a2dbc7dcd078a12"
 
 [[package]]
 name = "cc"
