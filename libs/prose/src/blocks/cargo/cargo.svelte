@@ -148,6 +148,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@monoflake/sdk';
 	import { hierarchy, treemap, treemapBinary } from 'd3-hierarchy';
+	import { discloseD3 } from '../d3';
 	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import {
 		KIND_COLORS,
@@ -158,6 +159,8 @@
 		type DependencyItem,
 	} from './cargo';
 	import type { CargoView, CrateDep, CrateRecord } from '@monoflake/sdk/artifacts/types';
+
+	discloseD3();
 
 	let { crate, view = 'treemap' }: { crate: CrateRecord; view?: CargoView } = $props();
 	let chart = $state<HTMLDivElement>();

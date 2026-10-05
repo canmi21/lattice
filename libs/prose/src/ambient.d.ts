@@ -21,3 +21,12 @@ interface Window {
 	 */
 	canmiArticleInitialHash?: string;
 }
+
+/** What an app defines at build time for this package; absent in an app that does not. */
+interface ImportMetaEnv {
+	readonly VITE_D3_HIERARCHY_VERSION?: string;
+}
+
+interface ImportMeta {
+	readonly env: ImportMetaEnv;
+}

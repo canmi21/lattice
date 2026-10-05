@@ -35,6 +35,7 @@ declare global {
 		readonly VITE_COMMIT_HASH: string;
 		readonly VITE_BUILD_TIME: string;
 		readonly VITE_ALGOLIA_VERSION: string;
+		readonly VITE_D3_HIERARCHY_VERSION: string;
 	}
 
 	interface ImportMeta {

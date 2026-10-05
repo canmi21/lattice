@@ -157,11 +157,14 @@
 <script lang="ts">
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { hierarchy, treemap } from 'd3-hierarchy';
+	import { discloseD3 } from '../d3';
 	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import { URLS } from '@monoflake/sdk';
 	import { langColor, parseTokei, type LangStat } from './tokei';
 	import type { TokeiView } from '@monoflake/sdk/artifacts/types';
 	import { compactCount } from '@canmi/me/locales/format';
+
+	discloseD3();
 
 	let {
 		source,
