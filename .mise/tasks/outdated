@@ -3,7 +3,8 @@
 #USAGE flag "--names" help="Print only the names `update --major` should move, one a line"
 """A package is out of date only when the newest version anywhere in the workspace is older than
 the registry's latest. One already on the latest somewhere while another package holds an older
-major is two majors at once: a warning, unless `versions.toml` allows it. See spec/toolchain.md,
+major is two majors at once: a warning, unless `versions.toml` allows it. See the workspace's
+spec/toolchain.md,
 "A package at two majors is a warning unless it is allowed"."""
 
 import json

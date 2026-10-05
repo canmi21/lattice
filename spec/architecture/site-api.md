@@ -36,7 +36,7 @@ serves. The site's error reporting covers the API, which had a Sentry project of
 browser's globals, and the API against workerd's, and the two disagree about `Response` and
 streams. So the site imports `@canmi/site-api` through `src/boundary.d.ts`, the one thing it needs --
 something that answers a request -- and the API's own tests hold the real app to that declaration;
-see [workspace.md](workspace.md), "A runtime's globals decide which program checks a file".
+see the workspace's `spec/code.md`, "A runtime's globals decide which program checks a file".
 
 **It lives in the site, beside `src/` rather than inside it.** `apps/site/api` is the site's own code
 and sits in the site's directory, as a package of its own because its type program is not the

@@ -391,7 +391,7 @@ site's part of them -- its declaration, and its callers moving in E8 -- went wit
 **Done.** The three layers and the library under them were laid out in this repository as the
 repositories they became, then split: `canmi21/lattice` is this repository, `canmi21/web`, and
 `monoflake/infra` and `monoflake/platform` continue from the same commit. The arrangement is
-[../architecture/layers.md](../architecture/layers.md).
+the workspace's `spec/architecture/layers.md`.
 
 ## Open questions
 

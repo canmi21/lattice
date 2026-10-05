@@ -36,30 +36,10 @@ The word "workspace" in this file's title is the pnpm and Cargo one -- `pnpm-wor
 the `[workspace]` in `Cargo.toml` at this root, which is what makes `libs/` and `apps/` resolve to
 each other. The directory above is a different thing wearing the same word.
 
-### A figure in `spec/` is dated, or it is checked
+## What this repository marks as machine output
 
-Numbers appear throughout these documents and two kinds of them are kept true by opposite means.
-
-**A figure describing a state that changes on its own is dated.** How large the corpus is, how far
-a migration has got, how many components still do something -- nothing holds these still, and
-writing one in the present tense promises that every change to the thing comes back and updates
-the sentence. That does not happen and will not. Dated, the figure stops being a claim that rots
-and becomes what it always was: a mark of how far something had got when somebody last counted.
-The spelling is "measured ... at the time", as [media.md](media.md) uses for its 39 records and
-[local.md](local.md) for its largest sidecar.
-
-**A figure that is a value the code uses is not dated.** A constant, a threshold, a declared width
--- these have to match the code exactly, and the answer to one drifting is a check, not a hedge.
-Dating such a number would excuse the disagreement it exists to catch.
-
-The test is what keeps the number true. If the only thing that would is somebody noticing, date
-it.
-
-## Machine output is marked, so the language statistics describe the repository
-
-A forge reads the tree and says what it is written in, and the workspace's line check measures
-every file in it. Both would answer for this repository's generators instead of its authors, so
-what the generators write is marked `linguist-generated=true` in `.gitattributes`, which both read.
+The rule is the workspace's `spec/architecture/repos.md`, "Machine output is marked, so the
+language statistics describe the repository".
 
 `libs/fonts/src/*.css` was, measured on 2026-10-05, 8782 lines of `@font-face` rules and unicode-ranges against a few
 hundred lines of stylesheet anybody wrote. `data/record/metadata.json` is written by `local
@@ -68,10 +48,8 @@ holds what a build derives; Drizzle writes its own snapshots. Each is tracked be
 reads it with nothing else present -- a record, not source. See [data.md](data.md), "What stays in
 git, and until when".
 
-**A glob for the fonts, not a list of families.** Adding a font is three steps and coming back
-to this file is not one anybody would remember. Nothing in that directory is hand-authored,
-whether `mise run fonts` produced it or it arrived in a prebuilt web package, so the glob is the
-honest shape and a list would be a maintenance obligation bought for nothing.
+The fonts are a glob rather than a list of families: adding a font is three steps and coming back
+to `.gitattributes` is not one anybody would remember.
 
 **Every other file stays counted.** `apps/site/src/styles/`, `libs/prose/src/prose.css` and the
 rest are decisions somebody made and should weigh what they weigh. The mark is for output, not for
@@ -103,7 +81,7 @@ project at the root with the rest nested inside it. That was abandoned: this pro
 cloned into the workspace's own `repos/`, a sibling of the others, and `repos/` and the entry
 point both belong one directory up.
 
-The repositories the system is split into, and which way each leans, are [layers.md](layers.md).
+The repositories the system is split into, and which way each leans, are the workspace's `spec/architecture/layers.md`.
 
 Which of `data/` git keeps, and what happens to an asset once it is stored, are their own
 subjects: [data.md](data.md), [media.md](media.md), [video/](video/),
@@ -209,70 +187,6 @@ a quiet one-pixel border, compact type and a small shadow only on floating surfa
 reserved for focus, state and data. A categorical chart may be colorful, but its controls,
 tooltips and surrounding statistics use the same surfaces as the rest of the site.
 
-## A runtime's globals decide which program checks a file
-
-Type checking runs three times here, over three programs: [tsconfig.json](../../tsconfig.json) for
-the browser and anything indifferent to a runtime, [tsconfig.workers.json](../../tsconfig.workers.json)
-for the site's API in `apps/site/api`, a Worker, and [tsconfig.scripts.json](../../tsconfig.scripts.json)
-for the node programs under an app's `scripts/`. The platform keeps the same three, its workers
-program holding its five Workers and `libs/sdk/store`; infra needs two, having no Worker. The rule
-below is all three repositories'.
-
-The split is forced rather than chosen. `@cloudflare/workers-types` declares its own
-`ReadableStream`, `Response` and `Cache`, and the DOM library declares those names too. Nothing
-tells TypeScript they describe the same things, so with both in scope every worker value crossing
-a shared boundary is a type error. Two workarounds had grown from that one cause, both in what is now
-the platform, and neither looked related to the other: `as unknown as ReadableStream` across the
-store's public surface, and a hand-written structural declaration of `caches.default` in the CDN
-because importing the real one would have made every Hono handler disagree about `Response`. Both are gone; nothing
-casts across that boundary now.
-
-**A file belongs to the program whose globals it actually runs against**, which is not always the
-directory it sits in. An app's `scripts/` is node, and is checked as node -- by the third
-program, which exists because saying so was not the same as arranging it. `tsconfig.json` excludes
-`apps/site` wholesale, since SvelteKit generates the `$lib` aliases that only svelte-check sees;
-svelte-check in turn reads SvelteKit's own generated file list, which stops at `src`. Every
-`scripts/` directory fell through the gap between those two and was checked by nothing at all --
-found by putting `const x: number = 'not a number'` in one and watching `verify` pass, which is
-also the check worth repeating on any program claimed to cover something. It carries the browser's
-lib beside node's, and that is not the collision this section warns about: what forced the split is
-DOM against `@cloudflare/workers-types`, and no script imports those.
-
-A worker's tests are checked _with the worker_, because they exercise worker code and mock worker bindings
--- putting them elsewhere pulls the whole worker into a program that has the browser's globals,
-which is the thing being avoided.
-
-What the separation exposed is the argument for it. The platform's `apps/delivery/cdn` polyfills `ImageData` because
-workerd has none, and the polyfill needed a `@ts-expect-error` to install itself -- it was being
-checked against a browser's `ImageData`, which it is not. The type now lives in
-`apps/delivery/cdn/worker-runtime.d.ts` and describes what the polyfill supplies, so the declaration and
-the implementation are one claim instead of two that happened to agree.
-
-## Grouping threshold
-
-`apps/` is flat. Introduce a grouping directory only once one category exceeds four members,
-and let the growth force it rather than predicting it. Five apps, as here, do not need a taxonomy.
-The platform's `apps/` passed it at fifteen and is grouped by what each app does -- see platform's
-`spec/repository.md` -- and infra's seven are grouped the same way, so the two read alike; see
-infra's `spec/repository.md`.
-
-## Extraction threshold
-
-Code moves into `libs/` when it acquires a second consumer, not when someone predicts one.
-A library written for a single caller is a guess about what the second caller will need, and
-the guess is made at the moment least is known. Waiting means the shared shape is derived from
-two real uses instead of one real use and one imagined one.
-
-The counterpart matters as much: once the second consumer exists, extract rather than copy.
-The API -- then `apps/api` -- read its metadata straight out of R2 while `apps/delivery/cdn` read the same bucket through
-a store that also knew how to read the local tree, so the API had no local development at all
--- every lookup was a 404 until `--remote` reached a bucket that only production writes. The
-copy was not a duplicated function, it was a capability one side silently lacked.
-
-Extraction is also the moment to write the tests that only make sense for shared code. A
-private helper is covered by its one caller; a library is not, because the behavior each
-consumer depends on is no longer visible from any single one of them.
-
 ## `app.html` carries no comments
 
 Comment freely everywhere else. This one file is a template rather than source: nothing compiles
@@ -296,88 +210,9 @@ Which domain an app answers on is not stable. That mapping belongs in a typed ma
 library, where changing it is a one-line edit instead of a rename plus every import plus the
 workspace globs.
 
-### What the reference check will not flag
+### Colors are declared once, in the kit
 
-Path-shaped strings in prose are ignored on purpose. These documents use invented names as
-examples -- `apps/r2`, `user-profile.ts`, `libs/canvas` as a name that was rejected -- and a
-check that flagged those would be wrong far more often than right.
-
-The convention is what makes the distinction mechanical rather than a judgment the checker has
-to make: an illustration stays in inline code, a real reference is a markdown link. So the
-check reads links and leaves backticks alone, and neither half has to guess.
-
-### Every URL is declared once
-
-The address packages are the only place a URL, hostname, or dev port may be written down:
-`@canmi/me/urls` (crate `canmi`) for the author's own and the world's, `@monoflake/urls` for infra's
-and `@monoflake/sdk` for the platform's, each declaring what its owner owns -- see [layers.md](layers.md), "Addresses
-are split by who owns the name". Everything else imports from them, and above infra from the sdk,
-which composes the three into one map. This covers third-party endpoints too, not just our own
-hosts -- a CDN we forward images through is as much a URL as a domain we own.
-
-The composed map is grouped by role:
-
-- `apps`: every deployable app of the system, the site's and the platform's, with development and
-  production entries.
-- `internal`: domains the owner controls that are not apps.
-- `external`: third-party endpoints and hostnames.
-
-**The test: who resolves this URL?**
-
-- _The software_ -- it is fetched, linked against, or served from. It goes in its owner's address
-  package, with
-  no exceptions for app code, libraries, stylesheets, or config.
-- _A person reading_ -- a link to a standard, a `# see <url>` note. It stays where it is useful.
-  Nothing breaks if it rots except somebody's curiosity.
-
-The earlier version of this rule banned every `https://` outside the library, full stop. That
-was wrong on the day it was written: this spec cites four external standards, so the rule was
-already broken four times by the document stating it. A rule nobody can follow is not a strict
-rule, it is a dead one -- it gets ignored wholesale rather than in the one place it should be.
-
-An identity is not an address. A social handle, an email local part, a feed's tag URI --
-these say who someone is, and they live in `site.config.yaml` beside the author's name. What
-the address packages own is where to reach them. The two compose: `URLS.external.social.x` plus the
-handle is the profile URL, assembled at the point of use rather than stored a second time as
-a whole. Putting the handle in the URL library would make the library the owner of a fact
-about a person, and the config the owner of nothing.
-
-Names RFC 2606 reserves -- `.test`, `.example`, `.invalid`, `.localhost`, `example.com` and
-its siblings -- are exempt as well, and for a stronger reason than convention: the standard
-guarantees they never resolve. A placeholder an API needs because it demands an absolute URL,
-or a hostname a test supplies precisely so it gets rejected, cannot become a real endpoint by
-accident. Exempting them as a class is what stops the check from accumulating one-off
-exceptions.
-
-`mise run refs` enforces the first case and skips the second, treating comments, markdown
-links, and `$schema` keys as citations. `$schema` has to be a URL here precisely because these
-tools come from mise and there is no `node_modules` to point at -- see
-[toolchain.md](../toolchain.md). JSON-LD `@context` values and XML namespaces are exempt for a
-different reason: each is a namespace identifier, not an endpoint -- changing one changes what
-the document means rather than where anything points.
-
-Generated dependency lockfiles are vendor metadata, not an application address source. A package
-manager may copy a dependency's deprecation or funding URL into `pnpm-lock.yaml`; the software does
-not resolve it, and the next install owns that line. The reference check therefore skips the
-lockfile rather than asking an address package to duplicate metadata that this repository does not control.
-
-The measure this exists to protect: **moving a domain costs one edit to one file.** Every
-literal written elsewhere adds one more place that has to be found, and the ones that get
-missed do not fail loudly -- they keep resolving to the old host until someone notices the
-traffic. This has already happened here once: a `cdn.canmi.net` literal survived inside a
-library long after that host stopped being part of the URL map, invisible because nothing
-referenced it by name.
-
-**Rust reads the map through a generated mirror.** A Rust process cannot import a TypeScript
-library, so each owner renders its own: the platform's `mise run urls` writes its `libs/sdk/src/lib.rs`,
-the `monoflake` crate, and the lib repository's writes the `canmi` crate, which infra reads since
-it may not read the platform's; `local` here reads both from crates.io. Each is committed beside
-its map, so a checkout compiles without Node having run first. A mirror is never edited by hand:
-each package's `rust.test.ts` fails its `verify` the moment it disagrees with its map, so the
-one-edit measure survives the language boundary. The
-alternative, exempting Rust from the rule, would have left half the repo carrying literals
-that the check answers for everywhere else.
-
+The rule for URLs is the workspace's `spec/addresses.md`, "Every URL is declared once".
 Colors follow the same shape at a smaller scale: OKLCH values are declared in
 `@canmi/kit/tokens` and consumed by name. The rule covers the design system that the site's own UI
 and theme are built from; a palette mirrored from an external convention keeps whatever

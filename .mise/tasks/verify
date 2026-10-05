@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #MISE description="Every gate a change reaches: `verify [--all] [--since REV] [--dry-run] [--files ...]`"
-"""The gates a change has to pass, chosen by what it touched. See spec/toolchain.md, "verify runs
+"""The gates a change has to pass, chosen by what it touched. See the workspace's
+spec/architecture/repos.md, "verify runs
 what a change reaches"."""
 
 import os

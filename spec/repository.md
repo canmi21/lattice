@@ -5,7 +5,7 @@ builds; `status`, the status page; `landing`, the service domains' pages; `cms`,
 `local`, the resident service that compiles, publishes and keeps the corpus. `libs/` holds what they share -- the article renderer,
 the compiler, the collection, the messages, the fonts -- and `contents/` and `data/` the corpus and
 its records. Why the system is cut into this layer, the platform's and infra's, is
-[architecture/layers.md](architecture/layers.md).
+the workspace's `spec/architecture/layers.md`.
 
 ## `apps/` is deployed, `libs/` is imported
 

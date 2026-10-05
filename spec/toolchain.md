@@ -24,31 +24,6 @@ This is visible in normal use: `rclone lsd r2:` returns 403 because listing buck
 account-level operation the token deliberately lacks. Naming the bucket works; enumerating
 them does not.
 
-## Workers answer on custom domains only
-
-`workers_dev` and `preview_urls` are off everywhere. Every generated hostname is another route
-to the same worker, reached without whatever sits in front of the custom domain, and nobody
-watches those addresses. A route under a custom domain of our own is not a generated address, and
-is allowed, but none is left. A more specific route wins over the domain's Worker only for a request
-from outside: another Worker's `fetch` passing through a route does not run that route's Worker,
-which is how the alias layer found `api.ffoni.com/site/*` answering it with nothing while the
-gateway held the path by a route. A scope of the API host is reached by binding.
-
-How the platform's gateway declares its hosts and zones is platform's
-`spec/architecture/gateway.md`, "The gateway declares its hosts in its `wrangler.jsonc`".
-
-The cost is real and accepted: there is no URL to open between uploading a version and
-promoting it, so a deploy is the first time the code meets production. What replaces that
-check is `wrangler dev`, which runs the same code against the same bindings, plus the fact
-that a worker with no route configured serves nothing until a domain is pointed at it by
-hand.
-
-That last point is what makes replacing a worker safe. A first deploy under a new name is
-inert -- it creates the worker and attracts no traffic. Deploying over an existing worker of
-the same name replaces it in place and keeps its routes and custom domains attached, so
-replacing one never requires deleting it first. Nothing is deleted until whatever supersedes
-it has been seen serving real traffic.
-
 ## Deploying is a consequence of pushing
 
 Cloudflare builds from the connected repository, so a push is what ships. Nobody runs a deploy
@@ -65,15 +40,8 @@ read, because `mise.toml` is not one of them.
 
 ## Dev ports are pinned
 
-Every dev server binds a fixed port and **fails when that port is taken**. Vite gets
-`strictPort: true`; anything else refuses to fall back. Auto-incrementing to the next free
-port is never acceptable.
-
-The reason is not tidiness. A tool that drifts to the next port starts a second instance
-silently, and a second instance of something that writes to `data/` means two processes
-fetching and overwriting in the same directory. The port collision is the cheapest mutex
-available -- the operating system provides it for free, and it fails loudly at the only moment
-anyone can act on it.
+The rule is the workspace's `spec/toolchain.md`, "Dev ports are pinned"; what follows is how
+this repository keeps it.
 
 One checkout runs one set, on the pinned numbers. The slot arithmetic that shifted every port
 for a second checkout of this repository is gone with the arrangement it served, and so is the
@@ -85,7 +53,8 @@ A port both a TypeScript tool and a Rust binary need is declared in `mise.toml` 
 not in `@monoflake/sdk`. The single-source rule asks for one place to edit, not one particular
 file, and a TypeScript library cannot be read by a Rust process -- putting a cross-language
 fact there would force the duplication the rule exists to prevent. URLs only the TypeScript
-side resolves still belong in [workspace.md](architecture/workspace.md)'s URL map.
+side resolves still belong in the URL map -- the workspace's `spec/addresses.md`, "Every URL is
+declared once".
 
 ### They bind every interface, and the other two are reached through the site
 
@@ -170,20 +139,6 @@ What it costs is that a server's exit is silent until somebody asks. `base statu
 Nothing here supervises anything, and a window reading `idle` is the report a supervisor would
 have made.
 
-## A package at two majors is a warning unless it is allowed
-
-**Out of date is judged by the newest copy the workspace holds, not by each package's.** `update
---dry-run` asks pnpm what is outdated and what every package holds directly, and calls a package
-behind only when its newest copy anywhere here is older than the registry's latest. One already on
-the latest somewhere while another package keeps an older major is not behind: it is two majors at
-once, which is reported apart, as a warning.
-
-**`versions.toml` allows a pair, with the reason.** Its `[several]` names each package that may
-hold two majors and why, as a transition somebody chose; the report then lists it without the
-warning, and `update --major` crosses only what the report calls behind, so an allowed pair is
-never collapsed by it. A line the workspace no longer needs -- one major left -- is reported for
-removal. `.mise/tasks/outdated` is the report.
-
 ## The site holds TypeScript 6 and 7 at once, on purpose
 
 `apps/site` declares `typescript` at 6 and `@typescript/native` as an npm alias for 7. That pair
@@ -203,37 +158,13 @@ allows the pair, so the report says so rather than warning.
 
 ## verify runs what a change reaches
 
-**`mise run verify` checks the gates a change can affect, not the whole repository.** The
-repository holds a site and its API, a status page, an editor and `local`, and before the split it
-held the platform and infra too: a change to one of them used to compile, lint and test every
-other, and an edit to a stylesheet built every crate. The Rust target directory grew with each of
-those builds. So what a change touched decides what runs.
+The rule is the workspace's `spec/architecture/repos.md`, "verify runs what a change reaches";
+[the script](../.mise/tasks/verify) is this repository's mapping. Two things are its own: articles
+and tracked records are read rather than imported, so they reach the site; and the editor's checks
+run when the editor moved.
 
-What it touched is the working copy's own change -- what is about to be committed -- or, with
-`--since REV`, everything after that revision. `--all` runs every gate, and so does `mise run
-audit`, which asks about the whole tree by definition. `--dry-run` prints the choice; `--files`
-names files to ask about without changing them. [The script](../.mise/tasks/verify) is the
-mapping, and these are the rules it keeps:
-
-- **Three gates always run** -- secrets, references, comment lengths. Each is
-  whole-tree and takes seconds, and a reference can break from anywhere.
-- **A Rust change reaches its crate and every crate that depends on it**, read from
-  `cargo metadata` rather than listed, and clippy and the tests run over those alone. A test that
-  reads another crate's file through `include_str!` depends on it without its manifest saying so;
-  those paths are read out of the source, so changing a record `local`'s tests read reaches
-  `local`. `Cargo.lock`, the workspace manifest and the toolchain file reach every crate.
-- **A TypeScript, Svelte or style change reaches its package and every package that imports it**,
-  read from the `workspace:` dependencies. Any of them runs the three whole-program gates -- the
-  type check, the linter, the test suite -- and a package with gates of its own runs them only when
-  it is reached: the site's checks when the site or anything under it moved, the editor's when the
-  editor did. Articles and tracked records are read rather than imported, so they reach the site.
-- **A change to the gates reaches every gate.** `mise.toml` and `.mise/tasks/` are how everything
-  is checked, so a change there is checked against everything.
-
-**What the graph cannot see is named, and kept short.** Nothing is named today: the one entry, the
-Rust mirror of the URL map, left with the platform. A dependency the graph misses is
-a gate that silently does not run, which is the failure `code.md` in the workspace describes, so a
-second such entry is worth a structural fix before it is worth a line in the list.
+**What the graph cannot see is named here.** Nothing is named today: the one entry, the Rust mirror
+of the URL map, left with the platform.
 
 ### The Worker is bundled before it is pushed
 

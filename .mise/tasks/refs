@@ -9,7 +9,7 @@ chosen because they are objective rather than stylistic:
 4. No URL the running system resolves is written outside the address packages.
 
 The first three break silently on rename and are shared with the workspace's own gate, which is
-where they live. The fourth is this repository's and enforces spec/architecture/workspace.md,
+where they live. The fourth is this repository's and enforces the workspace's spec/addresses.md,
 "Every URL is declared once", prose-only until this existed. Each constant argues what it exempts.
 
 Run with --json to emit the pair graph instead of validating.
@@ -215,7 +215,7 @@ def main() -> int:
 	problems += [f"missing section: {d}" for d in stale]
 	problems += [
 		f"URL outside {URL_HOMES[0]}: {u}  (declare it there, or make it a comment if it is a"
-		f' citation -- see spec/architecture/workspace.md, "Every URL is declared once")'
+		f' citation -- see the workspace\'s spec/addresses.md, "Every URL is declared once")'
 		for u in stray_urls()
 	]
 
