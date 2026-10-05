@@ -28,7 +28,7 @@
 		"@canmi/site-api": "workspace:*",
 		"@canmi/social": "workspace:*",
 		"@canmi/ui": "^2026.1005.0",
-		"@canmi/web": "^2026.1005.2",
+		"@canmi/web": "^2026.1005.3",
 		"@chenglou/pretext": "^0.0.9",
 		"@inlang/paraglide-js-svelte": "^1.0.4",
 		"@lucide/svelte": "^1.51.0",

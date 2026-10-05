@@ -98,6 +98,7 @@
 </script>
 
 <script lang="ts">
+	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { settleBrevity } from '@canmi/kit/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { hints } from '@canmi/hints';
@@ -175,11 +176,16 @@
 		},
 		{ dev },
 	);
+
+	// What the app is made of, said for Wappalyzer from the build; see lib's spec/web/disclose.md.
+	const disclosure = import.meta.env.VITE_DISCLOSURE;
+	discloseGlobals(disclosure);
 </script>
 
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
+	{@html disclosureHead(disclosure)}
 	<!-- Both names say the one address, so the two are one page to an index. -->
 	<link rel="canonical" href={new URL('/', canonical).href} />
 	<!-- The author, said in plain HTML beside the graph, and each of their accounts by `rel="me"`.

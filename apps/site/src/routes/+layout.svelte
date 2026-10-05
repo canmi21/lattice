@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { browser, dev } from '$app/env';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
@@ -79,9 +80,6 @@
 			? page.data.robots
 			: 'index, follow',
 	);
-	// A patch for Wappalyzer, which names the Workers runtime from a `runtime` meta alone; set at
-	// build time from the app's dependencies. See lib's spec/web/disclose.md.
-	const runtime = import.meta.env.VITE_DISCLOSURE.runtime;
 	// The same client a universal load reaches for, not a second one beside it: a corpus answer
 	// fetched during navigation and a counter fetched by a component belong in one cache, held for
 	// one window. See $lib/query.
@@ -203,6 +201,10 @@
 	 * spec/architecture/entities.md.
 	 */
 	const entities = graph(websiteEntity(), person());
+
+	// What the app is made of, said for Wappalyzer from the build; see lib's spec/web/disclose.md.
+	const disclosure = import.meta.env.VITE_DISCLOSURE;
+	discloseGlobals(disclosure);
 </script>
 
 <svelte:window onkeydown={onWindowKeydown} />
@@ -210,6 +212,7 @@
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
+	{@html disclosureHead(disclosure)}
 	{#each early as hint (hint.href)}
 		<link rel={hint.rel} href={hint.href} crossorigin={hint.crossorigin} />
 	{/each}
@@ -220,7 +223,6 @@
 	/>
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content={robots} />
-	{#if runtime}<meta name="runtime" content={runtime} />{/if}
 	{#each articleLocale?.alternates ?? [] as alternate (alternate.code)}
 		<link rel="alternate" hreflang={alternate.language_tag} href={alternate.href} />
 	{/each}

@@ -98,6 +98,7 @@
 </script>
 
 <script lang="ts">
+	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { settleBrevity } from '@canmi/kit/behavior/brevity';
 	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { hints } from '@canmi/hints';
@@ -167,11 +168,16 @@
 
 	// What the page reaches early, and how early. See spec/architecture/hints.md.
 	const early = hints({ fonts: ['stylesheets', 'files'] }, { dev });
+
+	// What the app is made of, said for Wappalyzer from the build; see lib's spec/web/disclose.md.
+	const disclosure = import.meta.env.VITE_DISCLOSURE;
+	discloseGlobals(disclosure);
 </script>
 
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
+	{@html disclosureHead(disclosure)}
 	<!-- Each host is its own page, at its own root. -->
 	<link rel="canonical" href="https://{data.host}/" />
 	<!-- The author, said in plain HTML beside the graph, and each of their accounts by `rel="me"`.

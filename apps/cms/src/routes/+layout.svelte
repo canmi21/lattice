@@ -4,6 +4,7 @@
 	 * layer's runtime. The ground and its pane are `(pane)/+layout.svelte`'s, because the preview
 	 * is drawn outside them -- it is the site's own page, and it scrolls the window.
 	 */
+	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import '../styles/app.css';
 	// The site's type, so the editor and the preview set words in the faces the page does.
 	import '@canmi/fonts/mono.css';
@@ -29,6 +30,10 @@
 			void import('virtual:stylex:runtime');
 		});
 	}
+
+	// What the app is made of, said for Wappalyzer from the build; see lib's spec/web/disclose.md.
+	const disclosure = import.meta.env.VITE_DISCLOSURE;
+	discloseGlobals(disclosure);
 </script>
 
 <svelte:head>
@@ -36,6 +41,7 @@
 	     purpose too, and stated rather than suppressed -- oxlint does not parse svelte templates,
 	     so a `svelte/no-at-html-tags` directive would be decoration. See spec/lint-format.md. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
+	{@html disclosureHead(disclosure)}
 </svelte:head>
 
 {@render children()}

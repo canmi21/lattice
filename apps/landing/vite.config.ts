@@ -3,6 +3,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { esbuildTarget } from '@canmi/web/compat/build';
+import { discloseDefine } from '@canmi/web/disclose/build';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -50,6 +51,8 @@ export default defineConfig({
 	// asked for here. See spec/toolchain.md, "Dev ports are pinned".
 	server: { host: '::', port: 26525, strictPort: true, allowedHosts: ['.localhost'] },
 	// Hashed file names in hex, as the site's are.
+	// What the app is made of, for the Wappalyzer patches; see lib's spec/web/disclose.md.
+	define: discloseDefine(fileURLToPath(new URL('.', import.meta.url))),
 	build: {
 		target: esbuildTarget(BROWSERSLIST),
 		rollupOptions: { output: { hashCharacters: 'hex' } },
