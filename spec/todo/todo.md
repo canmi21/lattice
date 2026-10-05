@@ -18,7 +18,7 @@ which areas exist and which entries are worth reaching for first.
 | area                     | entries | what it holds                                             |
 | ------------------------ | ------- | --------------------------------------------------------- |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                           |
-| [site.md](site.md)       | 16      | routing, rendering, the article page, the tests           |
+| [site.md](site.md)       | 17      | routing, rendering, the article page, the tests           |
 | [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach   |
 | [tooling.md](tooling.md) | 4       | the files that describe the repository rather than run it |
 

@@ -21,8 +21,8 @@ const BROWSERSLIST: string[] = JSON.parse(
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 
 // The Supabase pair by either name, the bare one first: mise decrypts it bare, Vercel sets it
-// `PUBLIC_`, and only a `PUBLIC_` name reaches the browser. See platform's
-// spec/architecture/probe.md.
+// `PUBLIC_`, and only a `PUBLIC_` name reaches the browser. See spec/architecture/status.md, "The
+// page: one app, served by Vercel".
 for (const name of ['SUPABASE_URL', 'SUPABASE_ANON_KEY']) {
 	const bare = process.env[name];
 	if (bare) process.env[`PUBLIC_${name}`] = bare;

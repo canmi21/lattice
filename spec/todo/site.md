@@ -323,3 +323,23 @@ which of its concerns are its own and which it only borrows from the platform.
 **Undecided: what separates an application from the infrastructure**, so that the questions only
 an application asks -- which of two hosts a page is indexed under, what a page's title is -- stay
 with it, and none of the platform's leaks into it.
+
+## The service domains answer nothing of their own yet
+
+The platform's service domains have no page at their apex: `ixc.one` and `monoflake.*` answer
+nothing, `symlink.si`'s root redirects to the site, and `ill.li`'s root is the short links'
+redirect, so it has no page anywhere. What is decided, and is to be built here as this layer's:
+
+- **`ixc.one`, `symlink.si` and `il.lli.lil.ill.li` share one app, on Netlify.** `ill.li` was bought
+  for the joke -- a capital I and a small l are one stroke in any proportional face, so the name
+  reads as a row of lines -- and kept because it is shorter on screen than `t.co` or `t.me`; its
+  page goes three labels down to keep the joke. The app is SvelteKit 3, rendered on Netlify's Edge
+  Functions rather than prerendered, as the site's Worker renders everything and leaves the rest to
+  `Cache-Control`; it tells the hosts apart by the request's own URL.
+- **`il.lli.lil.ill.li` is a DNS-only `CNAME` to Netlify**, which issues its certificate: Cloudflare's
+  universal certificate covers one label under a zone and no deeper. `ixc.one` and `symlink.si` are
+  `CNAME`s at the apex, flattened and proxied by Cloudflare; on `symlink.si` the alias layer's
+  route keeps answering the names, and only `/` reaches the page.
+- **`monoflake.com` is an app of its own, later**: a market page, on a Cloudflare Worker.
+  `monoflake.net` redirects to it. Neither waits on the rest.
+- **Vercel holds the status page and nothing else.**
