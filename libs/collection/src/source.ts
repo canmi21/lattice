@@ -208,7 +208,7 @@ export const paths = sqliteTable(
 		 * split is also what lets the constraint below say what it means.
 		 */
 		directory: text('directory'),
-		/** What it is. See platform's spec/architecture/artifacts.md, "A slug is the identity". */
+		/** What it is. See spec/architecture/site-api.md, "A slug is the identity". */
 		slug: text('slug').notNull(),
 		since: text('since').notNull(),
 		until: text('until'),

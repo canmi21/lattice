@@ -143,7 +143,7 @@ describe('GET /view/:slug', () => {
 	});
 
 	// The hash `<url>.md` needs has its own route, and appears in no other answer. See
-	// platform's spec/architecture/artifacts.md, "A fact appears in exactly one answer".
+	// spec/architecture/site-api.md, "A fact appears in exactly one answer".
 	it('does not name the markdown hash', async () => {
 		expect(await payload(await get('/article?slug=the-first&locale=en'))).not.toHaveProperty(
 			'markdown',
@@ -263,7 +263,7 @@ async function filedLowercase(url: string): Promise<Response> {
 describe('POST /batch', () => {
 	// One route for every question asked about many things, discriminated by `type`. A language
 	// menu is one slug and many locales; a homepage warming its list is the other way round, and
-	// this is one question. See platform's spec/architecture/artifacts.md, "One batch entry point".
+	// this is one question. See spec/architecture/site-api.md, "One batch entry point".
 	it('answers the cross product, names each article once, and leaves out what it has not', async () => {
 		const answered = await payload<BatchAnswerOf<'articles'>>(
 			await get('/batch', {
@@ -323,7 +323,7 @@ describe('POST /batch', () => {
 	 * How many things an arm names is the schema's, and going over it is a mistake in the question
 	 * -- a `400`. How many bytes the body is is the route's backstop against a question no arm's
 	 * caps could produce -- a `413`. Both leave through the envelope; see
-	 * platform's spec/architecture/artifacts.md, "A refusal nobody handled is still a refusal".
+	 * spec/architecture/site-api.md, "A refusal nobody handled is still a refusal".
 	 */
 	it('refuses more rids than one question carries, and says so in the envelope', async () => {
 		const many = Array.from({ length: RESOURCES_PER_QUESTION + 1 }, (_, at) =>

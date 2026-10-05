@@ -4,7 +4,7 @@
  * Two layers. The isolate's own memo makes the hook and the load that follows it one request;
  * the colo cache outlives an isolate and is what actually keeps the site serving when the API
  * does not. Neither applies to a CDN object, which is immutable and needs no policy of its own.
- * See platform's spec/architecture/artifacts.md, "The site keeps serving when the API does not".
+ * See spec/architecture/site-api.md, "The site keeps serving when the API does not".
  */
 
 import { browser } from '$app/env';

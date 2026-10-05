@@ -18,11 +18,11 @@ export const prerender = false;
  * An article is asked for by identity and served only at its address.
  *
  * The last segment finds it, so a stale directory and the bare name both resolve. Neither is
- * served: both redirect, and why the two codes differ is platform's spec/architecture/artifacts.md,
+ * served: both redirect, and why the two codes differ is spec/architecture/site-api.md,
  * "Reaching an article by name".
  */
 // Universal, so a navigation after hydration renders in the browser and never calls this site's
-// Worker. See platform's spec/architecture/artifacts.md, "Two consumers, and the second one is the
+// Worker. See spec/architecture/site-api.md, "Two consumers, and the second one is the
 // browser".
 export const load: PageLoad = async ({ params, url, fetch, parent, depends }) => {
 	depends(LOCALE_DEPENDENCY);

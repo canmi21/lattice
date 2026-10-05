@@ -3,7 +3,7 @@
  *
  * Every function here runs in three places -- the Worker during SSR, the browser after hydration,
  * and a universal `load` that is either -- so none may reach for a binding, a Worker global or a
- * DOM one. See platform's spec/architecture/artifacts.md, "Two consumers, and the second one is the
+ * DOM one. See spec/architecture/site-api.md, "Two consumers, and the second one is the
  * browser".
  */
 
@@ -147,7 +147,7 @@ export async function askBatch<T extends BatchRequest>(
 /** The address one view's metadata is asked for at, so a warm and a fetch agree on the key. */
 function viewUrl(slug: string, locale: LocaleCode): string {
 	// The slug in the path and the locale in the query; `apiPath` writes the address from the
-	// route's shape. See platform's spec/architecture/artifacts.md, "A question names its thing in
+	// route's shape. See spec/architecture/site-api.md, "A question names its thing in
 	// the path; a list asks with a body".
 	return apiPath('article', { slug, locale });
 }
@@ -215,8 +215,8 @@ export async function warmView(slug: string, locale: LocaleCode): Promise<void> 
  * The path comes back with the view because the question could not carry it: `?slug=` takes the
  * identity alone, so the answer is the only thing that knows whether the address in the browser's
  * bar is the real one. A caller that renders without checking serves the article at every address
- * that reaches it, which is the duplicate-content shape. See platform's
- * spec/architecture/artifacts.md, "Reaching an article by name".
+ * that reaches it, which is the duplicate-content shape. See spec/architecture/site-api.md,
+ * "Reaching an article by name".
  */
 export type FoundArticle = { path: string; card?: string; view: PublishedView };
 
@@ -419,7 +419,7 @@ export async function publishedMarkdown(
  *
  * The server path still works, so the recovery is to use it; without this the failure is a
  * click that does nothing. The promise deliberately never settles -- the page it belongs to is
- * already being replaced. See platform's spec/architecture/artifacts.md, "Two consumers".
+ * already being replaced. See spec/architecture/site-api.md, "Two consumers".
  */
 export async function orReload<T>(url: URL, work: Promise<T>): Promise<T> {
 	try {

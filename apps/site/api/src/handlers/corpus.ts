@@ -21,7 +21,7 @@ import { findArticle, rootOf } from '../data/root';
  * An answer carries metadata and hashes, never a body: the objects it names are content-addressed
  * and are fetched from the CDN, which may hold them for a year. One variant dimension and it is
  * the locale, because every further one divides a five-minute cache by the values it takes. See
- * platform's spec/architecture/artifacts.md, "The API is the only thing that changes".
+ * spec/architecture/site-api.md, "The API is the only thing that changes".
  */
 const corpus = new Hono<{ Bindings: Bindings }>();
 
@@ -40,7 +40,7 @@ const MISSED = { 'Cache-Control': PUBLISHED } as const;
  * Three hours, because a root that old names objects that are all still there and still
  * immutable, so what it renders is a coherent older page. Only a 2xx carries it: a 404 is not an
  * error worth serving stale. The site holds the cache that acts on this -- see
- * platform's spec/architecture/artifacts.md, "The site keeps serving when the API does not".
+ * spec/architecture/site-api.md, "The site keeps serving when the API does not".
  */
 const ANSWERED = {
 	'Cache-Control': `${PUBLISHED}, stale-if-error=${WHILE_UNREACHABLE}`,
@@ -209,7 +209,7 @@ function homepage(root: Root, locale: LocaleCode): HomeAnswer['page'] {
 /**
  * Which view was asked for: `?locale=`, and the source when nothing was asked. Absent means `mw`,
  * the same answer a bare URL gives; an unknown value is a 400 and never a fallback to another
- * view. See platform's spec/architecture/artifacts.md, "The locale is a query parameter".
+ * view. See spec/architecture/site-api.md, "The locale is a query parameter".
  */
 function askedLocale(c: Context): LocaleCode | undefined {
 	const asked = c.req.query('locale');

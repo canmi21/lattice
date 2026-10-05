@@ -49,7 +49,7 @@ const markdownHandle: Handle = async ({ event, resolve }) => {
 		if (found) {
 			// A document is redirected on the same terms a page is, because a view served at every
 			// address that reaches it is the same duplicate-content shape. See
-			// platform's spec/architecture/artifacts.md, "Reaching an article by name".
+			// spec/architecture/site-api.md, "Reaching an article by name".
 			if (found.path !== asked) {
 				const permanent = asked.includes('/');
 				return new Response(null, {
@@ -122,8 +122,8 @@ const DOCUMENT_PATH = /\.[^./]+$/;
  *
  * Every question about an article asks by slug alone -- a slug is unique whatever directory holds
  * it, so the directory is the address and never part of the name. A standalone page has no
- * directory, so the same test returns the page itself. See platform's
- * spec/architecture/artifacts.md, "A slug is the identity and the path is the address".
+ * directory, so the same test returns the page itself. See spec/architecture/site-api.md, "A slug
+ * is the identity and the path is the address".
  */
 function identityIn(path: string): string {
 	return (

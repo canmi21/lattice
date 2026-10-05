@@ -4,7 +4,7 @@
  * A slug is an article's identity: unique across the corpus whatever directory it sits in, so the
  * directory is where it lives rather than part of what it is. That is what lets a reader reach an
  * article by name alone, and what lets it be recategorised without the address dying. See
- * platform's spec/architecture/artifacts.md, "A slug is the identity and the path is the address".
+ * spec/architecture/site-api.md, "A slug is the identity and the path is the address".
  *
  * Every rule here is refused at build time and none is reported later, because a corpus that
  * breaks one of them produces artifacts that are wrong rather than absent -- two articles sharing

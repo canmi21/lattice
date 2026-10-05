@@ -70,6 +70,26 @@ A glance at another tab costs nothing, since the grace outlasts it.
 does not: when Cloudflare's DNS is down, that door is still open, and the page names it in its
 footer so it is known before it is needed.
 
+## The board draws ninety bars, and a switch says what a bar is
+
+**The page draws ninety days, a bar a day**, from the probe's `status_daily` view -- see platform's `spec/architecture/probe.md`: each check's passed and
+failed rounds summed per UTC day from the hourly rollups, which are kept a year. A day with no rows
+is drawn empty; today's bar grows from what the broadcasts carry. **A bar's color is how long the
+check was down that day, on a line**: its failed rounds times its interval, with green at none,
+amber at an hour and red at twelve, and the color between two stops mixed in proportion. A day with a
+minute's blip is all but green, one with a bad afternoon is plainly amber, and a day lost is red --
+the eye reads how bad, not only whether.
+
+**One switch over the page sets what a bar is: a day, fifteen minutes, or a minute.** The count
+stays -- ninety, sixty or thirty as the window allows -- so days show ninety days, hours twenty-two
+and a half, minutes an hour and a half. A day is read from `status_daily`, fifteen minutes from the
+five-minute rollups three at a time, a minute from the minute rollups; what has not been rolled up
+yet is filled from the broadcasts, counted by the minute. The color stops scale with the bar: a bar
+a sixtieth of a day long turns amber at a sixtieth of an hour. The choice is `?range=` in the address,
+so a link shows what its sender saw, and the server renders it first. The switch sits above the board, at the right
+on a tablet or wider and at the left on a phone; when the database was last heard from sits at the right of the first group's
+heading, beside its name, rather than under the title.
+
 ## Errors go to Sentry
 
 **Each app that reports errors has its own Sentry project and its own DSN, declared in
