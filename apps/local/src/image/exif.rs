@@ -186,7 +186,6 @@ pub fn read(bytes: &[u8]) -> Option<Metadata> {
 		software: text(exif::Tag::Software),
 		color_space: text(exif::Tag::ColorSpace),
 		orientation: number(exif::Tag::Orientation).map(|v| v as u16),
-		..Metadata::default()
 	})
 }
 

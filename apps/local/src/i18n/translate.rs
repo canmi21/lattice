@@ -76,7 +76,6 @@ pub(super) async fn translate(
 			&item.source,
 			&masked,
 			&locale_refs,
-			options.source_locale.as_deref(),
 		) {
 			Ok(kept) => kept,
 			Err(error) => {
@@ -261,7 +260,7 @@ pub(super) async fn translate_display(request: DisplayRequest<'_>) -> DisplayRes
 					.join(", ")
 			)
 		} else {
-			format!("{}", rejected.join("; "))
+			rejected.join("; ").to_string()
 		});
 		attempt += 1;
 	}

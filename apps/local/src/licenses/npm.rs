@@ -305,7 +305,7 @@ mod tests {
 	fn walks_past_a_linked_workspace_package_into_its_dependencies() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		let hono = installed(&root, "hono", serde_json::json!({ "license": "MIT" }));
+		let hono = installed(root, "hono", serde_json::json!({ "license": "MIT" }));
 
 		let nodes = BTreeMap::from([(
 			"@canmi/urls".to_owned(),
@@ -330,7 +330,7 @@ mod tests {
 			["workspace:@canmi/urls"]
 		);
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 
 	/// The origin path keeps one route in; the dependents keep every package that asked.
@@ -338,8 +338,8 @@ mod tests {
 	fn records_every_parent_of_a_package_two_of_them_share() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		let shared = installed(&root, "shared", serde_json::json!({ "license": "MIT" }));
-		let middle = installed(&root, "middle", serde_json::json!({ "license": "MIT" }));
+		let shared = installed(root, "shared", serde_json::json!({ "license": "MIT" }));
+		let middle = installed(root, "middle", serde_json::json!({ "license": "MIT" }));
 
 		let leaf = |path: &PathBuf| Node {
 			version: "1.0.0".to_owned(),
@@ -369,14 +369,14 @@ mod tests {
 		// somewhere else to be said.
 		assert_eq!(found["pkg:npm/shared@1.0.0"].origins["site"], ["pkg:npm/shared@1.0.0"]);
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 
 	#[test]
 	fn leaves_out_a_package_resolved_for_another_platform() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		let here = installed(&root, "here", serde_json::json!({ "license": "MIT" }));
+		let here = installed(root, "here", serde_json::json!({ "license": "MIT" }));
 
 		let nodes = BTreeMap::from([
 			(
@@ -397,6 +397,6 @@ mod tests {
 		walk(&nodes, &mut found, "site", &[]);
 		assert_eq!(found.keys().collect::<Vec<_>>(), ["pkg:npm/here@1.0.0"]);
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 }

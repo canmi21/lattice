@@ -418,7 +418,7 @@ mod tests {
 			end: 0,
 		};
 		let inside = Gloss { phrase: "脱裤子放屁".into(), guidance: "a crude idiom".into() };
-		assert!(attach(&[segment.clone()], &[inside]).is_empty());
+		assert!(attach(std::slice::from_ref(&segment), &[inside]).is_empty());
 		// The same phrase in open prose still attaches.
 		let open =
 			super::super::segment::Segment { source: "这就是脱裤子放屁而已".into(), ..segment };

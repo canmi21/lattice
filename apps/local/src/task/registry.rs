@@ -195,8 +195,8 @@ mod tests {
 	fn a_published_run_is_visible_to_a_reader() {
 		let temporary = temp();
 		let root = temporary.path();
-		let entry = publish(&root, "favicon", Shell::Cli, 8).expect("publish");
-		let listed = live(&root).expect("live");
+		let entry = publish(root, "favicon", Shell::Cli, 8).expect("publish");
+		let listed = live(root).expect("live");
 		assert_eq!(listed.len(), 1);
 		assert_eq!(listed[0].task, "favicon");
 		assert_eq!(listed[0].total, 8);
@@ -208,9 +208,9 @@ mod tests {
 	fn progress_reaches_the_reader() {
 		let temporary = temp();
 		let root = temporary.path();
-		let mut entry = publish(&root, "i18n", Shell::Desktop, 100).expect("publish");
+		let mut entry = publish(root, "i18n", Shell::Desktop, 100).expect("publish");
 		entry.update(42, 100, "less-is-more.md ja-JP").expect("update");
-		let listed = live(&root).expect("live");
+		let listed = live(root).expect("live");
 		assert_eq!(listed[0].done, 42);
 		assert_eq!(listed[0].message, "less-is-more.md ja-JP");
 		drop(entry);
@@ -221,9 +221,9 @@ mod tests {
 	fn a_finished_run_stops_being_listed() {
 		let temporary = temp();
 		let root = temporary.path();
-		let entry = publish(&root, "favicon", Shell::Cli, 1).expect("publish");
+		let entry = publish(root, "favicon", Shell::Cli, 1).expect("publish");
 		drop(entry);
-		assert!(live(&root).expect("live").is_empty());
+		assert!(live(root).expect("live").is_empty());
 		std::fs::remove_dir_all(root).ok();
 	}
 
@@ -234,7 +234,7 @@ mod tests {
 	fn an_entry_left_by_a_dead_process_is_not_live() {
 		let temporary = temp();
 		let root = temporary.path();
-		let directory = directory(&root);
+		let directory = directory(root);
 		std::fs::create_dir_all(&directory).expect("dir");
 		std::fs::write(
 			directory.join("999999-i18n.run"),
@@ -251,8 +251,8 @@ mod tests {
 		)
 		.expect("write");
 
-		assert!(live(&root).expect("live").is_empty());
-		assert!(running(&root, "i18n").expect("running").is_none());
+		assert!(live(root).expect("live").is_empty());
+		assert!(running(root, "i18n").expect("running").is_none());
 		std::fs::remove_dir_all(root).ok();
 	}
 
@@ -260,11 +260,11 @@ mod tests {
 	fn running_names_the_holder() {
 		let temporary = temp();
 		let root = temporary.path();
-		let entry = publish(&root, "alt", Shell::Desktop, 24).expect("publish");
-		let found = running(&root, "alt").expect("running").expect("some");
+		let entry = publish(root, "alt", Shell::Desktop, 24).expect("publish");
+		let found = running(root, "alt").expect("running").expect("some");
 		assert_eq!(found.pid, std::process::id());
 		assert_eq!(found.shell, Shell::Desktop);
-		assert!(running(&root, "tag").expect("running").is_none());
+		assert!(running(root, "tag").expect("running").is_none());
 		drop(entry);
 		std::fs::remove_dir_all(root).ok();
 	}
@@ -273,9 +273,9 @@ mod tests {
 	fn one_process_publishes_two_different_tasks_at_once() {
 		let temporary = temp();
 		let root = temporary.path();
-		let alt = publish(&root, "alt", Shell::Cli, 1).expect("alt");
-		let tag = publish(&root, "tag", Shell::Cli, 1).expect("tag");
-		assert_eq!(live(&root).expect("live").len(), 2);
+		let alt = publish(root, "alt", Shell::Cli, 1).expect("alt");
+		let tag = publish(root, "tag", Shell::Cli, 1).expect("tag");
+		assert_eq!(live(root).expect("live").len(), 2);
 		drop((alt, tag));
 		std::fs::remove_dir_all(root).ok();
 	}

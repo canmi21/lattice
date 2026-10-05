@@ -189,14 +189,14 @@ mod tests {
 		// never granted. Silence here is a missing image nobody reports.
 		let temporary = temp();
 		let root = temporary.path();
-		article(&root, "![](k7m2x)");
-		manifest(&root, "00000", "44b6081deaf0242ca3bf83d62a3b6c95");
+		article(root, "![](k7m2x)");
+		manifest(root, "00000", "44b6081deaf0242ca3bf83d62a3b6c95");
 
-		let found = report(&root, &root.join("contents")).expect("report");
+		let found = report(root, &root.join("contents")).expect("report");
 		assert_eq!(found.len(), 1);
 		assert_eq!(found[0].level, Level::Warn);
 		assert!(found[0].detail.contains("manifest"), "{:?}", found[0]);
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -206,18 +206,18 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		article(
-			&root,
+			root,
 			r#"![](shot.png)
 			::linkcard{url="https://a.example"}"#,
 		);
 
-		let found = report(&root, &root.join("contents")).expect("report");
+		let found = report(root, &root.join("contents")).expect("report");
 		let image = found.iter().find(|gap| gap.what == "shot.png").expect("image");
 		let icon = found.iter().find(|gap| gap.what == "a.example").expect("icon");
 
 		assert_eq!(image.level, Level::Warn);
 		assert_eq!(icon.level, Level::Info);
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -225,19 +225,19 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95";
-		article(&root, "![](k7m2x)");
-		manifest(&root, "k7m2x", cid);
+		article(root, "![](k7m2x)");
+		manifest(root, "k7m2x", cid);
 		let meta = image::store::meta_path(&crate::paths::metadata_root(root), "k7m2x");
 		std::fs::create_dir_all(meta.parent().expect("parent")).expect("dir");
 		std::fs::write(&meta, b"{}").expect("write");
 
 		// One gap remains and should: the bytes are published, but nothing has described them.
 		// That is what `local alt` is for, and it is information rather than a hole in the page.
-		let found = report(&root, &root.join("contents")).expect("report");
+		let found = report(root, &root.join("contents")).expect("report");
 		assert_eq!(found.len(), 1);
 		assert_eq!(found[0].level, Level::Info);
 		assert!(found[0].detail.contains("description"));
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -246,14 +246,14 @@ mod tests {
 		// looks exactly like this, which is the reason to notice it.
 		let temporary = temp();
 		let root = temporary.path();
-		article(&root, "![](k7m2x)");
-		manifest(&root, "k7m2x", "44b6081deaf0242ca3bf83d62a3b6c95");
+		article(root, "![](k7m2x)");
+		manifest(root, "k7m2x", "44b6081deaf0242ca3bf83d62a3b6c95");
 
 		// Two now: the record is gone, and nothing has described the asset either. Only the
 		// first is a warning -- a missing record leaves a hole, a missing description does not.
-		let found = report(&root, &root.join("contents")).expect("report");
+		let found = report(root, &root.join("contents")).expect("report");
 		assert_eq!(found.len(), 2);
 		assert_eq!(found.iter().filter(|gap| gap.level == Level::Warn).count(), 1);
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 }

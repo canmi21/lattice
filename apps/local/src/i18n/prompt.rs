@@ -293,7 +293,6 @@ pub fn field_marker(locale: &str, field: Display) -> String {
 /// field at a time cannot judge. The request carries every field the article has -- stored ones
 /// as context, missing ones as the work -- and an entry that did not meet its budget is deleted
 /// first, which puts it back in the missing list.
-#[expect(clippy::too_many_arguments, reason = "one request's inputs, each named")]
 pub fn build_display(
 	title: &str,
 	subtitle: Option<&str>,

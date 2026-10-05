@@ -336,9 +336,9 @@ mod tests {
 			media: BTreeMap::from([(id.clone(), described_media(&id))]),
 		};
 
-		let held = claim::take(&root, "alt", &id).expect("claim");
+		let held = claim::take(root, "alt", &id).expect("claim");
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			runner: Runner::Claude,
 			model_override: None,
 			merged: &merged,
@@ -355,7 +355,7 @@ mod tests {
 		assert_eq!(outcome.claimed_elsewhere, 1);
 		assert_eq!(outcome.described, 0);
 		assert!(outcome.failed.is_empty());
-		let _ = std::fs::remove_dir_all(&root);
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	/// A manifest record with no description yet, which is what makes it a candidate.

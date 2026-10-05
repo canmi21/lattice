@@ -66,7 +66,7 @@ pub fn run(
 	// Records published under an older shape are rewritten from the merged manifest, which
 	// already holds everything they contain. Re-deriving to fix a version number would spend
 	// minutes of CPU to produce identical pixels.
-	for cid in manifest::migrate(&mut merged, metadata) {
+	for cid in manifest::migrate(&merged, metadata) {
 		if let Some(media) = merged.media.get(&cid) {
 			republish(repo, media)?;
 			outcome.migrated += 1;
@@ -102,16 +102,12 @@ pub fn run(
 		// earlier iterations inserted. A register read once before the loop would let the second
 		// new picture of a run be granted the first one's id.
 		let resource = manifest::resource_for(previous, &manifest::register(&merged.media));
-		match super::publish(
-			&bytes,
-			mime_of(&path),
-			public,
-			metadata,
-			previous,
-			keep,
-			gazetteer.as_ref(),
-			resource,
-		) {
+		let published =
+			super::derive_for(&bytes, mime_of(&path), previous, keep, gazetteer.as_ref(), resource)
+				.and_then(|prepared| {
+					super::write_derived(public, metadata, &prepared).map(|()| prepared.media)
+				});
+		match published {
 			Ok(media) => {
 				if let Some(target) = reference.as_deref() {
 					note(&mut rewrites, target, Some(&media));
@@ -401,9 +397,9 @@ mod tests {
 		let root = temporary.path();
 		std::fs::write(root.join(".DS_Store"), b"x").expect("write");
 		std::fs::write(root.join("real.png"), b"x").expect("write");
-		let found = sources(&root).expect("sources");
+		let found = sources(root).expect("sources");
 		assert_eq!(found.len(), 1);
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -422,14 +418,14 @@ mod tests {
 
 		let mut rewrites = BTreeMap::new();
 		rewrites.insert("shot.png".to_owned(), "newcid.avif".to_owned());
-		let changed = rewrite_references(&root, &rewrites).expect("rewrite");
+		let changed = rewrite_references(root, &rewrites).expect("rewrite");
 
 		assert_eq!(changed, 3);
 		assert!(std::fs::read_to_string(root.join("a.md")).unwrap().contains("](newcid.avif)"));
 		assert!(
 			std::fs::read_to_string(root.join("deep/b.md")).unwrap().contains(r#"src="newcid.avif""#)
 		);
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -442,9 +438,9 @@ mod tests {
 		let mut rewrites = BTreeMap::new();
 		rewrites.insert("shot.png".to_owned(), "newcid.avif".to_owned());
 
-		assert_eq!(rewrite_references(&root, &rewrites).expect("rewrite"), 0);
+		assert_eq!(rewrite_references(root, &rewrites).expect("rewrite"), 0);
 		assert!(std::fs::read_to_string(root.join("a.md")).unwrap().contains("shot.png"));
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
@@ -454,8 +450,8 @@ mod tests {
 		std::fs::write(root.join("a.md"), "no images here").expect("write");
 		let mut rewrites = BTreeMap::new();
 		rewrites.insert("shot.png".to_owned(), "newcid.avif".to_owned());
-		assert_eq!(rewrite_references(&root, &rewrites).expect("rewrite"), 0);
-		std::fs::remove_dir_all(&root).ok();
+		assert_eq!(rewrite_references(root, &rewrites).expect("rewrite"), 0);
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	/// A picture whose published rungs are `sizes`, derived from a `width` x `height` source.
@@ -558,7 +554,7 @@ mod tests {
 		.expect("write stale sidecar");
 
 		let outcome = run(
-			&root,
+			root,
 			&root.join("data/source/image"),
 			&public,
 			&articles,
@@ -581,7 +577,7 @@ mod tests {
 		// the one it replaced looked like, because `GET /media` serves these bytes verbatim.
 		assert!(!rewritten.contains('\n'));
 		assert!(!public.join("image").exists());
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]

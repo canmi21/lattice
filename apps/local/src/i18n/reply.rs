@@ -23,7 +23,6 @@ pub(super) fn validate_reply(
 		masked.text.as_str(),
 		masked,
 		&prompt::LOCALES,
-		None,
 	)
 }
 
@@ -35,7 +34,6 @@ pub(super) fn validate_reply_for(
 	source: &str,
 	masked: &segment::Masked,
 	locales: &[&str],
-	_source_locale: Option<&str>,
 ) -> Result<Vec<(String, String)>, Refusal> {
 	let parsed = prompt::parse(reply, Some(boundary)).map_err(|prompt::BoundaryLeak| {
 		Refusal::Failed("the model echoed the prompt boundary".to_owned())

@@ -139,7 +139,7 @@ pub fn prepare(
 		let content = crate::image::cid(&file.bytes);
 		// Pixels for a bitmap and nothing for a vector, the same rule the image layer states:
 		// a caller that asks and receives nothing has learned the thing is scalable.
-		let pixels = (!manifest::scalable(file.mime)).then(|| Resolution { width, height });
+		let pixels = (!manifest::scalable(file.mime)).then_some(Resolution { width, height });
 		let variant = ImageVariant {
 			content: content.clone(),
 			mime: file.mime.to_owned(),

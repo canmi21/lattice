@@ -104,10 +104,10 @@ pub fn spacing_intact(text: &str) -> bool {
 			// The far side: whatever follows the directive's closing brace.
 			let after = &text[start..];
 			let close = after.find("\"}").map(|i| start + i + 2);
-			if let Some(end) = close {
-				if text[end..].chars().next().is_some_and(needs_space) {
-					return false;
-				}
+			if let Some(end) = close
+				&& text[end..].chars().next().is_some_and(needs_space)
+			{
+				return false;
 			}
 			at = start + name.len();
 		}

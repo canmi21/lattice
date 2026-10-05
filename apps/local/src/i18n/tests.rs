@@ -141,7 +141,6 @@ fn an_exact_source_locale_may_be_rewritten_as_a_localised_view() {
 			source,
 			&masked,
 			&["zh-CN"],
-			Some("zh-CN"),
 		)
 		.is_ok()
 	);
@@ -154,7 +153,6 @@ fn an_exact_source_locale_may_be_rewritten_as_a_localised_view() {
 			source,
 			&masked,
 			&["zh-CN"],
-			Some("zh-CN"),
 		)
 		.is_ok()
 	);

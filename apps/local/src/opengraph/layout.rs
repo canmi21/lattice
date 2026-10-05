@@ -394,7 +394,7 @@ mod tests {
 	fn the_bottom_left_is_left_empty() {
 		// X draws the domain over that corner. Everything in the bottom band is placed from
 		// the right edge inward, so nothing can drift into it.
-		assert!(PAD_X > 0.0);
-		assert!(TEXT_WIDTH < WIDTH as f32 - PAD_X);
+		const { assert!(PAD_X > 0.0) };
+		const { assert!(TEXT_WIDTH < WIDTH as f32 - PAD_X) };
 	}
 }

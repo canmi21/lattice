@@ -134,17 +134,17 @@ mod tests {
 
 		assert_eq!(find_upwards(&nested), Some(root.join("data").join("bucket")));
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 
 	#[test]
 	fn returns_nothing_when_there_is_no_marker() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		std::fs::create_dir_all(&root).unwrap();
+		std::fs::create_dir_all(root).unwrap();
 		// A temp directory has no data/bucket above it, and finding one would mean the walk
 		// escaped into somebody's home.
-		assert_eq!(find_upwards(&root), None);
-		std::fs::remove_dir_all(&root).unwrap();
+		assert_eq!(find_upwards(root), None);
+		std::fs::remove_dir_all(root).unwrap();
 	}
 }

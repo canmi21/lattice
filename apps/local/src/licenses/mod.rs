@@ -608,7 +608,7 @@ mod tests {
 		assert_eq!(written.record.packages.len(), 2);
 		assert_eq!(referenced(&written.record).len(), 1);
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 
 	#[test]
@@ -653,7 +653,7 @@ mod tests {
 		assert_eq!(written.textless, vec!["pkg:npm/bare@1.0.0"]);
 		assert_eq!(written.undeclared, vec!["pkg:npm/silent@1.0.0"]);
 
-		std::fs::remove_dir_all(&root).unwrap();
+		std::fs::remove_dir_all(root).unwrap();
 	}
 
 	#[test]

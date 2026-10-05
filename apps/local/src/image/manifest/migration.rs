@@ -107,6 +107,7 @@ pub(super) fn from_legacy(
 	let cid = record.blake3;
 	let (namespace, layers) = match record.body {
 		legacy::Body::Image(image) => {
+			let image = *image;
 			let origin =
 				Origin { blake3: cid.clone(), mime: image.source.mime, bytes: image.source.bytes };
 			let pixels = !scalable(&origin.mime);
@@ -120,7 +121,7 @@ pub(super) fn from_legacy(
 					aspect: image.source.ratio,
 				},
 				resolution: pixels
-					.then(|| Resolution { width: image.source.width, height: image.source.height }),
+					.then_some(Resolution { width: image.source.width, height: image.source.height }),
 				variants: image
 					.variants
 					.into_iter()

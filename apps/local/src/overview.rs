@@ -107,7 +107,6 @@ const RECENT_CEILING: usize = 24;
 
 fn snapshot_at(repository: &Path) -> std::io::Result<Snapshot> {
 	let contents = repository.join("contents");
-	let public = crate::paths::objects_root(repository);
 	let article_paths = refs::markdown_under(&contents)?;
 	let mut article_count = 0;
 	let mut article_sections = BTreeMap::<String, usize>::new();
@@ -235,7 +234,7 @@ mod tests {
 		std::fs::create_dir_all(record.parent().expect("record parent")).expect("record directory");
 		std::fs::write(record, "{}").expect("record");
 
-		let found = snapshot_at(&root).expect("snapshot");
+		let found = snapshot_at(root).expect("snapshot");
 		assert_eq!(found.articles.total, 1);
 		assert_eq!(
 			found.articles.sections,
@@ -278,7 +277,7 @@ mod tests {
 			.expect("article");
 		}
 
-		let found = snapshot_at(&root).expect("snapshot");
+		let found = snapshot_at(root).expect("snapshot");
 		assert_eq!(
 			found.articles.recent.iter().map(|article| article.title.as_str()).collect::<Vec<_>>(),
 			vec!["Revised", "Fourth", "Third", "First"]

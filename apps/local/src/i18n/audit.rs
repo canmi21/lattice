@@ -292,7 +292,7 @@ pub fn lengths(
 	let mut sorted: Vec<f32> = scaled.iter().map(|(_, v)| *v).collect();
 	sorted.sort_by(|a, b| a.partial_cmp(b).expect("widths are finite"));
 	let middle = sorted.len() / 2;
-	let centre = if sorted.len() % 2 == 0 {
+	let centre = if sorted.len().is_multiple_of(2) {
 		(sorted[middle - 1] + sorted[middle]) / 2.0
 	} else {
 		sorted[middle]
@@ -306,13 +306,13 @@ pub fn lengths(
 		.into_iter()
 		.filter_map(|(locale, value)| {
 			let apart = value / centre;
-			let reason = if value > ALONE_LONG || apart > APART_LONG {
-				format!("runs {:.1}x the length this source usually takes in {locale}", value)
-			} else if value < ALONE_SHORT || apart < APART_SHORT {
-				format!("runs {:.1}x the length this source usually takes in {locale}", value)
-			} else {
+			let long = value > ALONE_LONG || apart > APART_LONG;
+			let short = value < ALONE_SHORT || apart < APART_SHORT;
+			if !long && !short {
 				return None;
-			};
+			}
+			// The ratio says which way it runs.
+			let reason = format!("runs {value:.1}x the length this source usually takes in {locale}");
 			Some(Finding {
 				segment: segment_id.to_owned(),
 				locale: locale.to_owned(),
@@ -372,7 +372,7 @@ mod tests {
 	/// wrong-block check counts its `:fn` directives, and a source of `""` would make every
 	/// fixture below look like an answer about a different block.
 	/// The eight locales, paired with texts, in the order the store hands them over.
-	fn row<'a>(texts: [&'a str; 8]) -> Vec<(&'a str, &'a str)> {
+	fn row(texts: [&str; 8]) -> Vec<(&str, &str)> {
 		["de-DE", "en-US", "es-ES", "fr-FR", "ja-JP", "ko-KR", "zh-CN", "zh-TW"]
 			.into_iter()
 			.zip(texts)

@@ -222,7 +222,7 @@ mod tests {
 		let root = temporary.path();
 		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			wanted: &[wanted("example.com")],
 			force: false,
 			shell: registry::Shell::Cli,
@@ -242,10 +242,10 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		std::fs::create_dir_all(crate::paths::favicon_root(root).join("free.example")).expect("dir");
-		let held = claim::take(&root, "favicon", "taken.example").expect("claim");
+		let held = claim::take(root, "favicon", "taken.example").expect("claim");
 
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			wanted: &[wanted("taken.example"), wanted("free.example")],
 			force: false,
 			shell: registry::Shell::Cli,
@@ -266,16 +266,16 @@ mod tests {
 		let temporary = temp();
 		let root = temporary.path();
 		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
-		assert!(registry::running(&root, "favicon").expect("before").is_none());
+		assert!(registry::running(root, "favicon").expect("before").is_none());
 		run(Options {
-			repository: &root,
+			repository: root,
 			wanted: &[wanted("example.com")],
 			force: false,
 			shell: registry::Shell::Desktop,
 			sink: Box::new(progress::Silent),
 		})
 		.expect("run");
-		assert!(registry::running(&root, "favicon").expect("after").is_none());
+		assert!(registry::running(root, "favicon").expect("after").is_none());
 		std::fs::remove_dir_all(root).ok();
 	}
 
@@ -290,7 +290,7 @@ mod tests {
 		std::fs::create_dir_all(&collected).expect("dir");
 
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			wanted: &[wanted("late.example")],
 			force: false,
 			shell: registry::Shell::Cli,
@@ -312,14 +312,14 @@ mod tests {
 		let root = temporary.path();
 		std::fs::create_dir_all(crate::paths::favicon_root(root).join("example.com")).expect("dir");
 		run(Options {
-			repository: &root,
+			repository: root,
 			wanted: &[wanted("example.com")],
 			force: false,
 			shell: registry::Shell::Cli,
 			sink: Box::new(progress::Silent),
 		})
 		.expect("run");
-		assert!(claim::live(&root).expect("live").is_empty());
+		assert!(claim::live(root).expect("live").is_empty());
 		std::fs::remove_dir_all(root).ok();
 	}
 }

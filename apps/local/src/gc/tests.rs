@@ -431,14 +431,14 @@ fn keeps_the_files_of_an_icon_a_link_card_links_to() {
 		.expect("write");
 	}
 
-	let sweep = swept(&root, &public, &root.join("metadata"), &root.join("contents"));
+	let sweep = swept(root, &public, &root.join("metadata"), &root.join("contents"));
 	let names: Vec<String> = sweep.orphans.iter().map(|path| stem_of(path)).collect();
 	assert!(!names.contains(&kept_light.to_owned()), "collected a linked icon: {names:?}");
 	assert!(!names.contains(&kept_dark.to_owned()), "collected a linked icon: {names:?}");
 	// The site nothing links to any more is still collected, which is what says the reach
 	// above is the domain rather than a blanket exemption for icons.
 	assert!(names.contains(&unlinked.to_owned()), "kept an icon nothing links to: {names:?}");
-	std::fs::remove_dir_all(&root).ok();
+	std::fs::remove_dir_all(root).ok();
 }
 
 #[test]
@@ -454,13 +454,13 @@ fn sweeps_an_icon_directory_no_article_links_to() {
 
 	let public = root.join("public");
 	for domain in ["kept.example", "gone.example"] {
-		let directory = crate::paths::favicon_root(&root).join(domain);
+		let directory = crate::paths::favicon_root(root).join(domain);
 		std::fs::create_dir_all(&directory).expect("dir");
 		std::fs::write(directory.join("light.png"), b"icon").expect("write");
 	}
 
-	let sweep = plan(&root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
+	let sweep = plan(root, &public, &root.join("metadata"), &root.join("contents")).expect("plan");
 	assert_eq!(sweep.orphans.len(), 1);
 	assert!(sweep.orphans[0].ends_with("gone.example"));
-	std::fs::remove_dir_all(&root).ok();
+	std::fs::remove_dir_all(root).ok();
 }

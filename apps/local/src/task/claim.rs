@@ -194,8 +194,8 @@ mod tests {
 	fn a_claim_excludes_a_second_taker() {
 		let temporary = temp();
 		let root = temporary.path();
-		let first = take(&root, "favicon", "example.com").expect("first");
-		match take(&root, "favicon", "example.com") {
+		let first = take(root, "favicon", "example.com").expect("first");
+		match take(root, "favicon", "example.com") {
 			Err(Denied::Taken(held)) => {
 				assert_eq!(held.key, "example.com");
 				assert_eq!(held.pid, std::process::id());
@@ -210,8 +210,8 @@ mod tests {
 	fn different_items_of_one_task_do_not_contend() {
 		let temporary = temp();
 		let root = temporary.path();
-		let one = take(&root, "i18n", "a.md#seg1#ja-JP").expect("one");
-		let two = take(&root, "i18n", "a.md#seg2#ja-JP").expect("two");
+		let one = take(root, "i18n", "a.md#seg1#ja-JP").expect("one");
+		let two = take(root, "i18n", "a.md#seg2#ja-JP").expect("two");
 		drop((one, two));
 		std::fs::remove_dir_all(root).ok();
 	}
@@ -222,8 +222,8 @@ mod tests {
 	fn the_same_key_under_two_tasks_is_two_claims() {
 		let temporary = temp();
 		let root = temporary.path();
-		let alt = take(&root, "alt", "44b6081d").expect("alt");
-		let tag = take(&root, "tag", "44b6081d").expect("tag");
+		let alt = take(root, "alt", "44b6081d").expect("alt");
+		let tag = take(root, "tag", "44b6081d").expect("tag");
 		drop((alt, tag));
 		std::fs::remove_dir_all(root).ok();
 	}
@@ -232,9 +232,9 @@ mod tests {
 	fn releasing_lets_the_next_taker_through() {
 		let temporary = temp();
 		let root = temporary.path();
-		let first = take(&root, "favicon", "example.com").expect("first");
+		let first = take(root, "favicon", "example.com").expect("first");
 		drop(first);
-		take(&root, "favicon", "example.com").expect("second");
+		take(root, "favicon", "example.com").expect("second");
 		std::fs::remove_dir_all(root).ok();
 	}
 
@@ -244,7 +244,7 @@ mod tests {
 	fn a_claim_left_by_a_dead_process_is_reclaimed() {
 		let temporary = temp();
 		let root = temporary.path();
-		let directory = directory(&root);
+		let directory = directory(root);
 		std::fs::create_dir_all(&directory).expect("dir");
 		let path = directory.join(file_name("favicon", "ghost.example"));
 		std::fs::write(
@@ -259,7 +259,7 @@ mod tests {
 		)
 		.expect("write");
 
-		let reclaimed = take(&root, "favicon", "ghost.example").expect("reclaim");
+		let reclaimed = take(root, "favicon", "ghost.example").expect("reclaim");
 		assert_eq!(reclaimed.path(), path);
 		std::fs::remove_dir_all(root).ok();
 	}
@@ -268,7 +268,7 @@ mod tests {
 	fn a_dead_claim_is_left_out_of_the_live_listing() {
 		let temporary = temp();
 		let root = temporary.path();
-		let directory = directory(&root);
+		let directory = directory(root);
 		std::fs::create_dir_all(&directory).expect("dir");
 		std::fs::write(
 			directory.join(file_name("favicon", "ghost.example")),
@@ -282,8 +282,8 @@ mod tests {
 		)
 		.expect("write");
 
-		let held = take(&root, "favicon", "alive.example").expect("alive");
-		let listed = live(&root).expect("live");
+		let held = take(root, "favicon", "alive.example").expect("alive");
+		let listed = live(root).expect("live");
 		assert_eq!(
 			listed.iter().map(|entry| entry.key.as_str()).collect::<Vec<_>>(),
 			vec!["alive.example"]
@@ -296,7 +296,7 @@ mod tests {
 	fn nothing_claimed_lists_nothing() {
 		let temporary = temp();
 		let root = temporary.path();
-		assert!(live(&root).expect("live").is_empty());
+		assert!(live(root).expect("live").is_empty());
 		std::fs::remove_dir_all(root).ok();
 	}
 }

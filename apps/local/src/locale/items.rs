@@ -192,7 +192,7 @@ pub(super) fn pending_summaries(
 			}
 		}
 	}
-	items.sort_by(|a, b| a.id("").cmp(&b.id("")));
+	items.sort_by_key(|a| a.id(""));
 	Ok((items, skipped))
 }
 

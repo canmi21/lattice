@@ -176,10 +176,10 @@ pub fn label(source: &str) -> String {
 	let mut text = source.trim();
 	// Heading marks, then the trailing anchor.
 	text = text.trim_start_matches('#').trim_start();
-	if let Some(open) = text.rfind("{#") {
-		if text.trim_end().ends_with('}') {
-			text = text[..open].trim_end();
-		}
+	if let Some(open) = text.rfind("{#")
+		&& text.trim_end().ends_with('}')
+	{
+		text = text[..open].trim_end();
 	}
 
 	let mut out = String::with_capacity(text.len());
@@ -249,6 +249,9 @@ pub mod budget {
 	/// Not a clip but a decision. A title wider than this is replaced by the short one, which
 	/// always fits, rather than being allowed to wrap to a second line.
 	pub const ARTICLE_TITLE: f32 = 300.0;
+	// So a short title, written to the card, always clears the article page. The page's own
+	// check is libs/compile/src/width.ts, which names this figure as its source.
+	const _: () = assert!(ARTICLE_TITLE > PHONE_TITLE);
 	/// A card title once the article column is at its 45rem cap, which is every window past 768px.
 	/// That cap is `--rail-column` in apps/site/src/styles/utilities.css; this figure and the
 	/// subtitle below are derived from it by hand, and nothing checks that they still follow it.
@@ -263,14 +266,6 @@ pub mod budget {
 /// fitting, and the longest title in the corpus today draws 503px against a 504px cap. So a fifth
 /// is held back: what fits comfortably is kept, and what merely fits is written again.
 pub const HEADROOM: f32 = 0.8;
-
-pub fn fits(text: &str, budget: f32) -> bool {
-	pixels(text) <= budget
-}
-
-pub fn comfortable(text: &str, budget: f32) -> bool {
-	pixels(text) <= budget * HEADROOM
-}
 
 #[cfg(test)]
 mod tests {
@@ -363,19 +358,6 @@ mod tests {
 	}
 
 	#[test]
-	fn an_article_title_has_more_room_than_a_card_title() {
-		// The card shares its row with a leader and a date; the article title has the column.
-		assert!(budget::ARTICLE_TITLE > budget::PHONE_TITLE);
-		// So a short title, written to the card, always clears the article page.
-		assert!(fits("Freunde auf Zeit", budget::ARTICLE_TITLE));
-		// And the longest title in the corpus does not.
-		assert!(!fits(
-			"Freundschaften gehören immer nur zu bestimmten Lebensphasen",
-			budget::ARTICLE_TITLE
-		));
-	}
-
-	#[test]
 	fn the_character_budget_follows_the_script_the_locale_writes_in() {
 		assert_eq!(characters(budget::PHONE_TITLE, "zh-CN"), 11);
 		assert_eq!(characters(budget::PHONE_TITLE, "ja-JP"), 11);
@@ -387,14 +369,14 @@ mod tests {
 	fn a_title_that_merely_fits_is_not_comfortable() {
 		// The German title in the corpus today, against the desktop cap it is one pixel under.
 		let tight = "Freundschaften gehören immer nur zu bestimmten Lebensphasen";
-		assert!(!comfortable(tight, budget::DESKTOP_TITLE));
-		assert!(comfortable("Rendering as a Protocol", budget::DESKTOP_TITLE));
+		assert!(pixels(tight) > budget::DESKTOP_TITLE * HEADROOM);
+		assert!(pixels("Rendering as a Protocol") <= budget::DESKTOP_TITLE * HEADROOM);
 	}
 
 	#[test]
 	fn the_short_versions_written_by_hand_fit_the_phone() {
 		for (text, _) in MEASURED.iter().take(7) {
-			assert!(fits(text, budget::PHONE_TITLE), "{text} does not fit the phone title budget");
+			assert!(pixels(text) <= budget::PHONE_TITLE, "{text} does not fit the phone title budget");
 		}
 	}
 }

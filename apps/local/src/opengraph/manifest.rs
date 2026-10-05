@@ -105,10 +105,10 @@ mod tests {
 	fn another_version_is_read_as_no_record_at_all() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		std::fs::create_dir_all(&root).expect("dir");
+		std::fs::create_dir_all(root).expect("dir");
 		let path = root.join("opengraph.json");
 		std::fs::write(&path, r#"{"version":999,"cards":{"a.png":"deadbeef"}}"#).expect("write");
 		assert!(load(&path).cards.is_empty());
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 }

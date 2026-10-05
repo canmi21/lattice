@@ -190,23 +190,6 @@ pub fn write_derived(public: &Path, metadata: &Path, prepared: &Prepared) -> Res
 		.map_err(Error::Write)
 }
 
-/// Derive and publish one image, preserving its first-seen timestamp when it already exists.
-pub fn publish(
-	original: &[u8],
-	source_mime: &str,
-	public: &Path,
-	metadata: &Path,
-	previous: Option<&Media>,
-	keep_original: bool,
-	gazetteer: Option<&whereabouts::coordinates::Gazetteer>,
-	resource: crate::resource::ResourceId,
-) -> Result<Media, Error> {
-	let prepared = derive_for(original, source_mime, previous, keep_original, gazetteer, resource)?;
-	let media = prepared.media.clone();
-	write_derived(public, metadata, &prepared)?;
-	Ok(media)
-}
-
 /// Derive and store one source synchronously, returning the id an editor should insert.
 ///
 /// The rid, because that is what an article names. A cid still addresses every published byte and
@@ -220,16 +203,21 @@ pub fn store_one(repository: &Path, source: &Path, keep_original: bool) -> Resul
 	// The returned id may be inserted into an article immediately. Published bytes and records
 	// must exist first so a crash can only leave an unreferenced image. See spec/tasks.md.
 	let resource = manifest::resource_for(merged.media.get(&id), &manifest::register(&merged.media));
-	let media = publish(
+	let gazetteer = whereabouts::coordinates::Gazetteer::open(&crate::paths::geo_root(repository));
+	let prepared = derive_for(
 		&bytes,
 		mime_of(source),
-		&crate::paths::objects_root(repository),
-		&crate::paths::metadata_root(repository),
 		merged.media.get(&id),
 		keep_original,
-		whereabouts::coordinates::Gazetteer::open(&crate::paths::geo_root(repository)).as_ref(),
+		gazetteer.as_ref(),
 		resource,
 	)?;
+	write_derived(
+		&crate::paths::objects_root(repository),
+		&crate::paths::metadata_root(repository),
+		&prepared,
+	)?;
+	let media = prepared.media;
 	// The rid, because that is what an article names now. The cid is still the manifest's key and
 	// still the address of every published byte; neither is what goes into a sentence.
 	let named = media.resource.to_string();
@@ -491,7 +479,7 @@ mod tests {
 
 		// The rid, which is what an editor inserts: an article names a thing, and the cid that
 		// still keys the manifest names the bytes it happens to have been made from.
-		let named = store_one(&root, &source, false).expect("store one");
+		let named = store_one(root, &source, false).expect("store one");
 
 		let merged = run::load(&root.join(run::MERGED)).expect("merged");
 		let media = merged.media.get(&cid(&original)).expect("merged record");

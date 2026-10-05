@@ -13,7 +13,8 @@ pub struct Media {
 #[derive(Debug, Clone, Deserialize)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum Body {
-	Image(Image),
+	// Boxed, because an image carries its whole EXIF record and a clip carries none.
+	Image(Box<Image>),
 	Video(Video),
 }
 

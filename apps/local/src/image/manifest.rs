@@ -676,7 +676,7 @@ pub fn media_for(
 			aspect: ratio_of(derived.width, derived.height),
 		},
 		resolution: (!scalable(source_mime))
-			.then(|| Resolution { width: derived.width, height: derived.height }),
+			.then_some(Resolution { width: derived.width, height: derived.height }),
 		variants: derived.variants.iter().map(published).collect(),
 	};
 	let mut layers = image_layers(origin.clone(), image, metadata);

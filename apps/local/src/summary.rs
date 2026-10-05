@@ -526,9 +526,9 @@ mod tests {
 		)
 		.expect("article");
 
-		let held = claim::take(&root, "summary", "a.md").expect("claim");
+		let held = claim::take(root, "summary", "a.md").expect("claim");
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			runner: Runner::Claude,
 			model_override: None,
 			force: false,
@@ -543,7 +543,7 @@ mod tests {
 		assert_eq!(outcome.claimed_elsewhere, 1);
 		assert_eq!(outcome.written, 0);
 		assert!(outcome.failed.is_empty());
-		let _ = std::fs::remove_dir_all(&root);
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	/// A broken sidecar stops the walk rather than reading as a missing summary, which would
@@ -632,7 +632,7 @@ mod tests {
 		)
 		.unwrap();
 		std::fs::write(dir.join("post.md"), "---\ntitle: B\nlang: zh\n---\n\nBody\n").unwrap();
-		let (todo, _, _) = pending(&dir, false).expect("pending");
+		let (todo, _, _) = pending(dir, false).expect("pending");
 		assert_eq!(todo.len(), 1);
 		assert!(todo[0].path.ends_with("post.md"));
 	}
@@ -658,7 +658,7 @@ mod tests {
 		);
 		std::fs::write(sidecar_for(&article), serde_yaml_ng::to_string(&sidecar).unwrap()).unwrap();
 
-		let (todo, _, reviewed) = pending(&dir, true).expect("pending");
+		let (todo, _, reviewed) = pending(dir, true).expect("pending");
 		assert!(todo.is_empty());
 		assert_eq!(reviewed, 1);
 	}

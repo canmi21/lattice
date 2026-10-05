@@ -151,7 +151,7 @@ mod tests {
 	fn mutations_are_applied() {
 		let temporary = temp();
 		let root = temporary.path();
-		let writer = Writer::start(&root, Record::Media).expect("writer");
+		let writer = Writer::start(root, Record::Media).expect("writer");
 		let counter = Arc::new(AtomicUsize::new(0));
 		for _ in 0..8 {
 			let counter = Arc::clone(&counter);
@@ -176,7 +176,7 @@ mod tests {
 		let root = temporary.path();
 		let store = root.join("store");
 		std::fs::write(&store, "0").expect("seed");
-		let writer = Arc::new(Writer::start(&root, Record::Media).expect("writer"));
+		let writer = Arc::new(Writer::start(root, Record::Media).expect("writer"));
 
 		let mut workers = Vec::new();
 		for _ in 0..8 {
@@ -210,7 +210,7 @@ mod tests {
 	fn a_failing_mutation_reports_to_its_caller() {
 		let temporary = temp();
 		let root = temporary.path();
-		let writer = Writer::start(&root, Record::Tags).expect("writer");
+		let writer = Writer::start(root, Record::Tags).expect("writer");
 		let result = writer.apply(|| Err(std::io::Error::other("no")));
 		assert!(result.is_err());
 		// The writer survives a failed mutation; one bad item must not end a paid run.
@@ -227,7 +227,7 @@ mod tests {
 		let root = temporary.path();
 		let counter = Arc::new(AtomicUsize::new(0));
 		{
-			let writer = Writer::start(&root, Record::Notes).expect("writer");
+			let writer = Writer::start(root, Record::Notes).expect("writer");
 			for _ in 0..4 {
 				let counter = Arc::clone(&counter);
 				writer
@@ -246,8 +246,8 @@ mod tests {
 	fn each_record_has_its_own_lock_file() {
 		let temporary = temp();
 		let root = temporary.path();
-		let media = lock_path(&root, Record::Media);
-		let tags = lock_path(&root, Record::Tags);
+		let media = lock_path(root, Record::Media);
+		let tags = lock_path(root, Record::Tags);
 		assert_ne!(media, tags);
 		assert!(media.ends_with("media.lock"));
 		std::fs::remove_dir_all(root).ok();

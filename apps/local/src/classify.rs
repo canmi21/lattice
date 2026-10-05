@@ -401,9 +401,9 @@ mod tests {
 		)
 		.expect("manifest");
 
-		let held = claim::take(&root, "tag", &id).expect("claim");
+		let held = claim::take(root, "tag", &id).expect("claim");
 		let outcome = run(Options {
-			repository: &root,
+			repository: root,
 			runner: Runner::Claude,
 			force: false,
 			limit: None,
@@ -416,7 +416,7 @@ mod tests {
 
 		assert_eq!(outcome.claimed_elsewhere, 1);
 		assert_eq!(outcome.classified, 0);
-		let _ = std::fs::remove_dir_all(&root);
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	/// A record with no category yet, whose origin is the real cid of the file on disk.

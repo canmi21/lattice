@@ -6,7 +6,7 @@
 //! it", for why loudness rather than peak sets the target, why this is normalisation and not
 //! compression, and how the gain is applied at playback.
 
-use super::{Error, tool};
+use super::Error;
 use serde::Deserialize;
 use std::ffi::OsStr;
 use std::path::Path;

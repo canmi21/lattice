@@ -225,7 +225,6 @@ pub enum Face {
 
 /// Every card an article asks for: one per view, each in that view's own words.
 fn article_jobs(
-	public: &Path,
 	config: &SiteConfig,
 	catalogs: &BTreeMap<&'static str, BTreeMap<String, String>>,
 	path: &Path,
@@ -347,7 +346,6 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 
 /// The home card, once per view, worded by that view's own catalog.
 fn home_jobs(
-	public: &Path,
 	config: &SiteConfig,
 	catalogs: &BTreeMap<&'static str, BTreeMap<String, String>>,
 	census: &Census,
@@ -397,6 +395,9 @@ fn load_avatar(repo: &Path) -> Option<Avatar> {
 		size,
 	})
 }
+
+/// A card drawn and the cid its bytes were stored under, or its label and why it was not.
+type Drawn<'a> = Result<(&'a Planned, String), (String, String)>;
 
 /// One job with the record entry that decides whether it still needs drawing.
 struct Planned {
@@ -450,7 +451,7 @@ pub fn render_all(
 	// the only part of this that is not text shaping.
 	let avatar = load_avatar(repo);
 
-	let results: Vec<Result<(&Planned, String), (String, String)>> = todo
+	let results: Vec<Drawn> = todo
 		.par_iter()
 		.map_init(
 			|| load_fonts(repo).expect("font already parsed once above"),
@@ -606,12 +607,10 @@ pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<O
 
 	let mut jobs = Vec::new();
 	for (path, article) in live_articles(articles).map_err(|e| e.to_string())? {
-		jobs.extend(
-			article_jobs(public, &config, &catalogs, &path, &article).map_err(|e| e.to_string())?,
-		);
+		jobs.extend(article_jobs(&config, &catalogs, &path, &article).map_err(|e| e.to_string())?);
 	}
 
-	jobs.extend(home_jobs(public, &config, &catalogs, &census(articles)?));
+	jobs.extend(home_jobs(&config, &catalogs, &census(articles)?));
 	render_all(repo, public, jobs, force)
 }
 
@@ -654,9 +653,9 @@ mod tests {
 		)
 		.expect("write");
 
-		let article = article_of(&root, &path).expect("an article");
+		let article = article_of(root, &path).expect("an article");
 		assert_eq!(article.title, "One title that was written across two lines");
-		let _ = std::fs::remove_dir_all(&root);
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	/// Quoted scalars are the other shape the old reader mangled: it stripped one layer of
@@ -673,9 +672,9 @@ mod tests {
 		)
 		.expect("write");
 
-		let article = article_of(&root, &path).expect("an article");
+		let article = article_of(root, &path).expect("an article");
 		assert_eq!(article.title, "A title with a \"quote\" inside");
-		let _ = std::fs::remove_dir_all(&root);
+		let _ = std::fs::remove_dir_all(root);
 	}
 
 	#[test]
@@ -692,7 +691,7 @@ mod tests {
 		)
 		.expect("write");
 
-		let article = article_of(&root, &path).expect("article");
+		let article = article_of(root, &path).expect("article");
 		assert_eq!(article.slug, "development/a-thing");
 		assert_eq!(article.title, "A Thing");
 		assert_eq!(article.subtitle.as_deref(), Some("About the thing"));
@@ -702,18 +701,18 @@ mod tests {
 		// fixture that separates them can tell which one the card would draw.
 		assert_eq!(article.created.as_deref(), Some("2026-04-13T19:18:28Z"));
 		assert_eq!(article.published.as_deref(), Some("2026-05-02T08:00:00Z"));
-		std::fs::remove_dir_all(&root).ok();
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
 	fn an_article_without_a_title_has_no_card() {
 		let temporary = tempfile::tempdir().expect("temp");
 		let root = temporary.path();
-		std::fs::create_dir_all(&root).expect("dir");
+		std::fs::create_dir_all(root).expect("dir");
 		let path = root.join("x.md");
 		std::fs::write(&path, "---\nsubtitle: only this\n---\n").expect("write");
-		assert!(article_of(&root, &path).is_none());
-		std::fs::remove_dir_all(&root).ok();
+		assert!(article_of(root, &path).is_none());
+		std::fs::remove_dir_all(root).ok();
 	}
 
 	#[test]
