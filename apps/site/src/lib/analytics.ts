@@ -1,4 +1,5 @@
 import { dev } from '$app/env';
+import { disclose } from '@canmi/web/disclose';
 import { OpenPanel } from '@openpanel/web';
 
 /**
@@ -17,14 +18,14 @@ const CLIENT_ID = 'fb80587a-c39c-4171-9e1f-c14f73d31bc1';
  */
 export function registerAnalytics(): void {
 	// Constructing is the entire API here: the SDK arms its listeners in the constructor and
-	// registers itself nowhere, so there is no instance to keep until something needs to report
-	// a custom event by hand.
-	// eslint-disable-next-line no-new
-	new OpenPanel({
+	// registers itself nowhere. The instance is kept only as `openpanel`, the global Wappalyzer's
+	// fingerprint reads; see lib's spec/web/disclose.md.
+	const openpanel = new OpenPanel({
 		clientId: CLIENT_ID,
 		trackScreenViews: true,
 		trackOutgoingLinks: true,
 		trackAttributes: true,
 		filter: () => !dev,
 	});
+	disclose({ openpanel });
 }

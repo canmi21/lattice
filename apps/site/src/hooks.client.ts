@@ -1,6 +1,7 @@
 import type { ClientInit } from '@sveltejs/kit/hooks';
 import { dev } from '$app/env';
 import { takeParameter } from '@canmi/web/referer';
+import { disclose } from '@canmi/web/disclose';
 import { prepareBrowserRuntime } from '@canmi/web/compat';
 import { URLS } from '@monoflake/sdk';
 import { initClient } from '@canmi/web/sentry/client';
@@ -11,8 +12,9 @@ import { registerClientStrategy } from '#lib/locale/paraglide.js';
 registerClientStrategy();
 registerAnalytics();
 
-// A patch for Wappalyzer: the lite search client sets no global, and asks Algolia only on a search.
-window.__algolia = { algoliasearch: { version: import.meta.env.VITE_ALGOLIA_VERSION } };
+// The lite search client sets no global, and asks Algolia only on a search. See lib's
+// spec/web/disclose.md.
+disclose({ '__algolia.algoliasearch.version': import.meta.env.VITE_ALGOLIA_VERSION });
 
 // The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
 // in the app entry, which every reader downloads for a control that only the error page has --

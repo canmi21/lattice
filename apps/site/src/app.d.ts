@@ -43,7 +43,6 @@ declare global {
 
 	interface Window {
 		canmiArticleInitialHash?: string;
-		__algolia?: { algoliasearch: { version: string } };
 	}
 }
 
