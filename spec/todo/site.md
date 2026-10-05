@@ -343,3 +343,7 @@ redirect, so it has no page anywhere. What is decided, and is to be built here a
 - **`monoflake.com` is an app of its own, later**: a market page, on a Cloudflare Worker.
   `monoflake.net` redirects to it. Neither waits on the rest.
 - **Vercel holds the status page and nothing else.**
+
+The shared app is `apps/landing`, begun from the status page's shell. In development it answers on
+26525, and a host is asked for as itself under `.localhost` -- `http://ixc.one.localhost:26525/` --
+which every browser resolves to this machine, so the page tells hosts apart as it will deployed.

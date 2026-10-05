@@ -17,6 +17,7 @@
 		// a project.
 		"apps/site",
 		"apps/cms",
-		"apps/status"
+		"apps/status",
+		"apps/landing"
 	]
 }

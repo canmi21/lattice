@@ -150,6 +150,11 @@ description = "Run the status page against the Supabase project"
 dir = "apps/status"
 run = "pnpm run dev"
 
+[tasks.dev-landing]
+description = "Run the service domains' pages: http://ixc.one.localhost:26525/ and the like"
+dir = "apps/landing"
+run = "pnpm run dev"
+
 # The HTTP shell and the collection half behind it, on the pinned port. One command because they
 # are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
 [tasks.dev-local]
@@ -199,6 +204,11 @@ run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 [tasks.check-status]
 description = "Type check the status page, a SvelteKit application of its own"
 dir = "apps/status"
+run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
+
+[tasks.check-landing]
+description = "Type check the service domains' pages, a SvelteKit application of its own"
+dir = "apps/landing"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 [tasks.check-social]
