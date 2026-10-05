@@ -389,6 +389,7 @@
 					display: none;
 				}
 			</style>
+			<!-- svelte-ignore a11y_media_has_caption (the record's tracks, as on the element above) -->
 			<video
 				class="video-surface block h-full w-full object-cover {stylex.attrs(styles.surface).class}"
 				src={resolved ? undefined : fallback}
