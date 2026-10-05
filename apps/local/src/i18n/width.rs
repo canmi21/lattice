@@ -263,8 +263,9 @@ pub mod budget {
 /// The share of a budget a string may take and still be left alone.
 ///
 /// A translation that lands inside its budget with nothing to spare is one edit away from not
-/// fitting, and the longest title in the corpus today draws 503px against a 504px cap. So a fifth
-/// is held back: what fits comfortably is kept, and what merely fits is written again.
+/// fitting, and the longest title in the corpus today estimates within a pixel or two of the
+/// 504px cap. So a fifth is held back: what fits comfortably is kept, and what merely fits is
+/// written again.
 pub const HEADROOM: f32 = 0.8;
 
 #[cfg(test)]
@@ -367,7 +368,7 @@ mod tests {
 
 	#[test]
 	fn a_title_that_merely_fits_is_not_comfortable() {
-		// The German title in the corpus today, against the desktop cap it is one pixel under.
+		// The German title in the corpus today, which sits at the desktop cap.
 		let tight = "Freundschaften gehören immer nur zu bestimmten Lebensphasen";
 		assert!(pixels(tight) > budget::DESKTOP_TITLE * HEADROOM);
 		assert!(pixels("Rendering as a Protocol") <= budget::DESKTOP_TITLE * HEADROOM);

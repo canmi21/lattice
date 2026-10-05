@@ -11,7 +11,7 @@ edition = "2024"
 license = "MIT"
 
 [workspace.lints.clippy]
-# Formatting belongs to rustfmt; see spec/lint-format.md.
+# `style` is left at clippy's default, a warning; see the workspace's spec/lint-format.md.
 correctness = "deny"
 suspicious = "deny"
 complexity = "warn"
