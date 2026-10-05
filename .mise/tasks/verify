@@ -21,6 +21,7 @@ PACKAGE_GATES = {
 		"check-site",
 		"check-css",
 		"check-css-budget",
+		"check-worker",
 		"check-css-extraction",
 		"check-css-enumeration",
 		"check-css-ramp",

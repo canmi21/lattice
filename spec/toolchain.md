@@ -234,3 +234,13 @@ mapping, and these are the rules it keeps:
 Rust mirror of the URL map, left with the platform. A dependency the graph misses is
 a gate that silently does not run, which is the failure `code.md` in the workspace describes, so a
 second such entry is worth a structural fix before it is worth a line in the list.
+
+### The Worker is bundled before it is pushed
+
+**`check-worker` runs `wrangler deploy --dry-run` over the build `check-css` already made**, so it
+costs about a second. A vite build succeeding does not mean the Worker does: wrangler bundles the
+adapter's output again with esbuild, resolving each import under the `workerd` condition, and a
+module that exists for the browser can be missing there. That is how a deploy once failed after
+every gate had passed -- `@sentry/sveltekit`'s workerd entry had no feedback exports -- and
+Cloudflare's build was the first thing to see it. Only the site is a Worker; the status page
+builds on Vercel, the service domains' pages on Netlify, and the editor is static.

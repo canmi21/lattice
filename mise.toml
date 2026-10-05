@@ -77,6 +77,14 @@ description = "Hold each route category's first-load CSS to the budget in css-bu
 wait_for = ["check-css"]
 run = "node apps/site/scripts/css-budget.ts"
 
+[tasks.check-worker]
+description = "Bundle the site's Worker as a deploy would, without deploying it"
+# Reads check-css's build for the reason check-css-budget does. See spec/toolchain.md, "The
+# Worker is bundled before it is pushed".
+wait_for = ["check-css"]
+dir = "apps/site"
+run = "pnpm exec wrangler deploy --dry-run"
+
 # Three gates over the same scan of apps/site/src. Separate tasks rather than one, because each
 # names a different rule and a reader seeing which task went red already knows what to open. They
 # read source rather than the build, so nothing here waits on check-css. See
