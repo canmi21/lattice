@@ -16,6 +16,7 @@ export const ROUTES = [
 	'sitemap',
 	'source',
 	'stats',
+	'verify',
 ] as const;
 
 export type Route = (typeof ROUTES)[number];
@@ -48,6 +49,7 @@ export const SHAPES: Readonly<Record<Route, string>> = {
 	sitemap: 'sitemap',
 	source: 'articles/{slug}/source',
 	stats: 'stats',
+	verify: 'security/verify',
 };
 
 const PLACEHOLDER = /^\{([a-z]+)(\*?)\}$/;

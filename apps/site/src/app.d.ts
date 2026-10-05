@@ -36,6 +36,8 @@ declare global {
 		readonly VITE_COMMIT_HASH: string;
 		readonly VITE_BUILD_TIME: string;
 		readonly VITE_DISCLOSURE: Disclosure;
+		/** Another Turnstile test key for development; see lib/trust/trust.svelte.ts. */
+		readonly VITE_TURNSTILE_SITE_KEY?: string;
 	}
 
 	interface ImportMeta {

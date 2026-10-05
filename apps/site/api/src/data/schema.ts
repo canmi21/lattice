@@ -23,3 +23,17 @@ export const articleReads = sqliteTable('article_reads', {
 	slug: text('slug').primaryKey(),
 	count: integer('count').notNull(),
 });
+
+// One row per passed check: what a `trust` cookie names, so a grant can be found and withdrawn on
+// the server rather than taken on the cookie's word. Nothing here identifies a reader beyond the
+// country Cloudflare places them in. See spec/architecture/trust.md.
+export const trustGrants = sqliteTable(
+	'trust_grants',
+	{
+		id: text('id').primaryKey(),
+		expiresAt: integer('expires_at').notNull(),
+		createdAt: integer('created_at').notNull(),
+		country: text('country'),
+	},
+	(table) => [index('trust_grants_expires_at_idx').on(table.expiresAt)],
+);

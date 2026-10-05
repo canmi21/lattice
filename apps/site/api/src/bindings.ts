@@ -10,4 +10,10 @@ import type { Bindings as StoreBindings } from '@monoflake/sdk/store';
 export type Bindings = StoreBindings & {
 	DATABASE: D1Database;
 	QUOTA: Quota;
+	/** Turnstile's secret key; while it is unset the trust gate is off. See lib/trust.ts. */
+	TURNSTILE_SECRET?: string;
+	/** What a `trust` cookie is signed with. */
+	TRUST_KEY?: string;
+	/** Set in development, where the test secret answers for no real hostname or action. */
+	TURNSTILE_TEST?: string;
 };

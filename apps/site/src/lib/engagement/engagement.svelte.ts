@@ -14,6 +14,7 @@ import {
 	type StatsAnswer,
 } from '@monoflake/sdk/artifacts';
 import { createMutation, createQuery, useQueryClient } from '@tanstack/svelte-query';
+import { writeFetch } from '#lib/trust/trust.svelte.js';
 import { apiPath } from '#lib/api.js';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
 
@@ -171,7 +172,7 @@ async function fetchLiked(): Promise<LikedAnswer> {
 async function subscribe(email: string): Promise<NewsletterAnswer> {
 	return answered(
 		NewsletterAnswerSchema,
-		await fetch(apiPath('newsletter'), {
+		await writeFetch(apiPath('newsletter'), {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ email }),
@@ -180,7 +181,7 @@ async function subscribe(email: string): Promise<NewsletterAnswer> {
 }
 
 async function cancel(subscription: Subscription): Promise<CancelAnswer> {
-	const response = await fetch(apiPath('newsletter'), {
+	const response = await writeFetch(apiPath('newsletter'), {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(subscription),
@@ -195,7 +196,7 @@ async function cancel(subscription: Subscription): Promise<CancelAnswer> {
 async function setLike(liked: boolean): Promise<LikeAnswer> {
 	return answered(
 		LikeAnswerSchema,
-		await fetch(apiPath('like'), {
+		await writeFetch(apiPath('like'), {
 			method: 'PUT',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ liked }),

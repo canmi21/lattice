@@ -9,6 +9,8 @@ import corpus from './handlers/corpus';
 import engagement from './handlers/engagement';
 import { failure } from './lib/respond';
 import media from './handlers/media';
+import trust from './handlers/trust';
+import { requireTrust } from './lib/trust';
 import { LIMITS } from './contract/limits';
 
 /**
@@ -38,10 +40,15 @@ app.use('*', async (c, next) => {
 	return taken.allowed ? next() : limited(taken);
 });
 
+// After the limits, so a refused write is counted; before every route, so none writes unchecked.
+// See spec/architecture/trust.md.
+app.use('*', requireTrust);
+
 app.route('/', media);
 app.route('/', corpus);
 app.route('/', batch);
 app.route('/', engagement);
+app.route('/', trust);
 
 /**
  * A route that does not exist says so in the envelope, like every other refusal.

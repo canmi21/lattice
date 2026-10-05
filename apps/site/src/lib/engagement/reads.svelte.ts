@@ -2,6 +2,7 @@ import { browser } from '$app/env';
 import { ReadAnswerSchema, unwrapAs, type ReadAnswer } from '@monoflake/sdk/artifacts';
 import { createQuery } from '@tanstack/svelte-query';
 import { apiPath } from '#lib/api.js';
+import { writeFetch } from '#lib/trust/trust.svelte.js';
 import { askBatch } from '#lib/published/index.js';
 import { createBatcher } from './batch';
 import { QUERY_CACHE_MAX_AGE, QUERY_STALE_TIME } from '#lib/query.js';
@@ -73,7 +74,7 @@ export async function readsOf(slug: string): Promise<Reads> {
 }
 
 async function countRead(slug: string): Promise<Reads> {
-	const response = await fetch(apiPath('read', { slug }), { method: 'POST' });
+	const response = await writeFetch(apiPath('read', { slug }), { method: 'POST' });
 	if (!response.ok) throw new Error(`read request failed with ${response.status}`);
 	// Parsed against the schema the Worker answers to, then checked for the one thing a schema
 	// cannot know: that this is the article that was asked about.

@@ -13,4 +13,5 @@ export const LIMITS: readonly Row[] = [
 	{ methods: ['GET', 'HEAD'], path: '/like', count: 60, seconds: 60 },
 	{ methods: ['GET', 'HEAD'], path: '/stats', count: 60, seconds: 60 },
 	{ methods: ['GET', 'HEAD', 'POST'], path: '/read', count: 60, seconds: 60 },
+	{ methods: ['POST'], path: '/verify', count: 10, seconds: 60 },
 ];

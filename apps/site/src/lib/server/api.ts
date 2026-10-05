@@ -7,6 +7,9 @@ import { URLS } from '@monoflake/sdk';
 import type { RequestEvent } from '@sveltejs/kit';
 import { readAddress } from '#lib/api.js';
 
+/** Turnstile's documented secret that always passes, for development alone. */
+const TURNSTILE_TEST_SECRET = '1x0000000000000000000000000000000AA';
+
 /** Where the site's pages ask its API, on the site's own origin. */
 export const API_PREFIX = '/api/';
 
@@ -38,6 +41,11 @@ async function bindings(): Promise<Record<string, unknown>> {
 	if (dev) {
 		delete env.STORE;
 		env.ASSETS = (await import('./local-records')).localRecords;
+		// Turnstile's test secret, which passes the test widget's dummy token, so the gate runs here
+		// as in production; see spec/architecture/trust.md.
+		env.TURNSTILE_SECRET ??= TURNSTILE_TEST_SECRET;
+		env.TRUST_KEY ??= 'development';
+		env.TURNSTILE_TEST = 'yes';
 	}
 	return env;
 }

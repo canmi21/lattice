@@ -20,6 +20,12 @@ feed:
 # because the protocol requires publishing it".
 indexnow: 4db98e0b887a45b1b983c3f5715afa90
 
+# Cloudflare Turnstile's site key, public by construction like the search keys below: the page hands
+# it to the widget. Null until the widget exists, which leaves every page as it was. See
+# spec/architecture/trust.md.
+turnstile:
+  siteKey: null
+
 # The search index's application id and its search-only key. Both reach the browser, so both
 # are public by construction and are written here in plain text rather than pretending a secret
 # store could hide what ships in a bundle -- the same treatment as the IndexNow key above and

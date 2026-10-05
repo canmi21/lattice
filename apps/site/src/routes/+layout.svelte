@@ -1,4 +1,5 @@
 <script lang="ts">
+	import TrustOverlay from '#lib/trust/overlay.svelte';
 	import { mailtoOf } from '@canmi/me/mail';
 	import { report } from '@canmi/web/sentry/report';
 	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
@@ -282,4 +283,6 @@
 	     so a page that forgot to include it would be a hole in a site-wide shortcut. It renders
 	     nothing until it is opened. -->
 	<SearchDialog locale={locale?.code ?? 'mw'} />
+	<!-- Once for the whole site as well: the check a write may need is the site's, not a page's. -->
+	<TrustOverlay />
 </PersistQueryClientProvider>

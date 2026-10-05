@@ -37,6 +37,7 @@ export const CONTRACTS: Readonly<Record<Route, Contract>> = {
 	sitemap: { schemas: [], revision: 1 },
 	source: { schemas: [], revision: 1 },
 	stats: { schemas: [StatsAnswerSchema], revision: 1 },
+	verify: { schemas: [], revision: 1 },
 };
 
 /**

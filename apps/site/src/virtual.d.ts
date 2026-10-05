@@ -24,6 +24,7 @@ declare module 'virtual:site' {
 		tagline: string;
 		author: import('@canmi/me/identity').Author;
 		feed: { id: string; followDescription: string };
+		turnstile: { siteKey: string | null };
 		indexnow: string;
 		// Both public by construction: they ship in the browser bundle. See spec/search.md.
 		algolia: { appId: string; searchKey: string; index: string };
