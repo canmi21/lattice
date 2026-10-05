@@ -23,12 +23,20 @@ before and only cannot write.
 Turnstile's script only then. The widget is Managed, rendered with `appearance: 'interaction-only'`
 and the action `trust`: a reader Turnstile is sure of never sees it. When it needs the reader,
 `before-interactive-callback` shows the overlay in `apps/site/src/lib/trust/` -- the whole screen
-on any device, the page's own ground, and the widget alone. Passing closes it; Escape closes it too
-and leaves the page as it was, since nothing on it was ever withheld.
+on any device, the page's own ground, and the widget alone. While it shows, the page under it does not
+scroll and keeps its place: the root's overflow is held, never the scroll position rewritten.
+Passing closes it; Escape closes it too and leaves the page as it was, since nothing on it was ever
+withheld.
 
 **A write waits for a check already running before its first attempt**, so a read counted on
 landing does not race the arrival's own check into a 428. `writeFetch` is the one way a write is
 sent.
+
+**A write the page sends on its own is passive, and never brings the check back.** A read counted
+is one: it waits for the arrival's check, but a 428 does not start another, and once the reader has
+closed the overlay it no longer waits either -- the read is simply not counted. Without this,
+Escape closed the overlay and the read counter, refused, opened it again at once. A write the
+reader makes -- a like, a subscription -- asks again, since they asked for it.
 
 ## The token is spent once; the grant is a signed cookie and a row
 

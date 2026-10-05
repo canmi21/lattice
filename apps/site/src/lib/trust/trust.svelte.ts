@@ -42,6 +42,8 @@ let container: HTMLElement | undefined;
 let script: Promise<Turnstile> | undefined;
 let pending: Promise<boolean> | undefined;
 let dismiss: (() => void) | undefined;
+/** The reader closed the check; writes the page sends on its own stop asking for it. */
+let dismissed = false;
 
 /** Where the widget is drawn; the overlay hands its element over while it is mounted. */
 export function holdChallenge(element: HTMLElement): () => void {
@@ -146,8 +148,12 @@ export function warmTrust(): void {
 	void ensureTrust();
 }
 
-/** Close the overlay and give up on this check; the write that wanted it is refused as before. */
+/**
+ * Close the overlay and give up on this check. The page's own writes stop asking for another, so
+ * it does not come straight back; a write the reader makes asks again.
+ */
 export function dismissChallenge(): void {
+	dismissed = true;
 	dismiss?.();
 }
 
@@ -155,11 +161,20 @@ export function dismissChallenge(): void {
  * `fetch` for a write. A page not yet trusted waits for the check first -- the arrival's own, as a
  * read counted on landing races it -- and when the API still answers 428 the check is run again and
  * the write asked once more. Any other answer, and a check that did not pass, is the caller's.
+ *
+ * A `passive` write is one the page sends on its own, a read counted: it never starts a check,
+ * and once the reader has closed one it does not wait either, so the overlay stays closed and the
+ * write is simply refused.
  */
-export async function writeFetch(input: string, init: RequestInit): Promise<Response> {
-	if (siteKey && !trusted()) await ensureTrust();
+export async function writeFetch(
+	input: string,
+	init: RequestInit,
+	{ passive = false }: { passive?: boolean } = {},
+): Promise<Response> {
+	if (!passive) dismissed = false;
+	if (siteKey && !trusted() && !(passive && dismissed)) await ensureTrust();
 	const first = await fetch(input, init);
-	if (first.status !== 428) return first;
+	if (first.status !== 428 || passive) return first;
 	if (!(await ensureTrust(true))) return first;
 	return fetch(input, init);
 }
