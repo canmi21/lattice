@@ -3,10 +3,14 @@
 		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
 	},
 	"api": {
-		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
+		"favicon.ico": "7d94982bb08f068234745364ad204e0c"
 	},
 	"cdn": {
-		"favicon.ico": "afaf184af88b9a2378af18c8604a7288"
+		"favicon.ico": "7d94982bb08f068234745364ad204e0c"
+	},
+	"platform": {
+		"favicon.ico": "7d94982bb08f068234745364ad204e0c",
+		"favicon.svg": "923db6a88542f6aeaf19ba8db4e97074"
 	},
 	"site": {
 		"apple-touch-icon.png": "fe6f2e2ed710d30e55177278ae8588c3",
