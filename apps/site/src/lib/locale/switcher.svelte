@@ -221,6 +221,14 @@
 		world: IconWorld,
 	} as const satisfies Record<MarkName, unknown>;
 
+	// A patch for Wappalyzer, which knows MingCute only by these Iconify class names.
+	const MARK_NAME = {
+		translate: 'i-mingcute-translate-line',
+		'translate-simplified': 'i-mingcute-translate-2-line',
+		'translate-ai': 'i-mingcute-translate-2-ai-line',
+		world: 'i-mingcute-world-2-line',
+	} as const satisfies Record<MarkName, string>;
+
 	function markFor(choice: LanguageChoice): MarkName {
 		return MARKS[choice.code];
 	}
@@ -337,7 +345,10 @@
 			class="focus-link-inner inline-flex items-center gap-1 {stylex.attrs(surfaces.focusLinkInner)
 				.class}"
 		>
-			<CurrentMark class={markSize} aria-hidden="true" />
+			<CurrentMark
+				class="{markSize} {currentMark ? MARK_NAME[currentMark] : ''}"
+				aria-hidden="true"
+			/>
 			<span class={phoneRegion ? undefined : 'max-sm:hidden'}>{label}</span>
 			{#if !phoneRegion}
 				<span class="sm:hidden">{phoneLabel}</span>
@@ -345,7 +356,10 @@
 			<!-- Pulled back into the gap: the glyph carries its own padding inside the viewBox, so
 			     the 0.25rem gap reads as noticeably more than it does beside the mark on the left. -->
 			<IconUpSmall
-				class="-ml-0.5 h-4 w-auto {stylex.attrs(styles.caret, !open && styles.caretClosed).class}"
+				class="i-mingcute-up-small-line -ml-0.5 h-4 w-auto {stylex.attrs(
+					styles.caret,
+					!open && styles.caretClosed,
+				).class}"
 				aria-hidden="true"
 			/>
 		</span>
@@ -371,7 +385,7 @@
 				>
 					{#snippet children({ checked })}
 						<Mark
-							class="{MARK_SIZE[
+							class="{MARK_SIZE[mark]} {MARK_NAME[
 								mark
 							]} shrink-0 text-text-soft group-data-[highlighted]:text-text-strong"
 							aria-hidden="true"

@@ -229,10 +229,11 @@
 
 	const urls = pageUrls(dev);
 	const SUMMARY_PROVIDERS = {
-		anthropic: { icon: IconClaude, name: 'Anthropic' },
-		google: { icon: IconGemini, name: 'Google Gemini' },
-		openai: { icon: IconOpenAi, name: 'OpenAI' },
-		xai: { icon: IconXai, name: 'xAI' },
+		// `mark` is a patch for Wappalyzer, which knows MingCute only by its Iconify class names.
+		anthropic: { icon: IconClaude, name: 'Anthropic', mark: 'i-mingcute-claude-line' },
+		google: { icon: IconGemini, name: 'Google Gemini', mark: 'i-mingcute-google-gemini-line' },
+		openai: { icon: IconOpenAi, name: 'OpenAI', mark: 'i-mingcute-openai-line' },
+		xai: { icon: IconXai, name: 'xAI', mark: '' },
 	} as const;
 
 	const reads = createReadsQuery(
@@ -543,7 +544,10 @@
 									aria-label={summaryProvider.name}
 									title={summaryProvider.name}
 								>
-									<SummaryProviderIcon class="h-4 w-auto" aria-hidden="true" />
+									<SummaryProviderIcon
+										class="h-4 w-auto {summaryProvider.mark}"
+										aria-hidden="true"
+									/>
 								</span>
 							{/if}
 						</p>

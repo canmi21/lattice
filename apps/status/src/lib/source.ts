@@ -33,6 +33,7 @@ export type Client = PostgrestClient;
 export const CHANNEL = 'status';
 export const EVENT = 'results';
 
+// The URL is configured with a trailing slash, a patch for Wappalyzer; it is stripped here.
 function project(): { url: string; key: string } {
 	const url = PUBLIC_SUPABASE_URL;
 	const key = PUBLIC_SUPABASE_ANON_KEY;

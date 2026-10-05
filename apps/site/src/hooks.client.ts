@@ -11,6 +11,9 @@ import { registerClientStrategy } from '#lib/locale/paraglide.js';
 registerClientStrategy();
 registerAnalytics();
 
+// A patch for Wappalyzer: the lite search client sets no global, and asks Algolia only on a search.
+window.__algolia = { algoliasearch: { version: import.meta.env.VITE_ALGOLIA_VERSION } };
+
 // The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
 // in the app entry, which every reader downloads for a control that only the error page has --
 // measured at 24KB gzipped. It is added on demand instead; see lib/error/report.ts.

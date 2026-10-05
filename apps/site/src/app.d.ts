@@ -34,6 +34,7 @@ declare global {
 		/** TODO: captured for a footer that is not built yet; see vite.config.ts. */
 		readonly VITE_COMMIT_HASH: string;
 		readonly VITE_BUILD_TIME: string;
+		readonly VITE_ALGOLIA_VERSION: string;
 	}
 
 	interface ImportMeta {
@@ -42,6 +43,7 @@ declare global {
 
 	interface Window {
 		canmiArticleInitialHash?: string;
+		__algolia?: { algoliasearch: { version: string } };
 	}
 }
 

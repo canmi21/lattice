@@ -272,6 +272,15 @@ export default defineConfig(({ mode }) => {
 		define: {
 			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
 			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
+			// The search client's version, for the Wappalyzer patch in hooks.client.ts.
+			'import.meta.env.VITE_ALGOLIA_VERSION': JSON.stringify(
+				JSON.parse(
+					readFileSync(
+						fileURLToPath(new URL('./node_modules/algoliasearch/package.json', import.meta.url)),
+						'utf8',
+					),
+				).version,
+			),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
 			// spec/architecture/site-api.md, "The pages ask by contract, not by name".
