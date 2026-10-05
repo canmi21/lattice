@@ -12,9 +12,12 @@ import { registerClientStrategy } from '#lib/locale/paraglide.js';
 registerClientStrategy();
 registerAnalytics();
 
-// The lite search client sets no global, and asks Algolia only on a search. See lib's
-// spec/web/disclose.md.
-disclose({ '__algolia.algoliasearch.version': import.meta.env.VITE_ALGOLIA_VERSION });
+// The lite search client sets no global, and asks Algolia only on a search; Motion's `animate`
+// sets none either, only its React components do. See lib's spec/web/disclose.md.
+disclose({
+	'__algolia.algoliasearch.version': import.meta.env.VITE_ALGOLIA_VERSION,
+	MotionIsMounted: true,
+});
 
 // The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
 // in the app entry, which every reader downloads for a control that only the error page has --
