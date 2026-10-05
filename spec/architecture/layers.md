@@ -83,16 +83,18 @@ The fourteen libraries that were the author's own became five npm packages, each
 subpath of its own -- `@canmi/kit/motion`, `@canmi/me/urls` -- cut where a consumer's cost changes:
 what a package drags in, where it can run, and whether a Rust crate has to move in step with it.
 
-| Package           | Holds                                                               | Brings          | Runs              | Rust       |
-| ----------------- | ------------------------------------------------------------------- | --------------- | ----------------- | ---------- |
-| `@canmi/me`       | the author's addresses, their identity, the languages they write in | nothing         | anywhere          | `canmi`    |
-| `@canmi/kit`      | theme, tokens, motion, behavior, units: the design foundation       | svelte, StyleX  | a browser, Svelte | --         |
-| `@canmi/ui`       | primitives and svg-canvas: what is composed from it                 | --              | a browser         | --         |
-| `@canmi/web`      | compat, referer and sentry: running a SvelteKit app in public       | core-js, Sentry | a SvelteKit app   | --         |
-| `@canmi/response` | the answer envelope's TypeScript half                               | nothing         | anywhere          | `response` |
+| Package           | Holds                                                               | Brings                 | Runs              | Rust       |
+| ----------------- | ------------------------------------------------------------------- | ---------------------- | ----------------- | ---------- |
+| `@canmi/me`       | the author's addresses, their identity, the languages they write in | nothing                | anywhere          | `canmi`    |
+| `@canmi/kit`      | theme, tokens, motion, behavior, units: the design foundation       | svelte, StyleX, motion | a browser, Svelte | --         |
+| `@canmi/ui`       | primitives and svg-canvas: what is composed from it                 | --                     | a browser         | --         |
+| `@canmi/web`      | compat, referer and sentry: running a SvelteKit app in public       | core-js, Sentry        | a SvelteKit app   | --         |
+| `@canmi/response` | the answer envelope's TypeScript half                               | nothing                | anywhere          | `response` |
 
 `@canmi/me` is what the platform reads when it needs the author's sites, so it carries no
-dependency a Worker would mind. `@canmi/web` is the heaviest and the least shared, so a page that
+dependency a Worker would mind. `@canmi/kit` brings `motion`, the library that was Framer Motion,
+and it is the only thing anything here animates with -- Svelte's own motion is not used; see lib's
+`spec/kit/motion.md`. `@canmi/web` is the heaviest and the least shared, so a page that
 only wants the design does not install Sentry. How each is built, versioned and published is lib's
 `spec/repository.md`.
 

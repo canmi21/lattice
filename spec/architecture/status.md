@@ -34,7 +34,7 @@ the page goes without it.
 as [hints.md](hints.md) declares for it.
 
 **It is styled as the site is**: the three layers of
-[css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves, and the `mono`
+[css/layers.md](css/layers.md) with its own StyleX build, `motion` for what moves (lib's `spec/kit/motion.md`), and the `mono`
 palette -- see [../styling/palettes.md](../styling/palettes.md).
 
 **`status.canmi.app` is a DNS-only record pointing at Vercel**, not proxied: `*.canmi.app` is
