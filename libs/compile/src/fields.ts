@@ -67,7 +67,7 @@ export function altFor(written: string | null | undefined, resolved: Resolved | 
 /** Widescreen, because the reason to crop at all is usually to make a row of images agree. */
 export const DEFAULT_CROP = '16 / 9';
 
-/** Everything `object-position` is allowed to be here. Centred unless told otherwise. */
+/** Everything `object-position` is allowed to be here. Centered unless told otherwise. */
 export const ALIGNMENTS = ['center', 'top', 'bottom', 'left', 'right'] as const;
 
 /**

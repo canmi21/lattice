@@ -10,19 +10,19 @@ export function scheduleInitialHashJump(
 	reset: () => void,
 	jump: () => void,
 ): () => void {
-	let cancelled = false;
+	let canceled = false;
 	let frame: number | undefined;
 
 	postRender(() => {
-		if (cancelled) return;
+		if (canceled) return;
 		reset();
 		frame = nextFrame(() => {
-			if (!cancelled) jump();
+			if (!canceled) jump();
 		});
 	});
 
 	return () => {
-		cancelled = true;
+		canceled = true;
 		if (frame !== undefined) cancelFrame(frame);
 	};
 }

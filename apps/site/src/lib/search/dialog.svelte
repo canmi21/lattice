@@ -11,7 +11,7 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the search dialog. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of the search dialog. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps its whole length: overlay and panel are portalled out
@@ -26,8 +26,8 @@
 			color: 'var(--color-text)',
 		},
 		/**
-		 * The field's row. The bottom-edge utility drew one edge and `border-border` coloured all
-		 * four, so the colour is written on all four here as well: the other three are zero-width
+		 * The field's row. The bottom-edge utility drew one edge and `border-border` colored all
+		 * four, so the color is written on all four here as well: the other three are zero-width
 		 * and invisible, and they are still what the element computes. Same for the footer below.
 		 */
 		field: {
@@ -324,7 +324,7 @@
 		bodyMoving = true;
 		bodyMotion = animateHeight(bodyEl, target, (finished) => {
 			// A stopped animation is not guaranteed to stay silent; settling the wrong one would
-			// pin the body to the height an interrupted move was travelling to.
+			// pin the body to the height an interrupted move was traveling to.
 			if (finished !== undefined && bodyMotion !== finished) return;
 			settleBody();
 		});

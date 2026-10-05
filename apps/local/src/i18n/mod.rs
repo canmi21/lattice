@@ -365,7 +365,7 @@ pub async fn run(
 			.into_iter()
 			.filter(|segment| segment.region == segment::Region::Body)
 			.collect();
-		let neighbours = |item: &Segment| {
+		let neighbors = |item: &Segment| {
 			if item.region != segment::Region::Body {
 				return (None, None);
 			}
@@ -576,7 +576,7 @@ pub async fn run(
 				held.insert(item.id.clone(), claimed);
 
 				progress.set_message(progress::preview(&item.source, 44));
-				let (before, after) = neighbours(&item);
+				let (before, after) = neighbors(&item);
 				let model_override = model_override.clone();
 				let gloss = glosses.find(&item.id).cloned();
 				let source_locale = source_locale.clone();

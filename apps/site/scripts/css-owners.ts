@@ -27,7 +27,7 @@ export type Layer =
  * layers.md records having happened to `white-space`.
  */
 export const OWNS = {
-	// Colour, in all its spellings.
+	// Color, in all its spellings.
 	color: 'vocabulary',
 	'background-color': 'vocabulary',
 	'border-color': 'vocabulary',
@@ -76,7 +76,7 @@ export const OWNS = {
 	'font-family': 'vocabulary',
 	'font-variant-numeric': 'vocabulary',
 
-	// Stroke, beside the colour already listed.
+	// Stroke, beside the color already listed.
 	'stroke-width': 'vocabulary',
 	'stroke-linecap': 'vocabulary',
 
@@ -128,7 +128,7 @@ export const OWNS = {
 	'will-change': 'frame',
 	'border-collapse': 'frame',
 
-	// Text behaviour, which has no house scale and no plausible one.
+	// Text behavior, which has no house scale and no plausible one.
 	'white-space': 'frame',
 	'text-wrap': 'frame',
 	'overflow-wrap': 'frame',
@@ -139,7 +139,7 @@ export const OWNS = {
 	'text-align': 'frame',
 
 	// The underline, whole. A suppressed UA default takes its value from no scale, and splitting
-	// the colour off the line would run one underline across two layers.
+	// the color off the line would run one underline across two layers.
 	'text-decoration-line': 'frame',
 	'text-decoration-color': 'frame',
 	'text-decoration-style': 'frame',

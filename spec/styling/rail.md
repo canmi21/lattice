@@ -5,13 +5,13 @@ article's first letter. Which of the three systems writing CSS is entitled to sa
 here, and what happens where two of them say the same thing, is
 [architecture/css/layers.md](../architecture/css/layers.md).
 
-## The article is centred; the rail adapts to the region beside it
+## The article is centered; the rail adapts to the region beside it
 
 The table of contents and the return control are one rail down the left of an article, and they
 move as one: the same box, the same left edge, written once and consumed by both. They differ
 vertically and nowhere else.
 
-**The article never moves.** It is centred in the window at every width, so the region to its
+**The article never moves.** It is centered in the window at every width, so the region to its
 right is empty and exactly as wide as the region on its left. That left region is all the rail
 has, and the rail adapting to it is never allowed to shift the article -- a column of text that
 slides sideways as a window is dragged is a worse fault than any arrangement of the furniture
@@ -19,13 +19,13 @@ beside it. Below the width where the article can hold its own size, the article 
 which is a matter this rule stays out of.
 
 The region runs from the window edge to the article's **first letter**, and the rail's box is
-centred in it. To the letter rather than to the column's frame, because the frame is not something
+centered in it. To the letter rather than to the column's frame, because the frame is not something
 anybody sees: measured against it the rail sat 35px from the window and 60px from the text on an
 iPad, and the 25px of column padding in between has nothing the eye can weigh it against, so the
 rail reads as pushed left. The page gutter belongs to the region on this side exactly as it does
 on the other. Three stages follow:
 
-1. Too narrow: no rail. The article alone, centred, as on any other page.
+1. Too narrow: no rail. The article alone, centered, as on any other page.
 2. Just wide enough: the rail appears and the spare room is thin, so the left margin takes two
    thirds of it and the gap to the article takes one. An even split here would be even between the
    wrong two things: the rail's leftmost ink is not its text but the return control's glyph, which
@@ -75,14 +75,14 @@ width and puts no second breakpoint in a file that already warns about the one i
 The mini takes the two-thirds branch and the 11-inch the even one, which is the pair `--rail-hold`
 was chosen against.
 
-Stage 3 exists because a rail is read from the corner of the eye. Left centred forever it drifts
+Stage 3 exists because a rail is read from the corner of the eye. Left centered forever it drifts
 inward as the window grows, and on a wide monitor a rail halfway to the text is neither beside the
 article nor at the edge of anything.
 
 ### The rail's box is one declared width
 
 It is one box in the DOM, holding both the table of contents and the return control, rather than
-two elements agreeing on a number. `translate: -50%` centres it. **The width is declared --
+two elements agreeing on a number. `translate: -50%` centers it. **The width is declared --
 8.5rem -- and is the same on every article, in every language, and in the first frame the server
 sends.** Nothing measures anything to arrive at it.
 
@@ -94,9 +94,9 @@ at one position and jumped to another the moment it hydrated.
 
 **A box sized to its entries.** `width: fit-content` reads as obviously right -- the entries are
 the only thing a reader sees, so why center anything else -- and it is stable within one view: a
-web font swapping in re-sizes and re-centres it with no listener to forget. What it is not stable
+web font swapping in re-sizes and re-centers it with no listener to forget. What it is not stable
 across is _content_. The box moves its own center whenever its entries change width, and the
-return control is centred on that box, so the control tracks the length of the longest heading.
+return control is centered on that box, so the control tracks the length of the longest heading.
 Switching one article between languages took the widest entry from 48px of Korean to 104px of
 German and slid `Back` 28px across the page. Measured across the corpus, the source views alone
 spread the box from 3.25rem to 8.34rem.
@@ -156,7 +156,7 @@ Latin was measured too and left alone. `keep-all` moves two of its breaks, one f
 French stops splitting `sans-runtime` -- and one for the worse, German stranding an opening quote
 at the end of a line. Nothing there was asking to be fixed.
 
-Collapsing changes nothing: the bars occupy less of the box, and the box, the centring and the hit
+Collapsing changes nothing: the bars occupy less of the box, and the box, the centering and the hit
 area stay where they were.
 
 **Nothing inside can widen the box.** The return control is taken out of its flow and the active
@@ -233,7 +233,7 @@ full expansion -- the box is the declared 8.5rem now, see "The rail's box is one
 and that held only while the text was the widest thing in it; in an article whose headings are
 all short it was not. Two of them had a longest label of 52px against
 a 64px bar, so the bars sized the box, and hydrating them from their served width to their real
-one widened it under a control centred on the same box: the rail sat still while `Back` slid 6px
+one widened it under a control centered on the same box: the rail sat still while `Back` slid 6px
 left, over the whole length of the bar animation. Capping the bars at the widest label as drawn
 restores the invariant rather than patching the symptom -- a thumbnail should not be wider than
 what it is a thumbnail of.
@@ -310,7 +310,7 @@ with short headings is shown no earlier than one without -- the alternative is a
 moves per article, which is a worse thing to explain than a conservative one.
 
 `--rail-edge` decides both when the rail appears and how much air it has when it does, and the two
-cannot be separated: centred in the region, its margin and its gap are the same length. Raising it
+cannot be separated: centered in the region, its margin and its gap are the same length. Raising it
 buys a rail that never looks cramped at the cost of a band of window widths that show none.
 
 **The breakpoint is now three rem conservative, deliberately left so.** The region grew by the page
@@ -320,9 +320,9 @@ that have never shown one, which is a change to what the page is rather than to 
 and the spacing fix did not need it. The number stays where it is until somebody decides that
 question on its own terms.
 
-### Rejected: centring the rail and the article together
+### Rejected: centering the rail and the article together
 
-Treating rail, gap and article as one block centred in the window balances the page at every width
+Treating rail, gap and article as one block centered in the window balances the page at every width
 and was built to see. It moves the article -- right by half the rail as the rail appears, and off
 the window's center from then on. The article holding still is worth more than the balance.
 

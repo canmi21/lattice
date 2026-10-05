@@ -316,7 +316,7 @@ pub fn census(articles: &Path) -> Result<Census, String> {
 		// The one function this number comes from anywhere, so a card and the page it advertises
 		// can never disagree about how long an article is. An article that will not split comes
 		// back empty and is skipped rather than fatal, the same as one that cannot be read: the
-		// card summarises the corpus, and one malformed article is `local check`'s business.
+		// card summarizes the corpus, and one malformed article is `local check`'s business.
 		let per_view = crate::i18n::layout::words_per_view(&text, sidecar.as_ref());
 		if per_view.is_empty() {
 			continue;
@@ -601,7 +601,7 @@ pub fn run(repo: &Path, public: &Path, articles: &Path, force: bool) -> Result<O
 		serde_yaml_ng::from_str(&text).map_err(|error| format!("site config: {error}"))?;
 	config.author = Author::own();
 
-	// Nine files, read here and nowhere else. Each card wants the catalogue for its own view, and
+	// Nine files, read here and nowhere else. Each card wants the catalog for its own view, and
 	// asking per card meant several thousand reads and parses to arrive at nine answers.
 	let catalogs = messages::load_all(repo);
 

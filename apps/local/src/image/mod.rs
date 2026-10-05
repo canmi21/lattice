@@ -281,7 +281,7 @@ fn placeholder(image: &DynamicImage) -> Result<Vec<u8>, Error> {
 /// What that hash is encoded at, for a picture roughly 32 pixels on its long edge.
 ///
 /// Higher is wasted: the source is a thumbhash, which has already discarded everything but an
-/// impression of colour and shape. This only has to avoid adding artefacts of its own to a
+/// impression of color and shape. This only has to avoid adding artifacts of its own to a
 /// picture about to be covered by the real one.
 const PAINT_QUALITY: f32 = 70.0;
 
@@ -292,7 +292,7 @@ const PAINT_QUALITY: f32 = 70.0;
 /// codec reached through `node:fs` can exist in the first and never in the second. One decode
 /// here serves both. See platform's spec/architecture/resource.md, "A rid is resolved three times".
 ///
-/// `None` where thumbhash refuses the hash: the picture draws without a colour block under it.
+/// `None` where thumbhash refuses the hash: the picture draws without a color block under it.
 pub fn painted(thumb: &[u8]) -> Option<String> {
 	let (width, height, rgba) = thumbhash::thumb_hash_to_rgba(thumb).ok()?;
 	let encoded =

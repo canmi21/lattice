@@ -1,8 +1,8 @@
 //! `data/record/tn.yaml`: which passages a translator has to gloss, and roughly how.
 //!
-//! Whether a passage needs a note is a judgement about the whole article, made by a model that
+//! Whether a passage needs a note is a judgment about the whole article, made by a model that
 //! reads it whole rather than one block at a time -- a per-block model produced no notes at all,
-//! however the rule was worded. The judgement is recorded here for the translator to obey.
+//! however the rule was worded. The judgment is recorded here for the translator to obey.
 //!
 //! Keyed by segment id, so a request expires exactly when its paragraph changes, the same
 //! property that stales a translation. Not under `data/build/`: this costs a paid request and a
@@ -25,7 +25,7 @@ pub struct Gloss {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Entry {
-	/// Enough of the block to recognise it without resolving a hash by hand.
+	/// Enough of the block to recognize it without resolving a hash by hand.
 	///
 	/// This file exists to be read before it is trusted, and a table of hashes against advice is
 	/// not reviewable. Never used for matching -- the id does that.
@@ -112,11 +112,11 @@ pub fn save(path: &Path, table: &Table) -> std::io::Result<()> {
 /// verbatim would put an internal memo on the page. See spec/i18n/prose.md, "Translator's notes".
 pub fn rule(entry: &Entry) -> String {
 	let mut rule = String::from(
-		"- Some wording in this block carries an effect that does not survive localisation, \
+		"- Some wording in this block carries an effect that does not survive localization, \
 		 including a same-language rewrite into more direct prose. Handle each item below like this \
 		 for every requested locale:\n\
 		 \n\
-		 1. Translate or localise the passage naturally, as you would without this rule. The result \
+		 1. Translate or localize the passage naturally, as you would without this rule. The result \
 		 must read as the target locale, with no source wording retained merely because its effect \
 		 is difficult to carry. A same-language target may of course use the same script, but it \
 		 still follows the direct-reading rewrite policy.\n\
@@ -138,7 +138,7 @@ pub fn rule(entry: &Entry) -> String {
 		 not paste them: they were written about a source your reader has never read. Work out \
 		 for yourself what that reader needs in order to feel what the original does, and write \
 		 that. A note that explains the joke well in one language may need to be shorter, longer \
-		 or differently aimed in another, and that is your judgement to make.\n\
+		 or differently aimed in another, and that is your judgment to make.\n\
 		 \n\
 		 One note per item listed, and none for anything else in this block.\n",
 	);
@@ -314,7 +314,7 @@ mod tests {
 		// German paragraphs ending in Chinese sentences. A translation is wholly its own
 		// language; the original belongs inside the note.
 		let rule = rule(&entry());
-		assert!(rule.contains("Translate or localise the passage naturally"));
+		assert!(rule.contains("Translate or localize the passage naturally"));
 		assert!(rule.contains("same-language target may of course use the same script"));
 		assert!(rule.contains(":tn[translated words]"));
 		// The finding still reaches the model, as a finding.
@@ -385,7 +385,7 @@ mod tests {
 			None,
 			Some(&entry()),
 		);
-		assert!(request.text.contains("Translate or localise the passage naturally"));
+		assert!(request.text.contains("Translate or localize the passage naturally"));
 		assert!(request.text.contains("古法"));
 	}
 

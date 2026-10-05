@@ -1,5 +1,5 @@
 /**
- * The brief selection-coloured light a note jump lands with, in either direction.
+ * The brief selection-colored light a note jump lands with, in either direction.
  *
  * See spec/styling/notes.md, "The walk back from a note lights the words it lands on", for why
  * arrival needs its own signal (the URL never carries the move) and why the light is a painted

@@ -527,7 +527,7 @@ The entry above measures that StyleX's conditions are pseudo-classes, pseudo-ele
 and concludes that an attribute-conditioned value has nowhere in the visual layer to go. This entry
 opened by quoting a stronger sentence that has since been retracted, so the quote is withdrawn from
 here too. [architecture/css/authoring.md](../architecture/css/authoring.md) now calls the impossibility
-"a true observation about the type generalised one step past what had been tested", and carries the
+"a true observation about the type generalized one step past what had been tested", and carries the
 same compiled rule this entry does. The type in question, `` `:${string}` ``, is exactly the hole:
 StyleX rejects a key by what it opens with rather than by what it contains, and
 `:is([data-highlighted])` opens with a colon. Compiled through the same Babel plugin the build
@@ -634,7 +634,7 @@ three borders, two of them transparent and the third the arrowhead itself.
 ```
 
 Every test in [architecture/css/layers.md](../architecture/css/layers.md) gives two answers here at once. The border
-widths are the only size the element has, so they decide how large it is; the border colours decide
+widths are the only size the element has, so they decide how large it is; the border colors decide
 how it looks, and one of them is a token. `transparent` is neither: on a box with no width it is
 how CSS says a side does not exist, which is shape rather than appearance. And `content` is not
 classifiable at all -- it is what brings the element into being, so the rule survives whatever else
@@ -1146,7 +1146,7 @@ would arrive at.
 The same file sends a `:root` block declaring nothing but custom properties to
 @canmi/kit/tokens, "which is where a value gets a name". The load-bearing half is
 "not a layering question at all" -- that is what stops the block being weighed against the three
-questions. The destination half is an example that generalised.
+questions. The destination half is an example that generalized.
 
 It holds for the rail block, on a reason the sentence does not give: `--rail-width` and
 `--rail-column` are a cross-language contract that `apps/local/src/i18n/width.rs` derives two

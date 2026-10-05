@@ -187,7 +187,7 @@ async function cancel(subscription: Subscription): Promise<CancelAnswer> {
 		body: JSON.stringify(subscription),
 	});
 	// A subscription the server no longer has is the state being asked for, not a failure. The
-	// record is stale -- most likely cancelled from another browser -- and reporting an error
+	// record is stale -- most likely canceled from another browser -- and reporting an error
 	// would leave the reader looking at a subscription they cannot get rid of.
 	if (response.status === 404) return {};
 	return answered(CancelAnswerSchema, response);

@@ -108,7 +108,7 @@ than either the light Luna route or the high-effort escalation route.
 
 `local summary` is the third case, and the only text task that does not take the cheap default.
 It asks for a summary that withholds the article's conclusion, which is a constraint the model
-has to hold against what summarising normally means, and the open-weight model measurably does
+has to hold against what summarizing normally means, and the open-weight model measurably does
 not hold it: it handed over an entire proposed design and then appended "reaches a surprising
 conclusion", and it gave the author of a first-person essay a pronoun the article never uses.
 Both are worse than a clumsy sentence -- one spends the article, the other invents a fact about

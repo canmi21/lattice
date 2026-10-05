@@ -251,7 +251,7 @@ not for stacking.
 **The fold opens before the scroll, not during it.** A marker in the prose may point at a note
 behind the fold, and the walk down must still land on it. `scrollIntoView` resolves its
 destination the moment it is called, so a fold opening afterwards pushes the note below the
-position the scroll is already travelling to and the reader lands short. Opening first is also
+position the scroll is already traveling to and the reader lands short. Opening first is also
 what keeps it unseen: the section is still below the fold, so the height changes where nobody
 is looking and the reader arrives at a section that was simply already open. Animating that
 opening would be the visible version of the same thing, and slower than the scroll it races.
@@ -290,7 +290,7 @@ entry gained a stray digit at hydration, which is how the rule was found.
 
 `:spoiler[the words]` keeps its words in the sentence but out of view: fogged by a blur, lifted
 while the pointer hovers or the element holds focus, restored the moment the reader moves away.
-Telegram's spoiler is the model. No markdown dialect standardises one -- `||text||` is a
+Telegram's spoiler is the model. No markdown dialect standardizes one -- `||text||` is a
 convention three platforms happen to share and CommonMark never adopted -- so this is a DLC
 directive like `:t` and `:fn`, not a syntax borrowed from anywhere.
 

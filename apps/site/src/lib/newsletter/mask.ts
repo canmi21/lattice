@@ -47,7 +47,7 @@ const PUBLIC_MAIL_DOMAINS = new Set([
 ]);
 
 /**
- * A recognisable but unreadable form of the reader's own address, for a screen somebody else may
+ * A recognizable but unreadable form of the reader's own address, for a screen somebody else may
  * be looking at. Enough survives to tell a typo from the intended address.
  */
 export function maskEmail(email: string): string {

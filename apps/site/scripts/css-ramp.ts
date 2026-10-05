@@ -6,7 +6,7 @@
  * written: no mark anywhere in the tree and 46 values wanting one, so counting marks would have
  * reported zero and passed. This finds the values itself, which is the half that does not depend
  * on anybody remembering, and records them one line each rather than as a total. The mark is then
- * the judgement: it says a person looked at this value and kept it, which is the thing a falling
+ * the judgment: it says a person looked at this value and kept it, which is the thing a falling
  * number cannot tell apart from nobody having looked yet.
  */
 

@@ -196,7 +196,7 @@ observe that would change the answer.
 
 **The two import commands edit `contents/**/*.md`, and only one other command does: `local
 migrate --live`**, which rewrote every reference once, when ids replaced content ids, and is not a
-catalogued task. `local image` and
+cataloged task. `local image` and
 `local video` each do it because an author wrote a temporary filename -- `![](shot.png)`,
 `![](take-3.mov)` -- and the reference has to become the resource id once the asset is derived;
 [video/run.rs](../apps/local/src/video/run.rs) calls the same `rewrite_references` `local image` does.

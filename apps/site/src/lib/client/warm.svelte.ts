@@ -4,7 +4,7 @@
  * Everything here is a guess, so everything here is silent: a warm that fails changes nothing,
  * because the real request is still to come and it is the one whose answer is drawn. What it buys
  * is that after hydration a navigation inside this site is the router's, so opening an article is
- * two fetches the browser could have started while the pointer was still travelling.
+ * two fetches the browser could have started while the pointer was still traveling.
  *
  * What is warmed depends on what the device can tell us. A pointer that hovers names one article
  * at a time and is worth following precisely; a touch screen names nothing until it is too late,

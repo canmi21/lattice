@@ -35,11 +35,11 @@ impl fmt::Display for Error {
 			}
 			Self::AuthorNoteCountChanged => formatter.write_str(
 				"the translation does not carry the author's notes its source does -- it is \
-				 probably a translation of the neighbouring block",
+				 probably a translation of the neighboring block",
 			),
 			Self::UnresolvedMarker => formatter.write_str(
 				"the translation carries a marker that stands for nothing -- text copied from \
-				 the neighbouring context",
+				 the neighboring context",
 			),
 			Self::OverBudget { drawn, budget } => write!(
 				formatter,
@@ -58,7 +58,7 @@ impl fmt::Display for Error {
 /// Whether a translation is a plausible size for the block it translates.
 ///
 /// Deliberately generous: not a style rule about length but the last check that catches a reply
-/// answering the neighbouring context instead, which nothing else here can see. See
+/// answering the neighboring context instead, which nothing else here can see. See
 /// spec/i18n/request.md, "A count the source fixes is worth more than a size that has to be
 /// judged".
 pub fn size_plausible(source: &str, text: &str) -> bool {
@@ -67,9 +67,9 @@ pub fn size_plausible(source: &str, text: &str) -> bool {
 
 /// Whether the translation carries exactly the author's notes its source does.
 ///
-/// `:fn` is the author's, so the count is fixed by the source and not a judgement call -- the one
+/// `:fn` is the author's, so the count is fixed by the source and not a judgment call -- the one
 /// cheap invariant that catches a reply about a different block where size cannot, since a
-/// neighbour of ordinary length passes a size check outright. See spec/i18n/request.md, "A
+/// neighbor of ordinary length passes a size check outright. See spec/i18n/request.md, "A
 /// count the source fixes is worth more than a size that has to be judged".
 pub fn author_notes_preserved(source: &str, text: &str) -> bool {
 	source.matches(":fn[").count() == text.matches(":fn[").count()
@@ -78,7 +78,7 @@ pub fn author_notes_preserved(source: &str, text: &str) -> bool {
 /// Whether the translation is free of markers that stand for something it cannot have.
 ///
 /// Every `⟦tk:N⟧` in the block has been put back by `restore` before this runs, so a surviving
-/// `⟦` came from somewhere else -- and the only other place one exists is the neighbouring
+/// `⟦` came from somewhere else -- and the only other place one exists is the neighboring
 /// context, where inline code is folded to a placeholder that deliberately restores to nothing.
 /// Text copied out of the context therefore arrives holding proof of where it came from.
 pub fn markers_resolved(text: &str) -> bool {
@@ -323,10 +323,9 @@ mod tests {
 		// valid, the line count matched, and at twice the source's width it was an ordinary
 		// German-shaped expansion.
 		let source = "只可惜之前我 UI 选了 React 开始动刀";
-		let neighbour =
-			"就像上一篇写过的，Seam 首先是一套协议，`if` 也是:fn[协议节点]{is=\"结构单元\"}";
-		assert!(!author_notes_preserved(source, neighbour));
-		assert_eq!(translation(Region::Body, source, neighbour), Err(Error::AuthorNoteCountChanged));
+		let neighbor = "就像上一篇写过的，Seam 首先是一套协议，`if` 也是:fn[协议节点]{is=\"结构单元\"}";
+		assert!(!author_notes_preserved(source, neighbor));
+		assert_eq!(translation(Region::Body, source, neighbor), Err(Error::AuthorNoteCountChanged));
 		// A real translation of the same source keeps the count at zero and passes.
 		assert!(author_notes_preserved(
 			source,

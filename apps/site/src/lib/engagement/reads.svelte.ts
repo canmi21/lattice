@@ -60,7 +60,7 @@ function placeholderOf(slug: string, served: number | undefined): Reads | undefi
 /**
  * The count, recording the visit on the first ask and only looking it up afterwards.
  *
- * Exported because that split is the whole behaviour and is otherwise reachable only by waiting
+ * Exported because that split is the whole behavior and is otherwise reachable only by waiting
  * out the refetch interval.
  */
 export async function readsOf(slug: string): Promise<Reads> {

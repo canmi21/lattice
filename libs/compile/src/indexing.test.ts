@@ -9,8 +9,8 @@ import { LOCALE_CODES, PUBLIC_LANGUAGE, type LocaleCode } from '@canmi/me/locale
 // translations, and a fixture written to sit on one side of it would prove nothing.
 //
 // Nothing in the corpus sits above it any more. Same-language views scored 0.947 to 1.000 as
-// verbatim copies; since they became genuine localisations -- spec/i18n/prose.md, "Same-language
-// views localise the article too" -- the zh views measure 0.570 to 0.682 and the fold rule stops
+// verbatim copies; since they became genuine localizations -- spec/i18n/prose.md, "Same-language
+// views localize the article too" -- the zh views measure 0.570 to 0.682 and the fold rule stops
 // applying, the outcome spec/locale/views.md anticipates. Above it is unmeasured.
 const ARTICLES: { path: string; source: Exclude<LocaleCode, 'mw'> }[] = [
 	{ path: 'architecture/compile-time-rendering', source: 'zh' },
@@ -48,7 +48,7 @@ describe('indexing metadata', () => {
 			const content = articleContent(path);
 			const indexing = indexingMetadata('/article', content);
 			// The source-language view still scores far above every real translation -- the gap
-			// between a localisation and a translation is what the metric measures -- just no
+			// between a localization and a translation is what the metric measures -- just no
 			// longer high enough to fold into the Original.
 			for (const code of Object.keys(PUBLIC_LANGUAGE) as Exclude<LocaleCode, 'mw'>[]) {
 				expect(similarity(content.mw, content[code]), `${path}:${code}`).toBeLessThan(

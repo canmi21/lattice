@@ -54,9 +54,9 @@
 	   box and its alignment.
 
 	   Digits sit above the baseline, so baseline alignment lands ~0.08em below the surrounding ink
-	   centre (measured 0.370em for Latin, 0.360em for CJK -- close enough to share one shift).
+	   center (measured 0.370em for Latin, 0.360em for CJK -- close enough to share one shift).
 	   Transform rather than vertical-align, which grows the line box and drags the baseline with it,
-	   cancelling most of its own correction. */
+	   canceling most of its own correction. */
 	.value {
 		display: inline-flex;
 		transform: translateY(-0.08em);

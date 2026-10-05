@@ -41,13 +41,13 @@ const SURFACES = 'surfaces';
 /**
  * How many declarations a repetition needs before it is a candidate recipe.
  *
- * Two is a coincidence at this size: a colour and a type step sit together in a dozen places
+ * Two is a coincidence at this size: a color and a type step sit together in a dozen places
  * because the site has one of each, not because anybody wrote a recipe.
  */
 const MEMBERS = 3;
 
 /**
- * One entry: the components a repetition is written in, and whatever judgement was passed on it.
+ * One entry: the components a repetition is written in, and whatever judgment was passed on it.
  *
  * The components are the key, because they are what extraction.md's second clause asks about --
  * whether these three are unrelated. See `identify` below for why the declarations are not.
@@ -222,9 +222,9 @@ function candidates(found: Scan): Candidate[] {
  *
  * A group is found as the maximal set two components share, so naming any part of one rewrites
  * every group built on that part -- naming `colorShift` moved four of fifteen entries and emptied
- * a fifth. Keying on the declarations would make all four look new and lose their judgements. The
- * components survive that, and are what the judgement is about. Two groups over the same
- * components therefore share one entry: the judgement that they are unrelated covers both.
+ * a fifth. Keying on the declarations would make all four look new and lose their judgments. The
+ * components survive that, and are what the judgment is about. Two groups over the same
+ * components therefore share one entry: the judgment that they are unrelated covers both.
  */
 function identify(components: string[]): string {
 	return components.toSorted().join('\n');
@@ -272,7 +272,7 @@ function gone(entry: Entry): string {
 	const judged =
 		entry.stays === undefined
 			? ['  Nobody had judged it, so the entry says nothing the tree does not.']
-			: ['  It was judged, and this is the judgement being dropped:', `      ${entry.stays}`];
+			: ['  It was judged, and this is the judgment being dropped:', `      ${entry.stays}`];
 	return [
 		`${RECORDED} lists components that no longer repeat any set of declarations:`,
 		...entry.components.map((one) => `      in ${one}`),
@@ -309,7 +309,7 @@ function twice(entry: Entry): string {
 	return [
 		`${RECORDED} lists one set of components under two entries of 'groups':`,
 		...entry.components.map((one) => `      in ${one}`),
-		'  One entry per set of components, carrying the one judgement that covers whatever they',
+		'  One entry per set of components, carrying the one judgment that covers whatever they',
 		'  repeat. Merge the two, or the second says nothing.',
 	].join('\n');
 }

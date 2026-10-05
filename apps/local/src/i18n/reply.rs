@@ -38,7 +38,7 @@ pub(super) fn validate_reply_for(
 	let parsed = prompt::parse(reply, Some(boundary)).map_err(|prompt::BoundaryLeak| {
 		Refusal::Failed("the model echoed the prompt boundary".to_owned())
 	})?;
-	// The neighbouring paragraphs go into the prompt as context, and a reply that includes them
+	// The neighboring paragraphs go into the prompt as context, and a reply that includes them
 	// is not a translation of this block -- it is this block plus somebody else's, stored under
 	// this block's id. It shows up as untranslated prose appearing inside an unrelated view,
 	// which is a long way from the reply that caused it. A block cannot gain lines in
@@ -92,7 +92,7 @@ pub(super) fn validate_reply_for(
 				return false;
 			}
 			// Spacing is read after restoring too: a marker is not the word it stands for, so
-			// masked text cannot say whether a directive is glued to its neighbour.
+			// masked text cannot say whether a directive is glued to its neighbor.
 			if !validate::spacing_intact(text) {
 				glued.push(locale.clone());
 				return false;
@@ -113,7 +113,7 @@ pub(super) fn validate_reply_for(
 		} else if !oversized.is_empty() {
 			format!(
 				"a translation is far larger than its source ({}; source is {} columns) -- the \
-				 reply is probably the neighbouring context rather than this block",
+				 reply is probably the neighboring context rather than this block",
 				oversized.join(", "),
 				width::raw(source)
 			)

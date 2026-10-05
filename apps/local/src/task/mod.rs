@@ -1,7 +1,7 @@
 //! What long-running work exists, declared in one place.
 //!
 //! Every operation that takes more than an instant is described here and nowhere else: data,
-//! not execution, so the catalogue can be complete before a runner exists. See spec/tasks.md,
+//! not execution, so the catalog can be complete before a runner exists. See spec/tasks.md,
 //! "The catalog is data, and it is complete before the runner" for why, and for what is
 //! deliberately absent from it.
 
@@ -15,7 +15,7 @@ use serde::Serialize;
 /// A record store a task reads or mutates.
 ///
 /// Named for the record rather than the path, because two tasks conflict when they write the same
-/// *records*, and the file layout underneath is free to change without rewriting the catalogue.
+/// *records*, and the file layout underneath is free to change without rewriting the catalog.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Record {
@@ -60,7 +60,7 @@ pub enum Record {
 	PublicFavicon,
 	/// Published OpenGraph cards.
 	PublicOpengraph,
-	/// Published licence texts.
+	/// Published license texts.
 	PublicLicense,
 }
 
@@ -101,7 +101,7 @@ impl Spec {
 	/// Reading the same record is not a conflict, and neither is writing a record another task
 	/// only reads -- a reader that wants a consistent view takes it at the moment it reads.
 	/// What cannot overlap is two tasks writing the same record, and even that is a statement
-	/// about their *mutations*, which the writer serialises. This answers the coarser question
+	/// about their *mutations*, which the writer serializes. This answers the coarser question
 	/// an interface asks first: may these two be offered together.
 	pub fn conflicts_with(&self, other: &Spec) -> bool {
 		self.writes.iter().any(|record| other.writes.contains(record))
@@ -154,7 +154,7 @@ pub const CATALOG: &[Spec] = &[
 		detail: "Cut one subtitle track to a clip's excerpt and record it against that clip.",
 		paid: false,
 		// `Whole` rather than `Many`: a person names one clip and one track, so a run is a single
-		// indivisible unit and a second runner can only stand aside. Catalogued in spite of taking
+		// indivisible unit and a second runner can only stand aside. Cataloged in spite of taking
 		// arguments, because `PublicCaptions`, `PublicMeta` and `Manifest` are all written by the
 		// sweep as well, and nothing could see that while it had no entry. See spec/tasks.md.
 		items: Items::Whole,
@@ -287,8 +287,8 @@ pub const CATALOG: &[Spec] = &[
 	},
 	Spec {
 		id: "licenses",
-		name: "Record licences",
-		detail: "Record the licence of every dependency the apps ship.",
+		name: "Record licenses",
+		detail: "Record the license of every dependency the apps ship.",
 		paid: false,
 		items: Items::Whole,
 		reads: &[],
@@ -321,7 +321,7 @@ pub const CATALOG: &[Spec] = &[
 	},
 ];
 
-/// The task with this id, if the catalogue has one.
+/// The task with this id, if the catalog has one.
 pub fn find(id: &str) -> Option<&'static Spec> {
 	CATALOG.iter().find(|spec| spec.id == id)
 }
@@ -461,8 +461,8 @@ mod tests {
 		}
 	}
 
-	/// The three the survey found: a licence text, a caption track and a translation entry are all
-	/// published bytes the sweep removes, and none of the three could be seen from the catalogue.
+	/// The three the survey found: a license text, a caption track and a translation entry are all
+	/// published bytes the sweep removes, and none of the three could be seen from the catalog.
 	#[test]
 	fn the_sweep_contends_with_the_runs_that_publish_what_it_removes() {
 		let gc = find("gc").expect("gc");

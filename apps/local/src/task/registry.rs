@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct Run {
-	/// The task's catalogue id.
+	/// The task's catalog id.
 	pub task: String,
 	pub pid: u32,
 	/// Which shell started it, for a reader deciding whether it can be interrupted.

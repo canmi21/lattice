@@ -25,7 +25,7 @@ export type LangStat = {
 	nested: NestedLang[];
 };
 
-/** GitHub's language colours, so a chart here reads the same as a repository page. */
+/** GitHub's language colors, so a chart here reads the same as a repository page. */
 const LANG_COLORS: Record<string, string> = {
 	TypeScript: '#3178c6',
 	JavaScript: '#f1e05a',
@@ -88,12 +88,12 @@ const FALLBACK_POOL = [
 ];
 
 /**
- * A colour for a language the table above does not name.
+ * A color for a language the table above does not name.
  *
  * Derived from the name rather than handed out in arrival order. The original kept a counter
- * and a cache at module scope, which made a language's colour depend on what had been rendered
+ * and a cache at module scope, which made a language's color depend on what had been rendered
  * before it -- the server and the browser walk that in different orders, so the same chart came
- * out in different colours on each and the page changed under the reader on hydration.
+ * out in different colors on each and the page changed under the reader on hydration.
  */
 function fallbackColor(lang: string): string {
 	let hash = 0;

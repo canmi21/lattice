@@ -3,7 +3,7 @@
 	import { border, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the error page. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * The visual half of the error page. Every color is a `@canmi/kit/tokens` variable, so nothing
 	 * here can change one. See spec/architecture/css/authoring.md. No scoped block: two elements,
 	 * both the component's own, so a class on each reaches everything there is.
 	 *
@@ -19,7 +19,7 @@
 			borderRightWidth: border.hairlinePx,
 			borderRightStyle: 'solid',
 			// All four edges, three of which have no width to draw: `border-border` is the
-			// shorthand, and the computed style carries the colour on every side.
+			// shorthand, and the computed style carries the color on every side.
 			borderColor: 'var(--color-border)',
 			// unnamed: display type, nine steps over the interface ladder and written once.
 			fontSize: '1.5rem',
@@ -89,7 +89,7 @@
 	 *
 	 * That field carries whichever words the framework or an `error()` call happened to use --
 	 * `Internal Error`, `License not found` -- which are for a log. It is also always set, so
-	 * reading it meant the localised sentence below never rendered outside 404 and a reader
+	 * reading it meant the localized sentence below never rendered outside 404 and a reader
 	 * asking for Chinese was answered in English. The protocol's own name is not lost: it is in
 	 * the title and in the line a screen reader is given.
 	 */
@@ -106,8 +106,8 @@
 	<title>{status} {titleText}</title>
 </svelte:head>
 
-<!-- The pair sits at the centre of the window and the offer at the foot of it. The offer is taken
-     out of the flow rather than laid out below: in flow it would be half of what is centred, and
+<!-- The pair sits at the center of the window and the offer at the foot of it. The offer is taken
+     out of the flow rather than laid out below: in flow it would be half of what is centered, and
      the line the page is actually about would sit above the middle by half the offer's height. -->
 <main class="relative flex min-h-screen items-center justify-center px-6">
 	<div class="flex items-center">

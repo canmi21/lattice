@@ -12,7 +12,7 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the subscription surface. Every colour is a `@canmi/kit/tokens` variable,
+	 * The visual half of the subscription surface. Every color is a `@canmi/kit/tokens` variable,
 	 * so nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the
@@ -32,7 +32,7 @@
 		},
 		/**
 		 * One ink for both halves of the swap. They share a grid cell and show the same address,
-		 * one plain and one masked, and they arrived at the same colour from two places -- the
+		 * one plain and one masked, and they arrived at the same color from two places -- the
 		 * markup for the mask, the scoped block for the copy that lifts away.
 		 */
 		address: {
@@ -97,12 +97,12 @@
 			color: {
 				default: null,
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
 			opacity: { default: null, ':disabled': 0.6 },
-			// No colour transition, so the hover snaps. `.spring-underline` sets this element's
+			// No color transition, so the hover snaps. `.spring-underline` sets this element's
 			// `transition` from the components layer, and one declared here would outrank its
 			// `transition-property` and stop the underline springing. See
 			// spec/architecture/css/layers.md.
@@ -155,7 +155,7 @@
 	const cancellation = createCancelMutation();
 	const subscribers = $derived(engagement.data?.subscriber_count ?? 0);
 	let email = $state('');
-	let status = $state<'idle' | 'sending' | 'confirmed' | 'error' | 'cancelled'>('idle');
+	let status = $state<'idle' | 'sending' | 'confirmed' | 'error' | 'canceled'>('idle');
 	let subscription = $state<Subscription | undefined>();
 	let confirmed = $state<string | undefined>();
 	/**
@@ -263,7 +263,7 @@
 				return;
 			}
 			// The pill keeps showing the address it is undoing until the sequence has taken it back
-			// off, so the record outlives the request that cancelled it by exactly that long.
+			// off, so the record outlives the request that canceled it by exactly that long.
 			stage = 'reverting';
 			after(REVERSE.form.at, () => {
 				settle();
@@ -279,7 +279,7 @@
 		subscription = undefined;
 		confirmed = undefined;
 		stage = 'still';
-		status = 'cancelled';
+		status = 'canceled';
 	}
 </script>
 
@@ -430,7 +430,7 @@ otherwise need. See spec/engagement.md. -->
 		>
 			{#if status === 'error'}
 				<p class="select-text" role="alert">{m['newsletter.error']({}, { locale })}</p>
-			{:else if status === 'cancelled'}
+			{:else if status === 'canceled'}
 				<p class="select-text" role="status" class:returning={stage === 'restoring'}>
 					{m['newsletter.unsubscribed']({}, { locale })}
 				</p>
@@ -463,13 +463,13 @@ otherwise need. See spec/engagement.md. -->
 			watching happen has nothing to undo yet, and it arrives directly below the button they just
 			pressed, where a second click would otherwise land on it. -->
 			{#if subscription && stage !== 'redacting' && stage !== 'settling'}
-				<!-- Centred under the button above, in a cell the button's own width decides.
+				<!-- Centered under the button above, in a cell the button's own width decides.
 
 				     That width is not a number anybody can write: it is the wider of two labels as
 				     this font renders them, and it moves with the language. Measuring it would mean
 				     painting at one position and shifting after hydration, which is the failure
 				     spec/styling/rail.md records. So the cell reserves the width the same way the
-				     button does, and the control centres inside it. -->
+				     button does, and the control centers inside it. -->
 				<span class="under-chip inline-grid shrink-0 place-items-center">
 					<span
 						class="invisible col-start-1 row-start-1 px-4 whitespace-nowrap {stylex.attrs(
@@ -635,7 +635,7 @@ otherwise need. See spec/engagement.md. -->
 	/* The button does not fade in with the rest: it is the shape the chip has just finished warming
 	   back into, arriving at the same ink it was handed, and fading it would blink the one element
 	   that was continuous across the swap. It springs instead -- the moment it can be pressed again
-	   is worth marking; scale carries that without touching the colour that stayed continuous. */
+	   is worth marking; scale carries that without touching the color that stayed continuous. */
 	.reviving {
 		animation: revive var(--back-form-for) var(--ease-spring) both;
 	}

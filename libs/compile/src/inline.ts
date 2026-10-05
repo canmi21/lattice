@@ -366,7 +366,7 @@ export function lowerDirectives(nodes: RootContent[], source: string): RootConte
 				return [{ type: 'link', url: href, children } as unknown as RootContent];
 			}
 			// The markdown target has a footnote of its own, and remark writes it. A real
-			// `footnoteReference` rather than the text `[^1]`, which the serialiser would escape
+			// `footnoteReference` rather than the text `[^1]`, which the serializer would escape
 			// into a literal bracket -- the reference is the node it already knows how to spell.
 			if (directive.name === 'fn') {
 				const number = String(noteNumber(directive));
@@ -399,7 +399,7 @@ export function lowerDirectives(nodes: RootContent[], source: string): RootConte
 }
 
 export function proseMarkdown(node: RootContent, source: string): string {
-	// Lowered first, like the other markdown target. The serialiser has no handler for a
+	// Lowered first, like the other markdown target. The serializer has no handler for a
 	// directive and throws on one it has not seen, so this path worked only for as long as every
 	// directive in the corpus happened to be reachable another way -- `:tn` was the first that
 	// was not, and it failed the whole page rather than the one node.

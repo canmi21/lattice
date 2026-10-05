@@ -72,7 +72,7 @@ export const styles = stylex.create({
 	coverShown: { opacity: 1 },
 
 	/**
-	 * The still: grey and slightly dimmed, which is the whole message -- this is a picture of
+	 * The still: gray and slightly dimmed, which is the whole message -- this is a picture of
 	 * the clip and not the clip. Its fade is not in the reduced-motion branch below and was
 	 * not before, so it is carried across as it stands.
 	 */
@@ -90,7 +90,7 @@ export const styles = stylex.create({
 	stillShown: { opacity: 1 },
 	/**
 	 * What the still says while the clip is elsewhere: where it went, in words, and the way back,
-	 * in words too -- a glyph alone on a grey picture was a symbol with nothing to read it by. The
+	 * in words too -- a glyph alone on a gray picture was a symbol with nothing to read it by. The
 	 * way back wears the disc's glass, since it stands where the disc stood.
 	 */
 	away: { fontSize: text.px13, textShadow: 'var(--player-shadow)' },
@@ -107,7 +107,7 @@ export const styles = stylex.create({
 
 	/**
 	 * The veil under the control row, which is a gradient and therefore a background image
-	 * rather than a background colour. The row's other half of this pair -- the answer to a
+	 * rather than a background color. The row's other half of this pair -- the answer to a
 	 * focus inside it -- stays in the scoped block, where a relational selector can reach it.
 	 */
 	chrome: {
@@ -172,7 +172,7 @@ export const styles = stylex.create({
 
 	/**
 	 * The scrubber's unfilled bar. Its `outlineColor` is stated at rest for the reason
-	 * spec/styling/focus.md gives: an outline's colour is `currentColor` until named, and the
+	 * spec/styling/focus.md gives: an outline's color is `currentColor` until named, and the
 	 * ring this bar is handed would otherwise start from the row's ink.
 	 */
 	track: {

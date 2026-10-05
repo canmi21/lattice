@@ -4,11 +4,11 @@
 	import { border, duration, line, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the notes. Every colour is a `@canmi/kit/tokens` variable, so nothing here
+	 * The visual half of the notes. Every color is a `@canmi/kit/tokens` variable, so nothing here
 	 * can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The block below keeps what a class cannot reach: the fold's mask and its two phase rules, the
-	 * `:global` marker rules, and the note-link's hovered colour -- see spec/issues/css.md, "Ancestor
+	 * `:global` marker rules, and the note-link's hovered color -- see spec/issues/css.md, "Ancestor
 	 * state reaches the visual layer only through a marker nobody owns". This comment may not
 	 * write a tag in angle brackets; see the same file.
 	 */
@@ -29,11 +29,11 @@
 		},
 		/**
 		 * Small and quiet, the way a note at the foot of a page is: stepped over and come back
-		 * to, not read on the way past. Set at the article's own size and colour, the section
+		 * to, not read on the way past. Set at the article's own size and color, the section
 		 * competed with the prose above it for the same attention.
 		 *
-		 * Grey and small alone read as somebody else's apparatus. What makes it work is the
-		 * phrase holding the article's own colour, giving each note one strong point to find it
+		 * Gray and small alone read as somebody else's apparatus. What makes it work is the
+		 * phrase holding the article's own color, giving each note one strong point to find it
 		 * by while the rest stays soft.
 		 */
 		note: {
@@ -100,10 +100,10 @@
 			transform: 'rotate(180deg)',
 		},
 		/**
-		 * The explanation itself, which is the control: it inherits the note's quiet colour and
+		 * The explanation itself, which is the control: it inherits the note's quiet color and
 		 * brightens whole under the pointer, so hovering anywhere on those words says so.
 		 *
-		 * Only the resting colour and the motion toward the other one are here. The brightened
+		 * Only the resting color and the motion toward the other one are here. The brightened
 		 * value is reached through the note, which is an ancestor -- see spec/issues/css.md, "Ancestor
 		 * state reaches the visual layer only through a marker nobody owns" -- so it stays in the
 		 * block, which outranks this layer and still wins.
@@ -124,7 +124,7 @@
 			},
 		},
 		/**
-		 * The quoted words are the article's, said again -- weight alone marks them. Colour is
+		 * The quoted words are the article's, said again -- weight alone marks them. Color is
 		 * spent on the number and the arrow instead: the two ends of the walk, which note this is
 		 * and the way back from it.
 		 */
@@ -133,7 +133,7 @@
 		},
 		/**
 		 * The way back, bright at rest like the number at the note's head: the two ends of the
-		 * walk are the two points of colour, and everything between them is the reading.
+		 * walk are the two points of color, and everything between them is the reading.
 		 */
 		back: {
 			// Sized against the note, not against the page, for the same reason the marker is.
@@ -209,7 +209,7 @@
 	/**
 	 * Open or close the fold, playing the move unless `animated` says not to.
 	 *
-	 * The unanimated path is not an optimisation -- it is what a jump into a folded note needs.
+	 * The unanimated path is not an optimization -- it is what a jump into a folded note needs.
 	 * See `reveal`.
 	 */
 	function setExpanded(nextExpanded: boolean, animated = true) {
@@ -322,7 +322,7 @@
 	aria-label={m['article.notes']({}, { locale })}
 	class="mt-16 pt-6 {stylex.attrs(styles.notes).class}"
 >
-	<!-- The heading speaks at the same size and colour as the article title and the newsletter
+	<!-- The heading speaks at the same size and color as the article title and the newsletter
 	     heading: three sections of one page, one voice for their names. Only the notes under it
 	     stay small. -->
 	<!-- No font-size: it inherits the root size the article title and the newsletter heading render
@@ -403,7 +403,7 @@
 		<!-- The link's underline stays off: eight dotted lines of apparatus would out-shout the
 		     article above them. Suppressing a browser default names nothing, so it is the frame
 		     rather than the visual layer -- spec/architecture/css/layers.md, "What each layer owns,
-		     by name". The colour it rests at is in the block at the foot, with the ancestor the
+		     by name". The color it rests at is in the block at the foot, with the ancestor the
 		     hovered value is reached through. -->
 		<span class="note-line"
 			><span class="note-phrase {stylex.attrs(styles.phrase).class}">{note.phrase}</span><sup
@@ -428,7 +428,7 @@
 
 <style>
 	/* Not a gradient drawn over the text: a mask, so whatever the theme paints behind the page
-	   is what shows through. A translucent overlay in the paper's colour would be a second
+	   is what shows through. A translucent overlay in the paper's color would be a second
 	   place the background is written down, and would be wrong the moment either changes. */
 	.notes-fold:not([data-phase='expanded']) {
 		mask-image: linear-gradient(to bottom, black 0.35rem, transparent);

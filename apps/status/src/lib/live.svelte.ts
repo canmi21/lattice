@@ -49,7 +49,7 @@ export class Live {
 	range = $state<Range>('days');
 	rangeRows = $state.raw<HistoryRow[]>([]);
 	#client: Client | undefined;
-	/** The instant every judgement is made at; the server's until the browser takes over. */
+	/** The instant every judgment is made at; the server's until the browser takes over. */
 	clock = $state(0);
 	/**
 	 * When the database last answered or was last heard from, and whether the socket is down or

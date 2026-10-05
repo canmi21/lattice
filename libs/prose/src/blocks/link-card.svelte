@@ -4,8 +4,8 @@
 	import { duration, easing, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a link card. Every colour the token layer names is read as that name.
-	 * The title/arrow colour and the cover's hover brightness and blend mode are exceptions, not
+	 * The visual half of a link card. Every color the token layer names is read as that name.
+	 * The title/arrow color and the cover's hover brightness and blend mode are exceptions, not
 	 * the token layer's or not expressible here -- see spec/issues/issues.md. See
 	 * spec/architecture/css/authoring.md.
 	 *

@@ -6,7 +6,7 @@ separate problem; see [locale/addressing.md](../locale/addressing.md).
 
 ## The source is not a locale
 
-An article is a mixed artefact: one dominant language with deliberate passages in others, and
+An article is a mixed artifact: one dominant language with deliberate passages in others, and
 in principle two dominant languages at once. It is not a translation of anything, so it has no
 entry among the locales and never gets one. The eight targets are `en-US`, `zh-CN`, `ja-JP`,
 `de-DE`, `ko-KR`, `fr-FR`, `es-ES`, `zh-TW`; the ninth thing is the `.md` file itself.
@@ -66,7 +66,7 @@ article is translated. What follows is kept as the record of what the existing s
 by, which the redesign has to read.
 
 Article bodies are split on markdown block boundaries and each block is keyed by a hash,
-truncated the same way asset ids are. The synchronisation behavior falls out of that rather than
+truncated the same way asset ids are. The synchronization behavior falls out of that rather than
 being built:
 
 - Edit a paragraph and only its id changes, so only its translations go stale.
@@ -113,7 +113,7 @@ elsewhere is normalized the first time it is saved.
 
 This retires an older requirement rather than contradicting it. Byte-identical round-tripping
 mattered while the file was the authority; once the canonical form is the authority, the file is
-its projection, and the editor is free to write whatever the normaliser produces. The round-trip
+its projection, and the editor is free to write whatever the normalizer produces. The round-trip
 harness stays useful for a narrower question: whether the transform is lossy in _meaning_.
 
 Normalization belongs to the TypeScript path that writes an article, and Rust hashes the bytes it
@@ -122,7 +122,7 @@ extensions, YAML handling, and serializer choices in two languages; agreement wo
 second invariant with no shared implementation. Making the write boundary canonical is cheaper
 and leaves every stored input to Rust inspectable. The cost is deliberate: a caller that bypasses
 that boundary can present non-canonical bytes, so imports and migrations must pass through the
-TypeScript normaliser before Rust derives ids.
+TypeScript normalizer before Rust derives ids.
 
 ### The canonical style
 
@@ -245,7 +245,7 @@ someone explicitly decides otherwise. A denylist would silently send a future me
 for translation and let the model corrupt it.
 
 These values are display-ready copy. Their prompt preserves whether the source ends in
-punctuation while requiring each target locale's native casing and punctuation; neighbouring
+punctuation while requiring each target locale's native casing and punctuation; neighboring
 article text is context, not a typography template.
 
 ### A section heading is also a label, and the rail is narrow
@@ -310,7 +310,7 @@ boundary the eye reads -- French `l'`, a hyphen, an opening `¿`. Refused on arr
 by `audit` over what is already stored, since it cannot join `validate::sidecar` without failing
 the build on translations bought before the rule existed.
 
-The active indicator stays centred on its label. A multi-line indicator spans one centred
+The active indicator stays centered on its label. A multi-line indicator spans one centered
 single-line mark plus a full line height for every additional visible line, so the space
 between lines is represented rather than collapsed. Moving between one- and two-line labels
 animates its center and length together with the same spring, so changing length cannot bend

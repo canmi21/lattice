@@ -12,7 +12,7 @@ workspace = true
 canmi = "2026.1004.0"
 # Blocking HTTP, which is what fetching a handful of icons wants: a synchronous call inside an
 # operation that is already running on its own thread. The runtime below is for serving, not for
-# fetching, and a second HTTP client would be a second set of TLS and redirect behaviour.
+# fetching, and a second HTTP client would be a second set of TLS and redirect behavior.
 ureq = "3"
 # A real HTML5 tokenizer, not the regexes the upstream worker used. That choice was forced by
 # a Worker's bundle budget, and this runs locally, so the constraint is gone. Measured against
@@ -64,10 +64,10 @@ semver = "1.0.28"
 rayon = "1.12.0"
 # Argument parsing. The hand-rolled version read `--limit` with `.parse().ok()`, so a typo in the
 # value -- or in the flag name -- left the limit unset, and unset means no limit on five commands
-# that spend money per item. Rejecting what it does not recognise is the property being bought,
+# that spend money per item. Rejecting what it does not recognize is the property being bought,
 # and derive is what makes it free: the flag set is the type, so there is no second list to keep.
 clap = { version = "4.6.7", features = ["derive"] }
-# The palette clap paints its own help with. Cargo's colours rather than clap's defaults, because
+# The palette clap paints its own help with. Cargo's colors rather than clap's defaults, because
 # this is a local Rust CLI and cargo is the one its user already has muscle memory for.
 anstyle = "1.0.14"
 # Error types. Every fallible operation here names what can go wrong as its own type, so a caller

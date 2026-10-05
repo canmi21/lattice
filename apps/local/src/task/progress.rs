@@ -7,14 +7,14 @@
 //!
 //! The shape stays a counter and a message because that is what the five call sites already say,
 //! and a migration that also redesigns what progress *means* cannot be checked against the
-//! behaviour it replaced. What changes is only where the counter goes.
+//! behavior it replaced. What changes is only where the counter goes.
 
 use std::sync::Mutex;
 
 /// Somewhere progress can be written.
 ///
 /// `Send + Sync` because a run may report from several worker threads at once; the implementation
-/// decides how to serialise, since a terminal bar and an event channel have different answers.
+/// decides how to serialize, since a terminal bar and an event channel have different answers.
 pub trait Sink: Send + Sync {
 	/// Called once, before any advance.
 	fn started(&self, total: u64);

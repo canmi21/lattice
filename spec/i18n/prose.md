@@ -5,20 +5,20 @@ length. The checks on its shape are in [request.md](request.md); the widths a ra
 imposes are argued in [styling/rail.md](../styling/rail.md) and
 [styling/phone.md](../styling/phone.md).
 
-## Same-language views localise the article too
+## Same-language views localize the article too
 
 Original is the author's unedited voice. A target view remains model-generated even when its
 locale exactly matches the article's source language: `zh-CN` is not a locally copied substitute
 for a Chinese Original. It is the direct-reading edition, with grammar and orthography
-regularised, mixed-language phrasing resolved where a natural local expression exists, and
+regularized, mixed-language phrasing resolved where a natural local expression exists, and
 implicit connections made plain enough to follow without changing what the author meant.
 
-That freedom is bounded. A same-language localisation preserves facts, first-person perspective,
+That freedom is bounded. A same-language localization preserves facts, first-person perspective,
 emotional force, emphasis, jokes and uncertainty. It does not summarize, sanitize, flatten the
 author's position or invent connective claims. A sibling target such as `zh-TW` additionally
 uses its own script and idiom under the same rule.
 
-Translator's notes apply to every article locale, including a same-language localisation. A
+Translator's notes apply to every article locale, including a same-language localization. A
 recorded note invalidates any translation that does not yet carry the requested note. Historic
 entries with local `source` provenance are likewise incomplete: the Original view already owns
 the raw text, so a generated locale must carry real model provenance.

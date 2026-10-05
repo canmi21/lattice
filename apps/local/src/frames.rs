@@ -56,7 +56,7 @@ pub struct Frame {
 /// Every one of them exists for the length of one call, and dropping is what makes that true
 /// when the call fails as well as when it succeeds. **None of them is the poster** -- `local
 /// video` extracts that separately (see `video::poster`), so this never becomes a second
-/// extractor free to disagree with it about scaling or colour.
+/// extractor free to disagree with it about scaling or color.
 #[derive(Debug)]
 pub struct Frames {
 	directory: PathBuf,

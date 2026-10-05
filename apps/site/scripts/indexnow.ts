@@ -76,14 +76,14 @@ function fingerprint(paths: string[]): string {
  * The source files behind one address, or nothing if it is not announced.
  *
  * Why this hashes content rather than reading the sitemap's `lastmod` or the file's mtime, and
- * why the licence directories return nothing -- see spec/indexing.md, "What changed is decided
+ * why the license directories return nothing -- see spec/indexing.md, "What changed is decided
  * by a content hash, not by a date".
  */
 function sources(path: string, articles: string[]): string[] | undefined {
 	// `split` always yields a first element; the fallback is what says so to the checker.
 	const [route = path, query] = path.split('?');
 
-	// The licence directories are in the sitemap so they can be crawled, and that is all they
+	// The license directories are in the sitemap so they can be crawled, and that is all they
 	// need. They are derived pages nobody is waiting on, and the only timestamp they have is the
 	// build's -- announcing them would mean announcing thirty URLs on every deploy.
 	if (route.startsWith('/licenses')) return undefined;

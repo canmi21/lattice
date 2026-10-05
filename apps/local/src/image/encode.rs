@@ -1,7 +1,7 @@
 //! Turning decoded pixels into the formats that get served.
 //!
 //! Quality settings were measured rather than guessed, on real articles' images: at 1272px a
-//! screenshot is 46 KB as AVIF q68 against 508 KB as optimised PNG, and a photo at 1624px is
+//! screenshot is 46 KB as AVIF q68 against 508 KB as optimized PNG, and a photo at 1624px is
 //! 364 KB against 3094 KB. Lossless formats lost by five to eleven times on every sample, so
 //! there is no lossless tier. See spec/architecture/media.md.
 
@@ -18,7 +18,7 @@ const WEBP_QUALITY: f32 = 80.0;
 /// rav1e trades encode time for size. 6 is the middle; this runs once per image locally.
 const AVIF_SPEED: u8 = 6;
 
-/// How few distinct colours an image may have before lossy coding is the wrong tool.
+/// How few distinct colors an image may have before lossy coding is the wrong tool.
 ///
 /// Pixel art, sprites and flat diagrams have hard edges and a tiny palette: PNG stores them
 /// exactly and small, while a lossy codec spends bytes inventing gradients across edges that
@@ -43,7 +43,7 @@ impl Format {
 		}
 	}
 
-	/// The quality this format is encoded at, normalised to 0..1. PNG is exact, so it has no
+	/// The quality this format is encoded at, normalized to 0..1. PNG is exact, so it has no
 	/// quality to report and answers 1.
 	pub fn quality(self) -> f32 {
 		match self {
@@ -121,7 +121,7 @@ fn png(image: &DynamicImage) -> Result<Vec<u8>, Error> {
 	Ok(out)
 }
 
-/// Whether an image has few enough distinct colours to be palette art rather than a
+/// Whether an image has few enough distinct colors to be palette art rather than a
 /// photograph. Counting stops early, so a photograph costs a few thousand pixels to reject
 /// rather than a full scan.
 fn is_flat_colour(image: &DynamicImage) -> bool {
@@ -142,10 +142,10 @@ mod tests {
 	use super::*;
 	use image::{Rgba, RgbaImage};
 
-	fn solid(width: u32, height: u32, colours: u8) -> DynamicImage {
+	fn solid(width: u32, height: u32, colors: u8) -> DynamicImage {
 		let mut buffer = RgbaImage::new(width, height);
 		for (x, _y, pixel) in buffer.enumerate_pixels_mut() {
-			let shade = ((x % u32::from(colours.max(1))) * 8) as u8;
+			let shade = ((x % u32::from(colors.max(1))) * 8) as u8;
 			*pixel = Rgba([shade, shade, shade, 255]);
 		}
 		DynamicImage::ImageRgba8(buffer)

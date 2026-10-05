@@ -35,7 +35,7 @@ export function spaceScriptBoundaries(parts: readonly string[]): string[] {
  *
  * Which side needs a space depends on the value, not the locale or template -- a per-locale flag
  * would go stale the first time a message was rewritten. Rendering once with the placeholder is
- * how the two real neighbours are found.
+ * how the two real neighbors are found.
  */
 export function fillSlot(rendered: string, slot: string, value: string): string {
 	const [before = '', after = ''] = rendered.split(slot);

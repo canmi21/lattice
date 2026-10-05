@@ -63,10 +63,10 @@ function clauses(paragraphs: string[]): string[] {
 }
 
 /**
- * Every article's five bars, normalised across the list.
+ * Every article's five bars, normalized across the list.
  *
- * Titles are normalised list-wide, so they vary against each other; each article's body is
- * normalised against its own shortest and longest clause. That is why this takes the whole list
+ * Titles are normalized list-wide, so they vary against each other; each article's body is
+ * normalized against its own shortest and longest clause. That is why this takes the whole list
  * rather than one article: a bar's width is a fact about where this article sits among them.
  */
 export function thumbnails(articles: readonly Thumbnailed[], font: string): Bar[][] {

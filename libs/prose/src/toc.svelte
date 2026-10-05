@@ -46,7 +46,7 @@
 
 	const MAX_BAR_WIDTH = 64;
 	/**
-	 * How many steps the bar scale has, and how far one entry may stand above its neighbour.
+	 * How many steps the bar scale has, and how far one entry may stand above its neighbor.
 	 *
 	 * Ten steps of the longest heading: finer than that is below what anyone reads off a column
 	 * of bars, and pretending otherwise only makes rounding look like meaning. Three is the
@@ -55,7 +55,7 @@
 	const STEPS = 10;
 	const MAX_ADJACENT_STEP = 3;
 	/**
-	 * How far apart neighbouring entries must be drawn.
+	 * How far apart neighboring entries must be drawn.
 	 *
 	 * One step, the smallest move that separates them at all. Two was tried and is too much:
 	 * with headings this evenly sized, it leaves only differences of two or three steps, so the
@@ -338,7 +338,7 @@
 		}
 
 		// Only on a fresh navigation. A reload keeps the position the reader had scrolled to,
-		// which is the browser's own behaviour and what somebody reloading halfway down a page
+		// which is the browser's own behavior and what somebody reloading halfway down a page
 		// wants; taking over both alike is what throws that away. See spec/styling/notes.md.
 		const interceptedHash = window.canmiArticleInitialHash;
 		const initialHash = interceptedHash ?? window.location.hash.slice(1);

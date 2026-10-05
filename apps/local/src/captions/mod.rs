@@ -9,7 +9,7 @@
 //! `position`, `line` and `align` would invent a layout already stated. `NOTE` comments are
 //! dropped, since they describe a track this file is no longer; so is the header's
 //! `X-TIMESTAMP-MAP`, which aligns cues to an MPEG-TS clock a standalone file lacks -- Apple's
-//! track carries `MPEGTS:900000`, ten seconds, a player that honoured it would run that far out.
+//! track carries `MPEGTS:900000`, ten seconds, a player that honored it would run that far out.
 
 pub mod run;
 
@@ -94,7 +94,7 @@ pub enum Error {
 	/// No default, and this is the reason rather than strictness for its own sake.
 	///
 	/// `kind` is what a reader picks a track by, and the reader picking by it is the one a wrong
-	/// value costs most: someone deaf takes a track labelled `captions`, gets subtitles, loses every
+	/// value costs most: someone deaf takes a track labeled `captions`, gets subtitles, loses every
 	/// sound the film makes, and is told nothing -- the track plays, so nothing reports a fault.
 	/// `infer_kind` only knows when a track transcribes sound; everything else has to be told, and
 	/// meeting that as a compile error asking for a value is the intended experience.
@@ -148,7 +148,7 @@ pub fn cut(vtt: &str, window: Window) -> Result<Option<String>, Error> {
 	if !length.is_finite() || length <= 0.0 {
 		return Err(Error::Window { from: window.from, to: window.to });
 	}
-	let text = normalise(vtt);
+	let text = normalize(vtt);
 	let blocks = blocks(&text);
 	let signature = *blocks.first().and_then(|block| block.first()).ok_or(Error::Signature)?;
 	// A space or a tab may follow the signature, carrying a free-text title of the track.
@@ -235,8 +235,8 @@ pub struct Summary {
 /// adding them would report more coverage than the clip has room for. `opening` exists because
 /// this module cannot check which recording a track transcribes -- see
 /// spec/architecture/video/captions.md, "Neither of those is a check on the track", and [`run`].
-pub fn summarise(vtt: &str) -> Summary {
-	let text = normalise(vtt);
+pub fn summarize(vtt: &str) -> Summary {
+	let text = normalize(vtt);
 	let mut spans: Vec<(f64, f64)> = Vec::new();
 	let mut opening = None;
 	for block in blocks(&text).iter().skip(1) {
@@ -275,7 +275,7 @@ pub fn summarise(vtt: &str) -> Summary {
 /// since a descriptions track's narration reads exactly like dialogue. Read from the whole
 /// track, not the cut -- the kind belongs to the track, not to an excerpt of it.
 pub fn infer_kind(vtt: &str) -> Option<Kind> {
-	let text = normalise(vtt);
+	let text = normalize(vtt);
 	for block in blocks(&text).iter().skip(1) {
 		let Some(&first) = block.first() else { continue };
 		if first == "STYLE" || first == "REGION" || first.starts_with("NOTE") {
@@ -308,7 +308,7 @@ fn transcribes_a_sound(line: &str) -> bool {
 }
 
 /// One byte order mark and both spellings of a line ending, gone.
-fn normalise(vtt: &str) -> String {
+fn normalize(vtt: &str) -> String {
 	vtt.strip_prefix('\u{feff}').unwrap_or(vtt).replace("\r\n", "\n").replace('\r', "\n")
 }
 
@@ -440,7 +440,7 @@ mod tests {
 	#[test]
 	fn drops_the_timestamp_map_and_the_comments() {
 		// MPEGTS:900000 is ten seconds against a presentation clock a standalone file has no
-		// access to, so a player that honoured it would run the whole track ten seconds out.
+		// access to, so a player that honored it would run the whole track ten seconds out.
 		let out = cut(TRACK, window()).expect("cut").expect("cues");
 		assert!(!out.contains("X-TIMESTAMP-MAP"));
 		assert!(!out.contains("NOTE"));
@@ -485,7 +485,7 @@ mod tests {
 	#[test]
 	fn a_summary_counts_the_cues_and_quotes_the_first_of_them() {
 		let out = cut(TRACK, window()).expect("cut").expect("cues");
-		let summary = summarise(&out);
+		let summary = summarize(&out);
 		assert_eq!(summary.cues, 3);
 		// 0.335 + 1.835 + 2.611, and none of the three overlap.
 		assert!((summary.covered - 4.781).abs() < 0.001, "{summary:?}");
@@ -504,7 +504,7 @@ mod tests {
 		let both = "WEBVTT\n\n\
 			00:00:00.000 --> 00:00:04.000\nYou want a great opening scene?\n\n\
 			00:00:02.000 --> 00:00:06.000\nHere's one.\n";
-		let summary = summarise(both);
+		let summary = summarize(both);
 		assert_eq!(summary.cues, 2);
 		assert_eq!(summary.covered, 6.0);
 	}
@@ -543,10 +543,10 @@ mod tests {
 		// This track writes speaker labels exactly as it writes sounds -- bracketed, on a line of
 		// their own -- and only the case tells them apart. Subtitles carry speaker labels too, so
 		// reading `[Woman:]` as evidence of captions would answer a question this cannot see.
-		let labelled = "WEBVTT\n\n\
+		let labeled = "WEBVTT\n\n\
 			00:09:22.860 --> 00:09:24.795\n[Woman:]\nSiri, what did mom mention\n\n\
 			00:09:52.322 --> 00:09:55.592\n[Siri:] Adding it to your list.\n";
-		assert_eq!(infer_kind(labelled), None);
+		assert_eq!(infer_kind(labeled), None);
 	}
 
 	#[test]

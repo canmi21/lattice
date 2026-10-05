@@ -4,7 +4,7 @@
 	import { family, figures, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the repository card. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of the repository card. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The corner glyph's other opacity is in the block at the foot, gated on the card's hover and
@@ -63,7 +63,7 @@
 			color: 'var(--color-text-soft)',
 			fontSize: text.px12,
 		},
-		/** The language's dot. Its fill is the language's colour and arrives inline. */
+		/** The language's dot. Its fill is the language's color and arrives inline. */
 		languageDot: {
 			borderRadius: '50%',
 		},
@@ -83,7 +83,7 @@
 		 * The corner glyph's ink and the opacity it rests at. The other opacity is the scoped
 		 * block's, because it is gated on an ancestor's hover.
 		 *
-		 * One property in the list, so the delay and the behaviour are left out: their initial
+		 * One property in the list, so the delay and the behavior are left out: their initial
 		 * values are already the one-item lists the shorthand this replaced computed to. Reduced
 		 * motion is that shorthand's `none` as longhands, which is more than the property alone.
 		 */

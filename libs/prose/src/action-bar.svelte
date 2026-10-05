@@ -26,8 +26,8 @@
 	 *
 	 * The rail holds what an article is; this holds what a reader does with one. **It declares no
 	 * width**: the rail declares 8.5rem because text needs a measure, and a control knows its own
-	 * size. The article is centred at every width, so `--rail-left` and the rail's breakpoint serve
-	 * both sides. See spec/styling/rail.md, "The article is centred; the rail adapts to the region
+	 * size. The article is centered at every width, so `--rail-left` and the rail's breakpoint serve
+	 * both sides. See spec/styling/rail.md, "The article is centered; the rail adapts to the region
 	 * beside it" and "Absent rather than squeezed".
 	 */
 	let { locale, theme }: { locale: LocaleCode; theme: Theme } = $props();
@@ -35,7 +35,7 @@
 
 <!-- A full-height strip, inert, with its children taking their own events back -- the same
      arrangement the rail uses, and for the same reason: it spans the window so that what is in it
-     can be centred, and a strip that caught clicks would swallow the page's right margin. -->
+     can be centered, and a strip that caught clicks would swallow the page's right margin. -->
 <div
 	class="pointer-events-none fixed inset-y-0 right-[var(--rail-left)] z-10 hidden items-center min-[68rem]:flex"
 >

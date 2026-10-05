@@ -514,7 +514,7 @@ full graph rather than out of the origin walk, whose shortest-path pruning disca
 second and third parent that are the answer here.
 
 **Only the direct edges are stored; the indirect set is derived where it is displayed.** Two
-reasons, and the second is the one that generalises. The record is embedded whole into the site
+reasons, and the second is the one that generalizes. The record is embedded whole into the site
 bundle, so anything written into it is weight on every page load, while walking a few hundred
 reverse edges per request is free. And a stored closure is a snapshot of the same edges: it can
 only ever agree with them or be wrong, which would leave the record holding two answers to one
@@ -548,7 +548,7 @@ the two would make the directory state a notice-preservation condition the packa
 not carry; grouping legal terms by resemblance is not normalization.
 
 The browser surface follows those two kinds of identity instead of nesting one inside the
-other. `/licenses` is the license directory, `/licenses/{licence}` is one license's package
+other. `/licenses` is the license directory, `/licenses/{license}` is one license's package
 directory, and `/licenses/pkgs/{type}/{name}@{version}` is one package. A package route does not
 sit below a license route because an expression can place the same package under several
 licenses; doing so would give one package several equally plausible addresses. `pkgs` is an
@@ -579,7 +579,7 @@ directives -- working only because crawlers resolve a conflict by taking the mos
 A default that can be replaced is not the same as a default that has to be argued with.
 
 The plain-text documents keep their existing addresses: `/licenses.txt`, `/licenses/full.txt`
-and `/licenses/{type}/{name}@{version}.txt`. They are stable legal artefacts rather than the HTML
+and `/licenses/{type}/{name}@{version}.txt`. They are stable legal artifacts rather than the HTML
 package pages, so reorganising the browser surface is not a reason to move them.
 
 The page is locale-negotiated like every other page, while the three plain-text routes beside

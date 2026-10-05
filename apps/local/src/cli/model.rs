@@ -67,7 +67,7 @@ pub(super) fn summarise_articles(
 	limit: Option<usize>,
 ) -> anyhow::Result<ExitCode> {
 	// Not `DEFAULT_TEXT`. This is the one text task carrying a constraint the model has to hold
-	// against its own training -- summarise, but withhold the conclusion -- and the open-weight
+	// against its own training -- summarize, but withhold the conclusion -- and the open-weight
 	// default measurably does not: it handed over the whole design and then appended "reaches a
 	// surprising conclusion", and gave a first-person essay's author a pronoun the article never
 	// uses. Translation has no comparable trap, which is why that one stays on the cheap model.
@@ -97,7 +97,7 @@ pub(super) fn summarise_articles(
 		eprintln!("fail  {path}: {error}");
 	}
 	if outcome.claimed_elsewhere > 0 {
-		eprintln!("note  {} left to a run already summarising them", outcome.claimed_elsewhere);
+		eprintln!("note  {} left to a run already summarizing them", outcome.claimed_elsewhere);
 	}
 	println!(
 		"{} written, {} already had one, {} reviewed, {} deferred, {} failed",
@@ -123,7 +123,7 @@ pub(super) fn describe_diagrams(
 ) -> anyhow::Result<ExitCode> {
 	// Not `DEFAULT_TEXT`, for the reason `summary` gives: this task carries a constraint the model
 	// has to hold against its own reading, and the open-weight default measurably does not. Asked
-	// to describe the picture and not the markup, it reported opacities, fill colours and the size
+	// to describe the picture and not the markup, it reported opacities, fill colors and the size
 	// of the legend squares -- which is what the source says and not what the drawing shows.
 	let runner = model.runner(i18n::runner::Runner::Codex);
 	let model_override = model.overrides(runner).map_err(anyhow::Error::msg)?;
@@ -425,7 +425,7 @@ pub(super) fn translate_articles(args: I18nArgs<'_>) -> anyhow::Result<ExitCode>
 	}
 }
 
-/// Materialise the Rust segment ids and source ranges for builds that do not have Rust.
+/// Materialize the Rust segment ids and source ranges for builds that do not have Rust.
 pub(super) fn write_segment_layout() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 	match i18n::layout::sync(&root) {

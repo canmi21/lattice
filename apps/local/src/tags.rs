@@ -18,7 +18,7 @@ pub const VERSION: u32 = 3;
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "kind", rename_all = "lowercase")]
 pub enum Tag {
-	/// A proper noun, brand, tool, format, protocol or organisation. Its name is not translated.
+	/// A proper noun, brand, tool, format, protocol or organization. Its name is not translated.
 	Technical { display: String, meaning: String },
 	/// A common noun that readers expect to see in their own language.
 	Ordinary {

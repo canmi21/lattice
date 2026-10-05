@@ -255,7 +255,7 @@ corrects its own label on the first frame is worse than one a few pixels wider.
 
 **Then German, then the gap, and the phone that settled it was the narrow one.** A 402pt iPhone
 left German 3px, which is not a margin. `Zusammenfassung` becomes `Abriss` rather than `Resümee` --
-seven pixels, and a shade of meaning toward the outline it summarises, spent knowingly. That fixed
+seven pixels, and a shade of meaning toward the outline it summarizes, spent knowingly. That fixed
 German and promoted Spanish, whose `Resumen` has nothing shorter behind it, so the row's own gap
 goes from 8px to 6px below `sm`. Measured on a 390pt iPhone, where the column is 342px rather than
 354 and everything is 12px tighter than the first device suggested:

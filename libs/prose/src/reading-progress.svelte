@@ -105,7 +105,7 @@
 	}
 
 	/**
-	 * Read once while the component initialises, not in an effect.
+	 * Read once while the component initializes, not in an effect.
 	 *
 	 * The browser restores a reload's scroll position before any of this runs, so the answer
 	 * already exists -- and an effect runs after the first paint, which drew a full ring's worth
@@ -205,7 +205,7 @@
 		? m['article.to-end']({}, { locale })
 		: m['article.to-top']({}, { locale })}
 >
-	<!-- One cell, so the ring and the arrow share a centre without either being positioned. -->
+	<!-- One cell, so the ring and the arrow share a center without either being positioned. -->
 	<svg class="col-start-1 row-start-1 size-5 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
 		<!-- r is 15.9155 because that circle is 100 long, so the dash offset below is a percentage
 		     and nothing has to compute a circumference to write it. -->

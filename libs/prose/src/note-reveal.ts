@@ -29,7 +29,7 @@ export function offerNoteReveal(reveal: Revealer): () => void {
  *
  * The caller must do this *before* asking the page to scroll. `scrollIntoView` resolves its
  * destination at the moment it is called, so content unfolding underneath afterwards moves the
- * note away from the position the scroll is already travelling to. Unfolding first is also what
+ * note away from the position the scroll is already traveling to. Unfolding first is also what
  * keeps it unseen: the section is still below the fold, so the jump in height happens where
  * nobody is looking, and the reader arrives at a section that was simply already open.
  */

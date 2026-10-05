@@ -164,7 +164,7 @@ fn camera_data_makes_it_a_photograph() {
 	assert_eq!(model, Some("iPhone"));
 	// Flattened, so what a sensor recorded sits at the top of the layer rather than under a
 	// second name for the layer itself.
-	let written = serde_json::to_string(photo).expect("serialise");
+	let written = serde_json::to_string(photo).expect("serialize");
 	assert!(written.contains(r#""camera":{"model":"iPhone"}"#), "{written}");
 }
 
@@ -229,8 +229,8 @@ fn a_layer_this_build_has_never_heard_of_survives_being_read_and_written() {
 			fields: serde_json::from_str(r#"{ "shell": "fish" }"#).expect("fields"),
 		},
 	);
-	let text = serde_json::to_string(&media).expect("serialise");
-	let read: Media = serde_json::from_str(&text).expect("deserialise");
+	let text = serde_json::to_string(&media).expect("serialize");
+	let read: Media = serde_json::from_str(&text).expect("deserialize");
 	assert_eq!(read, media);
 	assert_eq!(read.validate(), Ok(()));
 	assert!(text.contains(r#""terminal":{"version":1,"shell":"fish"}"#), "{text}");
@@ -240,8 +240,8 @@ fn a_layer_this_build_has_never_heard_of_survives_being_read_and_written() {
 fn a_record_round_trips_through_json_with_type_spelled_as_a_namespace() {
 	let merged = merged_of(LEGACY_IMAGE);
 	let media = merged.media.values().next().expect("one record");
-	let text = serde_json::to_string(media).expect("serialise");
-	assert_eq!(&serde_json::from_str::<Media>(&text).expect("deserialise"), media);
+	let text = serde_json::to_string(media).expect("serialize");
+	assert_eq!(&serde_json::from_str::<Media>(&text).expect("deserialize"), media);
 	assert!(text.contains(r#""type":"media.image.screenshot""#), "{text}");
 	assert!(text.contains(r#""version":5"#), "{text}");
 	assert!(text.contains(r#""resource":"k0000""#), "{text}");
@@ -255,16 +255,16 @@ fn a_record_that_holds_a_rid_keeps_it_through_a_round_trip() {
 	let merged = merged_of(LEGACY_IMAGE);
 	let mut media = merged.media.values().next().expect("one record").clone();
 	media.resource = ResourceId::parse("k7m2x").expect("a rid");
-	let text = serde_json::to_string(&media).expect("serialise");
+	let text = serde_json::to_string(&media).expect("serialize");
 	assert!(text.contains(r#""resource":"k7m2x""#), "{text}");
-	assert_eq!(serde_json::from_str::<Media>(&text).expect("deserialise"), media);
+	assert_eq!(serde_json::from_str::<Media>(&text).expect("deserialize"), media);
 }
 
 #[test]
 fn a_manifest_written_in_the_new_shape_loads_as_it_was_written() {
 	let merged = merged_of(LEGACY_IMAGE);
-	let text = serde_json::to_string(&merged).expect("serialise");
-	let read: Merged = serde_json::from_str(&text).expect("deserialise");
+	let text = serde_json::to_string(&merged).expect("serialize");
+	let read: Merged = serde_json::from_str(&text).expect("deserialize");
 	assert_eq!(read, merged);
 	assert_eq!(read.media.keys().collect::<Vec<_>>(), merged.media.keys().collect::<Vec<_>>());
 }

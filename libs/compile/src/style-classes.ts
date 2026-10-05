@@ -11,7 +11,7 @@
 export type DirectiveAttrs = Record<string, string | null | undefined>;
 
 /**
- * Every colour class `:t` can ask for, written out whole.
+ * Every color class `:t` can ask for, written out whole.
  *
  * A joined name is one Tailwind's scanner never reads, so it emits no rule and the run is
  * silently unstyled -- `text-blue` and `text-text` were both absent from the built CSS, and

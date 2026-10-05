@@ -4,7 +4,7 @@
 	import { duration } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the language switcher. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of the language switcher. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The row's highlight and the mark's pair stay in the markup, gated on `data-highlighted`:
@@ -96,7 +96,7 @@
 		 * Fetch what this page renders in another language, without showing it.
 		 *
 		 * Supplied by the page, because only the page knows what it reads. A page with nothing to
-		 * fetch -- the licence directory is not translated -- passes none and switches at once.
+		 * fetch -- the license directory is not translated -- passes none and switches at once.
 		 */
 		prefetch?: (next: LocaleCode) => Promise<unknown>;
 	} = $props();
@@ -143,7 +143,7 @@
 	 * On the label span rather than the row, because the row is the menu library's element and a
 	 * handler handed to it never reaches the DOM -- dispatched one and watched nothing happen.
 	 * An attachment rather than an event attribute because a listener is what this is: the span is
-	 * not interactive, and an `onpointerenter` on it would promise behaviour a reader cannot
+	 * not interactive, and an `onpointerenter` on it would promise behavior a reader cannot
 	 * trigger or perceive -- which is what svelte's own a11y check says when you try.
 	 */
 	function warmOnHover(next: LocaleCode) {

@@ -13,7 +13,7 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a code block. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of a code block. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot styles what no class reaches: Shiki's own preformatted element
@@ -35,7 +35,7 @@
 			color: {
 				default: 'var(--color-text)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 			},
 			// The whole of `transition.colors`, the three `--tw-gradient-*` variables included.
@@ -49,7 +49,7 @@
 			// block; a second one on the title inside it would read as two controls.
 			outlineStyle: { default: null, ':focus-visible': 'none' },
 		},
-		/** The divider under a title. The colour is the face's; this is only its edge. */
+		/** The divider under a title. The color is the face's; this is only its edge. */
 		divider: {
 			borderBottomWidth: border.hairlinePx,
 			borderBottomStyle: 'solid',

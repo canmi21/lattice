@@ -104,7 +104,7 @@ lowercase hexadecimal characters. The browser stores the canonical email and raw
 the original token still succeeds, but cannot receive a replacement token because that would let
 another visitor cancel the subscription.
 
-## The browser recognises its own subscription
+## The browser recognizes its own subscription
 
 That record is the only thing a returning reader is known by. HTML is rendered by a Worker that
 cannot see `localStorage`, so the subscription form is what the server sends and the confirmed
@@ -170,7 +170,7 @@ device genuinely cannot cancel. A cancellation the API answers with `404` clears
 and reports success: the subscription is already gone -- most likely canceled from another
 browser -- and an error would leave the reader looking at a subscription they cannot get rid of.
 
-Cancelling takes one click and no confirmation step. Resubscribing is the same form that is
+Canceling takes one click and no confirmation step. Resubscribing is the same form that is
 already on the page and issues a fresh token, so the mistake costs a click to undo.
 
 ### Subscribing takes 2.1 seconds, spent in three beats
@@ -197,7 +197,7 @@ finished — a gap is the reader watching nothing, which is the thing the sequen
 The sweep does not use the shared spring. A spring is a settle — it covers 97% of the distance in
 the first half and leaves the rest of its stage with nothing visibly happening, which is exactly
 what a stage this long cannot afford. It eases in and out instead, and the spring stays where
-something is landing rather than travelling.
+something is landing rather than traveling.
 
 The unsubscribe control is last, and is absent rather than merely invisible until its beat. A
 control that undoes what the reader is still watching happen has nothing to undo yet, and it
@@ -269,7 +269,7 @@ becomes bullets.
 
 The domain is treated separately, since the two carry different amounts of identity. A mail
 provider names nobody: thousands of readers share `gmail.com`, so it stays legible and is what
-makes the masked address recognisable at all. A domain the reader controls is the opposite --
+makes the masked address recognizable at all. A domain the reader controls is the opposite --
 `canmi.net` identifies one person as surely as the full address -- so everything but the final
 label is masked. A short allowlist of providers separates the two; anything absent is treated as
 the reader's own.
@@ -472,7 +472,7 @@ overwrote the right number with the stale one.
 
 So a mutation's own reply is the last word. It carries the count the write produced, which is
 fresher than any cacheable GET can be by construction, and `onSuccess` writes it into both caches.
-Nothing is invalidated. The rule generalises: **do not revalidate against a cache that is allowed
+Nothing is invalidated. The rule generalizes: **do not revalidate against a cache that is allowed
 not to know yet.**
 
 ### An answer is parsed, not assumed

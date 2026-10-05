@@ -3,7 +3,7 @@
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 
 	/**
-	 * The visual half of the return control. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of the return control. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * See spec/architecture/css/authoring.md, "A comment in the module script cannot write a tag
@@ -26,7 +26,7 @@
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},

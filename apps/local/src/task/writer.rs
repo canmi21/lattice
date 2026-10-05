@@ -19,7 +19,7 @@ enum Message {
 	Stop,
 }
 
-/// Serialised access to one record store.
+/// Serialized access to one record store.
 ///
 /// Dropping it stops the thread after the queue drains, so mutations already handed over are
 /// applied rather than discarded -- the opposite would lose exactly the paid results this exists
@@ -189,7 +189,7 @@ mod tests {
 						.apply(move || {
 							let current: u32 =
 								std::fs::read_to_string(&store)?.trim().parse().map_err(std::io::Error::other)?;
-							// Widening the window on purpose: without serialisation this loses
+							// Widening the window on purpose: without serialization this loses
 							// updates every run rather than occasionally.
 							std::thread::sleep(std::time::Duration::from_micros(50));
 							std::fs::write(&store, (current + 1).to_string())

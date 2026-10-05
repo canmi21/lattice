@@ -4,7 +4,7 @@
 
 	/**
 	 * The visual half of the translator's note, the only surface this component draws itself. Every
-	 * colour is a `@canmi/kit/tokens` variable, so nothing here can change one. See
+	 * color is a `@canmi/kit/tokens` variable, so nothing here can change one. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file does not shrink: every rule in it reaches the
@@ -26,7 +26,7 @@
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
@@ -37,7 +37,7 @@
 		},
 		/**
 		 * The rule between the header and the note. The top-edge utility drew one edge and
-		 * `border-border` coloured all four, so the colour is written on all four here as well:
+		 * `border-border` colored all four, so the color is written on all four here as well:
 		 * the other three are zero-width and invisible, and they are still what the element
 		 * computes.
 		 */
@@ -313,7 +313,7 @@
 					<!-- The homepage's row, unchanged, and navigating in place like every other link
 			     here -- the reader's way back is the trail, see spec/styling/rail.md. Its thumbnail
 			     keeps the baked first frame rather than the content-derived shape the homepage
-			     animates to: that shape is normalised across a whole list, and one card in a body
+			     animates to: that shape is normalized across a whole list, and one card in a body
 			     has no list to be measured against. See $lib/article/list.svelte. -->
 					<ArticleCard
 						title={block.title}

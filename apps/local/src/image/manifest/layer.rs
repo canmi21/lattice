@@ -12,7 +12,7 @@ pub struct Media {
 	///
 	/// A list, because re-scanning a subject adds an original to the thing rather than
 	/// making a second thing. None of these bytes is published; the cids are kept so the
-	/// next import of the same file is recognised and skipped.
+	/// next import of the same file is recognized and skipped.
 	pub origin: Vec<Origin>,
 }
 

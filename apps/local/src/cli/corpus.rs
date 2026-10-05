@@ -1,4 +1,4 @@
-//! The commands that read the corpus and report on it: what assets are missing, which licences
+//! The commands that read the corpus and report on it: what assets are missing, which licenses
 //! the dependencies carry, and what the translator's notes cover.
 
 use super::*;
@@ -33,10 +33,10 @@ pub(super) fn check_assets() -> anyhow::Result<ExitCode> {
 	Ok(ExitCode::SUCCESS)
 }
 
-/// Collect the licence of everything the deployables are built out of.
+/// Collect the license of everything the deployables are built out of.
 ///
 /// See spec/architecture/data.md, "A dependency's license is an asset like any other" for why
-/// this runs locally rather than in CI, and why a package with no declared licence fails it.
+/// this runs locally rather than in CI, and why a package with no declared license fails it.
 pub(super) fn collect_licenses() -> anyhow::Result<ExitCode> {
 	let root = paths::repo_root()?;
 	let public = paths::objects_root(&root);
@@ -49,7 +49,7 @@ pub(super) fn collect_licenses() -> anyhow::Result<ExitCode> {
 	let assertions = licenses::read_assertions(&root).map_err(anyhow::Error::msg)?;
 
 	let written =
-		licenses::write(&public, found, &assertions).context("could not publish licence texts")?;
+		licenses::write(&public, found, &assertions).context("could not publish license texts")?;
 
 	let document = licenses::full_document(&public, &written.record)
 		.context("could not assemble the full notice")?;
@@ -60,7 +60,7 @@ pub(super) fn collect_licenses() -> anyhow::Result<ExitCode> {
 
 	let record_path = licenses::record_path(&root);
 	let json =
-		serde_json::to_string_pretty(&written.record).context("could not serialise the record")?;
+		serde_json::to_string_pretty(&written.record).context("could not serialize the record")?;
 	if let Err(error) = image::store::write(&record_path, format!("{json}\n").as_bytes()) {
 		eprintln!("could not write {}: {error}", record_path.display());
 		return Ok(ExitCode::FAILURE);
@@ -232,7 +232,7 @@ pub(super) fn scan_notes(
 			key,
 			i18n::tn::Article {
 				provider: runner.provider().to_owned(),
-				model: i18n::model::normalise(&model),
+				model: i18n::model::normalize(&model),
 				at: image::manifest::now(),
 				tokens,
 				segments: entries,

@@ -262,7 +262,7 @@ is a decision about how `local` serves the CMS rather than about this page.
 
 **A draft's page is the text, and nothing that is not the writing sits on it.** What the article
 is -- title, subtitle, description, path, language -- and its revisions are in a drawer at the
-window's right edge, and the actions -- preview, save, publish -- are a toolbar floating centred
+window's right edge, and the actions -- preview, save, publish -- are a toolbar floating centered
 at the pane's foot, above everything else in it. A draft is written before it is
 described, and a writer who has not decided a title should not be looking at an empty field asking
 for one. Both float over the pane rather than inside it, so they hold still while the text scrolls;
@@ -440,7 +440,7 @@ be, so both are shown, underlined dashed, and named on hover.
 **Every block has a handle, and a selection a bar.** A block -- a child of the document, see "What a
 block is has a standard" above -- shows a six-dot handle to its left while the pointer is over it,
 as Notion's blocks do. It stands in one column for every block, left of the text, and level with
-what the eye takes as the block's start: beside prose, centred on the first line of words as they
+what the eye takes as the block's start: beside prose, centered on the first line of words as they
 are drawn, since the line's own syntax may be hidden; beside a rendered component, level with the
 component's top edge, since a component has no first line and the room above it is not part of it.
 Measured on both kinds when it was placed. It follows the pointer rather than standing beside every
@@ -547,7 +547,7 @@ sweep somebody asks for, and against one a translation run performs on its way p
 a group with nothing in it is not drawn. A group opens with a band across the full width carrying
 its name and a count, and the rows beneath it carry no rule between them: the band already says
 where a group starts and ends, so a line per row was a third kind of divider doing the same job
-twice. The band is the only place a heading is drawn, and it draws no glyph -- a coloured mark per
+twice. The band is the only place a heading is drawn, and it draws no glyph -- a colored mark per
 heading put three accents on a page whose one meaningful mark is the rail saying a row needs work.
 
 The columns are the article, what it is short of, when it changed, and what to do about it.
@@ -584,7 +584,7 @@ from 108ms to 154ms and 600px from 750ms to 408ms.
 
 **And it is a tween, not a spring, because a spring has no end.** It approaches its target
 asymptotically and stops when the library decides it is close enough -- for `motion` that is a
-`restDelta` of 0.01, a hundredth of a pixel, which is the right default for an opacity travelling
+`restDelta` of 0.01, a hundredth of a pixel, which is the right default for an opacity traveling
 0 to 1 and the wrong one for a height in pixels. Measured folding a group: 182ms of a 468ms move,
 39% of the time, spent covering the last three and a half pixels. Nothing visible happens during
 it and it reads as the panel being slow to let go -- not as dropped frames, which were measured
@@ -650,7 +650,7 @@ its group's mark, which is why the band, the column names and the rows share one
 and why they also share its horizontal padding. Without it the rows began at the panel edge while
 the band began inside its own, so the tick sat a padding's width left of the mark it belongs under
 and the attention rail fell outside the row box entirely, where it fought the hover surface for the
-same edge. The tick is centred in that column rather than started at its edge, since the mark fills
+same edge. The tick is centered in that column rather than started at its edge, since the mark fills
 the column and a tick is narrower.
 
 The column names carry a tick of their own, which takes the whole group. Anything short of
@@ -672,7 +672,7 @@ second column moves the ordering onto it rather than adding a tie-break nobody a
 
 Each heading draws both arrows, gray, and a press walks a ring of three: off, up, down, off. That
 ring is why there is no reset control anywhere -- the way back out is one more press of the same
-heading, which is where somebody would look for it. Drawing the arrows greyed rather than only on
+heading, which is where somebody would look for it. Drawing the arrows grayed rather than only on
 the active column is what makes the third state discoverable: a heading with nothing beside it
 gives no reason to believe pressing it a third time would do anything.
 
@@ -785,7 +785,7 @@ rather than explaining that it is empty. A second menu narrows the study to one 
 the original, which is what reviewing a single locale looks like.
 
 **Which segments are listed is a tab, the way the library's grouping is.** All, Stale and
-Untranslated sit at the left of the action row under the same travelling bar, because they are
+Untranslated sit at the left of the action row under the same traveling bar, because they are
 one page shown three ways and that is what the library already says a tab means. They were the
 roster's own counts for a day, pressable, and that made a second kind of tab on a page that had
 the first kind a foot above it. The roster keeps a caption of what the view listed. Untranslated
@@ -864,7 +864,7 @@ disclosure. Neither runs anything, so neither waits on the task substrate. The l
 main pane and gains no outer box -- the opaque pane is already the surface, and a second one inside
 it is the dashboard chrome this deliberately is not.
 
-**The window's geometry was the desktop shell's and left with it**: a centred 1280 by 720 first
+**The window's geometry was the desktop shell's and left with it**: a centered 1280 by 720 first
 window, then Tauri's window-state plugin. A browser tab has no geometry of its own to keep, and
 `localStorage` still holds page state, never coordinates whose meaning depends on monitors.
 

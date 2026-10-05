@@ -30,9 +30,9 @@ describe('article language switcher', () => {
 	});
 
 	it('names the original for its state, never for its language', () => {
-		// Both are Chinese, and labelling the original by its language put the same string in the
+		// Both are Chinese, and labeling the original by its language put the same string in the
 		// list twice with nothing to choose between them. The one distinction worth showing is
-		// that the translation has been regularised and the original has not.
+		// that the translation has been regularized and the original has not.
 		const choices = languageChoices('zh', 'zh');
 		const original = choices.find((choice) => choice.code === 'mw');
 		const translated = choices.find((choice) => choice.code === 'zh');
@@ -332,7 +332,7 @@ describe('the marks the menu is scanned by', () => {
 	it('draws one glyph at one size, whatever is decorating it', () => {
 		// `translate-2-line` and `translate-2-ai-line` are the same drawing plus a sparkle. Sized
 		// on their own ink the plain one comes out larger, and the letterform they share renders
-		// at two sizes on neighbouring rows.
+		// at two sizes on neighboring rows.
 		expect(MARK_SIZE['translate-simplified']).toBe(MARK_SIZE['translate-ai']);
 	});
 

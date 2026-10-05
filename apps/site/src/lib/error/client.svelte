@@ -3,7 +3,7 @@
 	import { line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * Two small lines, centred, separated by ink rather than size. See
+	 * Two small lines, centered, separated by ink rather than size. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The page has no status number to be the one large thing, so nothing here is large either.
@@ -17,7 +17,7 @@
 			lineHeight: line.relaxed,
 			color: 'var(--color-text)',
 		},
-		/** The way out. Its two controls take their own colour; this is the prose around them. */
+		/** The way out. Its two controls take their own color; this is the prose around them. */
 		offer: {
 			fontSize: text.px13,
 			lineHeight: line.relaxed,

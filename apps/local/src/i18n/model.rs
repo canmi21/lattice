@@ -67,7 +67,7 @@ impl Provider {
 ///
 /// Enumerated rather than derived, because the two families disagree about part order and no
 /// pattern covers both without also matching nonsense. A runner reporting something absent
-/// from this list still gets recorded -- see `normalise` -- but only what is listed here is a
+/// from this list still gets recorded -- see `normalize` -- but only what is listed here is a
 /// name this project claims to understand.
 #[allow(dead_code)]
 pub const KNOWN: [&str; 29] = [
@@ -125,9 +125,9 @@ fn strip_snapshot(id: &str) -> &str {
 ///
 /// Spelling is settled first -- lower case, dots and underscores to hyphens -- then a dated
 /// snapshot suffix is removed. What survives is checked against `KNOWN` only to answer whether
-/// this project recognises it; an unrecognised id is still stored as it arrived, because
+/// this project recognizes it; an unrecognised id is still stored as it arrived, because
 /// inventing a name for it would be worse than recording an unfamiliar one.
-pub fn normalise(raw: &str) -> String {
+pub fn normalize(raw: &str) -> String {
 	let spelled = raw.trim().to_ascii_lowercase().replace(['.', '_'], "-");
 	strip_snapshot(&spelled).to_owned()
 }
@@ -164,7 +164,7 @@ Write every dot as a hyphen, and use lower case throughout.";
 pub fn anonymous(reply: &str) -> Option<(String, String)> {
 	let line = reply.lines().map(str::trim).find(|line| line.contains('/') && !line.contains(' '))?;
 	let (provider, model) = line.split_once('/')?;
-	let model = normalise(model);
+	let model = normalize(model);
 	// Believed only as far as it agrees with itself: a model claiming to be a Claude while
 	// naming OpenAI is reporting nothing worth storing.
 	let claimed = Provider::of_model(&model)?;
@@ -180,25 +180,25 @@ mod tests {
 
 	#[test]
 	fn dots_become_hyphens() {
-		assert_eq!(normalise("Claude-Sonnet-4.5"), "claude-sonnet-4-5");
-		assert_eq!(normalise("qwen-2.5-max"), "qwen-2-5-max");
-		assert_eq!(normalise("grok-4.5"), "grok-4-5");
+		assert_eq!(normalize("Claude-Sonnet-4.5"), "claude-sonnet-4-5");
+		assert_eq!(normalize("qwen-2.5-max"), "qwen-2-5-max");
+		assert_eq!(normalize("grok-4.5"), "grok-4-5");
 	}
 
 	#[test]
 	fn a_dated_snapshot_is_not_a_different_model() {
 		// Runners pin a build and report it. Storing the date would make two runs of one model
 		// look like two models, which is the question this field exists to answer.
-		assert_eq!(normalise("claude-haiku-4-5-20251001"), "claude-haiku-4-5");
-		assert_eq!(normalise("gpt-5-6-terra-20260214"), "gpt-5-6-terra");
+		assert_eq!(normalize("claude-haiku-4-5-20251001"), "claude-haiku-4-5");
+		assert_eq!(normalize("gpt-5-6-terra-20260214"), "gpt-5-6-terra");
 	}
 
 	#[test]
 	fn a_version_is_not_mistaken_for_a_date() {
 		// Short trailing digits are part of the name; only a long run of them is a snapshot.
-		assert_eq!(normalise("claude-sonnet-5"), "claude-sonnet-5");
-		assert_eq!(normalise("gpt-5-2"), "gpt-5-2");
-		assert_eq!(normalise("qwen-3-235b-a22b"), "qwen-3-235b-a22b");
+		assert_eq!(normalize("claude-sonnet-5"), "claude-sonnet-5");
+		assert_eq!(normalize("gpt-5-2"), "gpt-5-2");
+		assert_eq!(normalize("qwen-3-235b-a22b"), "qwen-3-235b-a22b");
 	}
 
 	#[test]
@@ -212,12 +212,12 @@ mod tests {
 		assert!(known("deepseek-prover-v2"));
 		// Recognition is not a gate: an unfamiliar id is still recorded as it arrived.
 		assert!(!known("claude-something-9"));
-		assert_eq!(normalise("Claude-Something-9"), "claude-something-9");
+		assert_eq!(normalize("Claude-Something-9"), "claude-something-9");
 	}
 
 	#[test]
 	fn the_model_families_keep_their_own_shapes() {
-		// Worth a test because it is the thing most likely to be silently normalised into one
+		// Worth a test because it is the thing most likely to be silently normalized into one
 		// shape by somebody tidying up later.
 		assert!(NAMING_RULE.contains("claude-{variant}-{version}"));
 		assert!(NAMING_RULE.contains("gpt-{version}[-{variant}][-{effort}]"));

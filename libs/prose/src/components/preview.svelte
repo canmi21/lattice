@@ -3,7 +3,7 @@
 	import { duration } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the three elements this component renders itself. Every colour is the
+	 * The visual half of the three elements this component renders itself. Every color is the
 	 * token variable `@canmi/kit/tokens` already declares, so nothing here can change one. See
 	 * spec/architecture/css/authoring.md. Most of the rest is not here and cannot be: the ground, the
 	 * stage and the close are portalled out of the tree by Bits UI and reached with `:global` in the
@@ -189,7 +189,7 @@
 	/* Pure black, in both themes, behind every picture. The page's two grounds are a warm
 	   near-white and a warm near-black, and a picture read against either of them is being read
 	   against the site rather than on its own. This is the one surface here that does not follow
-	   the theme, which is why its colour is written as a literal and not taken from the palette.
+	   the theme, which is why its color is written as a literal and not taken from the palette.
 	   See spec/styling/blocks.md. */
 	:global(.preview-ground) {
 		background: #000;

@@ -25,7 +25,7 @@ const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const SITE_CONFIG = fileURLToPath(new URL('./site.config.yaml', import.meta.url));
 const LICENSES = fileURLToPath(new URL('../../data/build/licenses.json', import.meta.url));
 
-// Built-in 301s, kept out of site.config.yaml because they are product behaviour rather than
+// Built-in 301s, kept out of site.config.yaml because they are product behavior rather than
 // configuration: feed aliases and the favicon redirect to the CDN.
 function builtinRedirects(cdnUrl: string): Record<string, string> {
 	return {
@@ -190,11 +190,11 @@ export default defineConfig(({ mode }) => {
 				},
 			},
 			// TODO: this record and the surface it feeds are both going. It is held out of the
-			// move of generated records into R2 on purpose, so the eight licence addresses can
+			// move of generated records into R2 on purpose, so the eight license addresses can
 			// be collapsed first and the record follow whatever they become.
 			// See spec/issues/site.md, "The license surface is eight addresses and one baked record".
 			{
-				// The dependency licence record, baked in. Only the metadata travels: the texts
+				// The dependency license record, baked in. Only the metadata travels: the texts
 				// themselves are published objects the CDN serves, so the Worker carries a few
 				// hundred KB of names and ids rather than several megabytes of legal prose.
 				name: 'virtual-licenses',

@@ -47,7 +47,7 @@
 	 * What an error page offers a reader who wants to do something about it.
 	 *
 	 * Its own component because it appears in two places that are otherwise nothing alike -- at
-	 * the foot of a page that has a status code, and at the centre of one that does not -- and
+	 * the foot of a page that has a status code, and at the center of one that does not -- and
 	 * because the report form it opens is wiring no page should hold a second copy of.
 	 */
 	let {

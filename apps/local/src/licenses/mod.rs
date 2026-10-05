@@ -1,7 +1,7 @@
 //! The `local licenses` command: who wrote what the deployables are built out of.
 //!
 //! Two registries answer the same question in different shapes; packages are identified by purl
-//! and the licence texts are content addressed like any other asset. See spec/architecture/data.md,
+//! and the license texts are content addressed like any other asset. See spec/architecture/data.md,
 //! "A dependency's license is an asset like any other" for why.
 
 pub mod cargo;
@@ -18,13 +18,13 @@ pub const VERSION: u32 = 4;
 /// Extensions that say a file is code or configuration whatever it is called.
 ///
 /// A blocklist rather than a list of permitted extensions, because the two mistakes are not
-/// equal: publishing one stray file is untidy, and missing a real licence is the failure this
+/// equal: publishing one stray file is untidy, and missing a real license is the failure this
 /// whole record exists to prevent. An allowlist would also have to guess at
 /// `LICENSE-APACHE-2.0`, whose extension reads as `0`.
 const NOT_A_LICENSE: [&str; 14] = [
 	"js", "mjs", "cjs", "ts", "mts", "cts", "json", "toml", "yaml", "yml", "rs", "lock",
 	// `LICENSE-3rdparty.csv` is a package's own machine-readable inventory of what it depends
-	// on. Publishing it under a heading that says it is a licence text states something untrue
+	// on. Publishing it under a heading that says it is a license text states something untrue
 	// about a document that is not one.
 	"csv", "tsv",
 ];
@@ -32,10 +32,10 @@ const NOT_A_LICENSE: [&str; 14] = [
 /// The file names a package uses to ship its terms.
 ///
 /// `NOTICE` is here because Apache-2.0 makes it a second obligation, separate from the copy of
-/// the licence itself: section 4(d) says the attribution notices in that file travel with every
-/// distribution of the work. A package that ships one is therefore saying something the licence
+/// the license itself: section 4(d) says the attribution notices in that file travel with every
+/// distribution of the work. A package that ships one is therefore saying something the license
 /// text does not, and dropping it would leave a requirement unmet rather than merely lose a
-/// file. Four packages in the current tree ship one, and all four ship their licence beside it.
+/// file. Four packages in the current tree ship one, and all four ship their license beside it.
 fn is_license_file(name: &str) -> bool {
 	let lower = name.to_ascii_lowercase();
 	let named = lower.starts_with("license")
@@ -43,7 +43,7 @@ fn is_license_file(name: &str) -> bool {
 		|| lower.starts_with("copying")
 		|| lower.starts_with("notice");
 	// `license_check.js` and `license.ts` are real files in real packages, and neither is a
-	// licence. The name alone cannot tell them apart from `LICENSE-MIT`; the extension can.
+	// license. The name alone cannot tell them apart from `LICENSE-MIT`; the extension can.
 	let extension =
 		Path::new(&lower).extension().and_then(|value| value.to_str()).unwrap_or_default().to_owned();
 	named && !NOT_A_LICENSE.contains(&extension.as_str())
@@ -53,7 +53,7 @@ fn is_license_file(name: &str) -> bool {
 pub struct Text {
 	/// The file name as the package shipped it.
 	///
-	/// Kept because it is the only thing that says which half of a dual licence a text is:
+	/// Kept because it is the only thing that says which half of a dual license a text is:
 	/// `MIT OR Apache-2.0` arrives as `LICENSE-MIT` beside `LICENSE-APACHE`, and the texts
 	/// themselves do not name the expression they satisfy.
 	pub name: String,
@@ -68,9 +68,9 @@ pub struct Person {
 	pub github: Option<String>,
 }
 
-/// A licence somebody worked out by reading the package, because the package never said.
+/// A license somebody worked out by reading the package, because the package never said.
 ///
-/// Kept apart from the generated record and committed, because it is a judgement rather than
+/// Kept apart from the generated record and committed, because it is a judgment rather than
 /// an observation: `svelte-toolbelt` ships an MIT text and omits the manifest field, and
 /// deciding that the text governs is a decision a person made once and should not have to
 /// make again silently. `note` is the evidence, so the decision can be checked rather than
@@ -111,7 +111,7 @@ pub struct Package {
 	/// True when the expression came from `data/record/licenses.yaml` rather than from the package.
 	///
 	/// Carried into the record so the published page can say which it is. Presenting a
-	/// judgement as the package's own declaration would be the one dishonest thing this
+	/// judgment as the package's own declaration would be the one dishonest thing this
 	/// record could do.
 	#[serde(default, skip_serializing_if = "std::ops::Not::not")]
 	pub asserted: bool,
@@ -299,7 +299,7 @@ pub fn web_url(value: Option<String>) -> Option<String> {
 	matches!(parsed.scheme(), "http" | "https").then_some(value)
 }
 
-/// Read the licence texts a package ships, in file-name order.
+/// Read the license texts a package ships, in file-name order.
 fn texts_in(directory: &Path) -> std::io::Result<Vec<(String, Vec<u8>)>> {
 	let mut found = Vec::new();
 	let entries = match std::fs::read_dir(directory) {
@@ -336,8 +336,8 @@ pub struct Written {
 
 /// Turn what the collectors found into published objects and one record.
 ///
-/// Texts are stored exactly as they were shipped. Normalising line endings would improve
-/// deduplication and would also mean publishing a licence its author never wrote, which is
+/// Texts are stored exactly as they were shipped. Normalizing line endings would improve
+/// deduplication and would also mean publishing a license its author never wrote, which is
 /// not a trade available on a legal text.
 pub fn write(
 	public_root: &Path,
@@ -404,9 +404,9 @@ pub fn write(
 
 /// The whole attribution notice as one document.
 ///
-/// This is the artefact the permissive licences actually ask for -- the copyright notices and
+/// This is the artifact the permissive licenses actually ask for -- the copyright notices and
 /// permission texts of everything being distributed, reproducible in one fetch. It carries no
-/// header of its own: the sentence about this repository's own licence belongs to the route
+/// header of its own: the sentence about this repository's own license belongs to the route
 /// that serves it, and the object stays exactly what it claims to be.
 pub fn full_document(public_root: &Path, record: &Record) -> std::io::Result<String> {
 	let mut out = String::new();
@@ -543,17 +543,17 @@ mod tests {
 
 	#[test]
 	fn recognises_the_names_a_license_is_shipped_under() {
-		for name in ["LICENSE", "LICENSE-MIT", "licence.md", "COPYING", "NOTICE"] {
+		for name in ["LICENSE", "LICENSE-MIT", "license.md", "COPYING", "NOTICE"] {
 			assert!(is_license_file(name), "{name}");
 		}
-		// Named for a licence, but code or data. Every one of these is shipped by a package in
+		// Named for a license, but code or data. Every one of these is shipped by a package in
 		// the current tree; `LICENSE-3rdparty.csv` is a machine-readable dependency inventory.
 		for name in
 			["README.md", "Cargo.toml", "license_check.js", "license.ts", "LICENSE-3rdparty.csv"]
 		{
 			assert!(!is_license_file(name), "{name}");
 		}
-		// A notice is not a licence and is collected anyway: Apache-2.0 section 4(d) makes
+		// A notice is not a license and is collected anyway: Apache-2.0 section 4(d) makes
 		// carrying it a requirement of its own.
 		assert!(is_license_file("NOTICE"));
 		// The extension reads as `0`, which an allowlist of extensions would have rejected.

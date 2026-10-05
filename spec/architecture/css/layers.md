@@ -377,7 +377,7 @@ adjective.
   property that sounds visual was layout. Under this one it needs no paragraph: it is one keyword,
   on one element, belonging to no recipe.
 - **`transform` splits by site rather than by property, and now says which sites.** A translate that
-  centres something is a one-off on one element and is the frame. A transform inside `@keyframes`
+  centers something is a one-off on one element and is the frame. A transform inside `@keyframes`
   cannot be reached by a class at all and is the escape hatch. A transform that is a member of a
   named surface goes with that surface. The old question -- whether deleting it moves anything
   while the page is at rest -- still predicts the answer in most cases and is no longer the test.

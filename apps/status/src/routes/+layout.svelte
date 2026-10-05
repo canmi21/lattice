@@ -22,7 +22,7 @@
 			},
 			transitionTimingFunction: easing.inOut,
 		},
-		// The text colour at 4%, shown once the page has scrolled.
+		// The text color at 4%, shown once the page has scrolled.
 		navBorderVisible: {
 			boxShadow: '0 1px 0 0 color-mix(in oklch, var(--color-text) 4%, transparent)',
 		},

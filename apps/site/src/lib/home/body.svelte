@@ -3,7 +3,7 @@
 	import { line } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the support page's links. Every colour is a `@canmi/kit/tokens` variable.
+	 * The visual half of the support page's links. Every color is a `@canmi/kit/tokens` variable.
 	 * See spec/architecture/css/authoring.md.
 	 *
 	 * `focus-link` stays in the markup beside these: it is the site's named vocabulary, which

@@ -136,7 +136,7 @@
 	});
 </script>
 
-<!-- Labelled by the heading rather than by a copy of its text, which is how the newsletter
+<!-- Labeled by the heading rather than by a copy of its text, which is how the newsletter
      section does it and one fewer place the same string is written. The id is also what a caller
      needs to reach this heading from outside. -->
 <section bind:this={listEl} aria-labelledby="writing-heading" class="mt-16">

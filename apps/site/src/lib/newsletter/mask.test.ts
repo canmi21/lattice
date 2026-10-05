@@ -18,7 +18,7 @@ describe('maskEmail', () => {
 		expect(maskEmail('a@qq.com')).toBe('•@qq.com');
 	});
 
-	it('canonicalises case before matching the provider list', () => {
+	it('canonicalizes case before matching the provider list', () => {
 		expect(maskEmail('Canmi@GMail.com')).toBe('c••••@gmail.com');
 	});
 

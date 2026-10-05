@@ -43,7 +43,7 @@ describe('route paths', () => {
 		expect(licenseSlug('Apache-2.0 WITH LLVM-exception')).toBe('apache-2-0-with-llvm-exception');
 	});
 
-	it('recognises a repository without treating deeper GitHub URLs as one', () => {
+	it('recognizes a repository without treating deeper GitHub URLs as one', () => {
 		const repository = `${URLS.external.github.web}/sveltejs/kit`;
 		expect(githubRepository(`${repository}.git`)).toEqual({
 			owner: 'sveltejs',
@@ -148,7 +148,7 @@ const EXPRESSIONS: [string, string[]][] = [
 	['MIT/Apache-2.0', ['MIT', 'Apache-2.0']],
 	['Apache-2.0/MIT', ['Apache-2.0', 'MIT']],
 	['MPL-2.0', ['MPL-2.0']],
-	// `WITH` binds an exception on; the result is one licence, not two.
+	// `WITH` binds an exception on; the result is one license, not two.
 	[
 		'Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT',
 		['Apache-2.0 WITH LLVM-exception', 'Apache-2.0', 'MIT'],
@@ -196,7 +196,7 @@ describe('splitting an SPDX expression', () => {
 		expect(licenseTerms(expression)).toEqual(expected);
 	});
 
-	it('names a licence once however often the expression repeats it', () => {
+	it('names a license once however often the expression repeats it', () => {
 		expect(licenseTerms('MIT OR MIT')).toEqual(['MIT']);
 	});
 
@@ -216,7 +216,7 @@ describe('splitting an SPDX expression', () => {
 
 	// Whatever comes out has to be usable as a heading and as an anchor. An operator surviving
 	// into a term means something was not split and would file a package under a name that is
-	// not a licence.
+	// not a license.
 	it('leaves no operator or bracket inside a term', () => {
 		for (const [expression] of EXPRESSIONS) {
 			for (const term of licenseTerms(expression)) {

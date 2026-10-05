@@ -127,7 +127,7 @@ pub struct Dimension {
 	pub width: u32,
 	pub height: u32,
 	/// Reduced by the greatest common divisor, so it is exact rather than snapped to a familiar
-	/// name. Screenshots rarely land on a recognisable ratio.
+	/// name. Screenshots rarely land on a recognizable ratio.
 	pub aspect: String,
 }
 
@@ -155,7 +155,7 @@ pub struct ImageVariant {
 	/// Absent on a vector, for the layer's reason: there are no pixels to report.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub resolution: Option<Resolution>,
-	/// Normalised 0..1, as a number so it can be compared without parsing. Kept because
+	/// Normalized 0..1, as a number so it can be compared without parsing. Kept because
 	/// re-deriving has to reproduce what was published.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub quality: Option<f32>,
@@ -382,7 +382,7 @@ pub fn canonical_of(layers: &Layers) -> Option<Canonical> {
 fn icon_canonical(icon: &layer::Icon) -> Option<Canonical> {
 	let file = icon.tones.of(None)?;
 	// `for_icon`, not `for_variant`: the ladder's table answers AVIF for anything it does not
-	// recognise, and these files are whatever somebody else's server served -- an SVG named
+	// recognize, and these files are whatever somebody else's server served -- an SVG named
 	// `.avif` is an address to a file nobody wrote.
 	let extension = crate::extension::for_icon(&file.mime)?;
 	Some(Canonical::Object { cid: file.content.clone(), extension: extension.to_owned() })

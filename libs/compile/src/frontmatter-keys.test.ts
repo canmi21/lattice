@@ -7,7 +7,7 @@ import { TRANSLATABLE_FRONTMATTER } from './compile';
 /**
  * The Rust declaration this list is a copy of.
  *
- * Read out of the source rather than out of a generated artefact, so there is no regeneration
+ * Read out of the source rather than out of a generated artifact, so there is no regeneration
  * step to forget. The declared length is captured too: a list edited without its count is a Rust
  * compile error, and matching both here means this test cannot pass against a half-edited one.
  */

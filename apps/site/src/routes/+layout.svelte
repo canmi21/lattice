@@ -175,7 +175,7 @@
 	 * Record the reading trail, for every page rather than only articles.
 	 *
 	 * The Back control lives on an article, but the step it has to remember is often taken
-	 * elsewhere -- the homepage, a licence page -- and a page that skipped recording would be a
+	 * elsewhere -- the homepage, a license page -- and a page that skipped recording would be a
 	 * hole the next article's Back link falls into. `afterNavigate` covers the client navigations
 	 * and the first load alike; on the first load `from` is null, which `advance` reads as "trust
 	 * the record only if it claims this page". See $lib/article/trail.ts.
@@ -239,7 +239,7 @@
 		<meta name="twitter:site" content="@{site.author.twitter}" />
 		<meta name="twitter:creator" content="@{site.author.twitter}" />
 	{/if}
-	<!-- Safe despite the raw insertion: ldJson escapes what it serialises. Stated rather than
+	<!-- Safe despite the raw insertion: ldJson escapes what it serializes. Stated rather than
 	     suppressed, because no linter here checks it -- oxlint does not parse svelte templates
 	     and has no svelte plugin, so a `svelte/no-at-html-tags` directive would be decoration.
 	     See spec/lint-format.md. -->

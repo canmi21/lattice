@@ -61,7 +61,7 @@ box rather than around it: measured on a 668px frame at 16px, a one-line plate r
 675.0, 22px against the 21.6 the 1.35 line-height asks for; on a 448px frame at 14px a two-line
 plate runs 530.5 to 568.5, 38px against 37.8. The figure used to carry an extra 0.4 of the size
 for what the plate was said to add above and below, and the plate adds nothing -- 6px of fiction
-at 16px and 12px at 30px, which pushed every centred caption that much below the middle of its
+at 16px and 12px at 30px, which pushed every centered caption that much below the middle of its
 bar.
 
 **Sideways, the plate is padded with text, because a cue cannot be padded with CSS.** WebVTT
@@ -77,7 +77,7 @@ doing the day the exact number matters. The wrapping is then decided on the padd
 plate is what has to fit across the picture.
 
 Measured in the window-filling mode, which is the same fitted picture and the same code as a full
-screen. At 900x900 the bar is 196.9 against a caption of 57.4, so the caption is centred in it:
+screen. At 900x900 the bar is 196.9 against a caption of 57.4, so the caption is centered in it:
 69.8px of black above the block and 69.7 below. At 1000x730 the bar is 83.8 against a caption of
 63.8 -- enough to hold one, not half again -- so it is refused, where before the caption sat in it
 with 5.3px of black under its descenders; it now sits on the picture, 18.9px above an image ending
@@ -104,9 +104,9 @@ recomputed only when the shape it was computed from changes: the window resizing
 screen being entered or left. Measured across ten samples spanning several one- and two-line cues,
 the line stayed at a single value and moved only on leaving full screen.
 
-That worst case is also what the bar is measured against, and what is centred in it, and the two
+That worst case is also what the bar is measured against, and what is centered in it, and the two
 follow from each other: a fixed bottom edge cannot center a one-line caption and a two-line one at
-the same time, and the one that is centred has to be the one the space was reserved for. So a
+the same time, and the one that is centered has to be the one the space was reserved for. So a
 caption that turns out to be a single line hangs at the bottom of its reserve -- half a line, 14px
 at the size a 900px-tall window gives -- below the middle of the bar. The alternative is to center
 one line and let a second grow upwards, which puts a two-line caption against the picture's bottom

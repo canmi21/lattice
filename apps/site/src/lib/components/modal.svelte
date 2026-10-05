@@ -4,7 +4,7 @@
 	import { easing, line, radius, text, transition } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the modal. Every colour is a `@canmi/kit/tokens` variable, so nothing here
+	 * The visual half of the modal. Every color is a `@canmi/kit/tokens` variable, so nothing here
 	 * can change one. See spec/architecture/css/authoring.md, "A comment in the module script cannot
 	 * write a tag in angle brackets", including for why this one may not.
 	 *
@@ -30,7 +30,7 @@
 		close: {
 			borderRadius: radius.md,
 			// No fill at rest: the card behind it is the resting surface, and only the two states
-			// name a colour of their own.
+			// name a color of their own.
 			backgroundColor: {
 				default: null,
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
@@ -95,7 +95,7 @@
 				styles.surface,
 			).class}"
 		>
-			<!-- The mark and the close control are each centred on a 1.5rem box so they sit on the
+			<!-- The mark and the close control are each centered on a 1.5rem box so they sit on the
 			first line of the title rather than on the whole header, which a wrapped title moves. -->
 			<div class="flex items-start gap-2.5">
 				{#if icon}

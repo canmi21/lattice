@@ -125,7 +125,7 @@ export function placeCaptions(element: HTMLVideoElement): void {
 	// bar being too shallow want the same answer: the bottom of the picture, held off it.
 	const bottom =
 		bar >= block * CUE_ROOM
-			? // Centred in the bar: half the leftover above the caption, half below.
+			? // Centered in the bar: half the leftover above the caption, half below.
 				box.height - (bar - block) / 2
 			: box.height - bar - size * CUE_CLEAR;
 	const line = Math.min(100, Math.max(0, (bottom / box.height) * 100));

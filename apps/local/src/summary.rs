@@ -109,7 +109,7 @@ fn prompt(body: &str, lang: &str) -> crate::i18n::prompt::Request {
 		 Withhold the article's own answer. If it proposes a design, do not name that design or \
 		 explain how it works. If it recommends settings, do not give the values. If it \
 		 measures something, do not give the numbers that decide the question. You may say that \
-		 it arrives at a design, a recommendation or a measurement, and characterise it in a \
+		 it arrives at a design, a recommendation or a measurement, and characterize it in a \
 		 word -- surprising, modest, expensive, narrower than expected -- but its content stays \
 		 in the article.\n\n\
 		 Do not bolt a teaser onto the end. A closing line like \"and reaches a surprising \
@@ -237,7 +237,7 @@ pub struct Outcome {
 	/// Articles still owed one, held back by `--limit`.
 	pub deferred: usize,
 	pub failed: Vec<(String, String)>,
-	/// Articles another run holds a claim on, left to it rather than summarised twice.
+	/// Articles another run holds a claim on, left to it rather than summarized twice.
 	pub claimed_elsewhere: usize,
 }
 
@@ -263,7 +263,7 @@ fn body_of(source: &str) -> &str {
 /// The `lang` an article declares, if it declares one.
 ///
 /// The presence of this key is what separates an article from a page: a page has no language to
-/// translate out of, so it is neither summarised nor translated. See spec/i18n/copy.md.
+/// translate out of, so it is neither summarized nor translated. See spec/i18n/copy.md.
 pub fn lang_of(fields: &Fields) -> Option<&str> {
 	fields.get("lang").map(String::as_str)
 }
@@ -329,7 +329,7 @@ fn pending(contents: &Path, force: bool) -> std::io::Result<(Vec<Article>, usize
 
 			// A summary somebody has read and vouched for is not the machine's to replace, and
 			// `--force` does not change that: the flag means "the model's last answer was
-			// wrong", not "discard a person's judgement".
+			// wrong", not "discard a person's judgment".
 			if let Some(existing) = load(&sidecar_for(&path))?.summary.get(locale) {
 				if existing.review {
 					reviewed += 1;
@@ -354,7 +354,7 @@ struct Generated {
 	entry: Translation,
 }
 
-async fn summarise(
+async fn summarize(
 	runner: Runner,
 	model_override: Option<String>,
 	article: &Article,
@@ -438,7 +438,7 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 				break;
 			};
 			let key = article.path.strip_prefix(&contents).unwrap_or(&article.path).to_path_buf();
-			// Claimed before anything is spent: an article another run is summarising right now
+			// Claimed before anything is spent: an article another run is summarizing right now
 			// is left to it rather than paid for twice.
 			match claim::take(repository, "summary", &key.display().to_string()) {
 				Ok(claim) => {
@@ -453,7 +453,7 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 			}
 			let model_override = model_override.clone();
 			running.push(tokio::spawn(async move {
-				let result = summarise(runner, model_override, &article).await;
+				let result = summarize(runner, model_override, &article).await;
 				(article.path, result)
 			}));
 		}
@@ -510,7 +510,7 @@ pub async fn run(options: Options<'_>) -> std::io::Result<Outcome> {
 mod tests {
 	use super::*;
 
-	/// An article another run holds a claim on is left to it rather than summarised twice.
+	/// An article another run holds a claim on is left to it rather than summarized twice.
 	///
 	/// Every candidate is claimed up front, so nothing is spawned and no runner is reached --
 	/// which is what makes the property testable without one.

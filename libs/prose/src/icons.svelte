@@ -8,7 +8,7 @@
 	 */
 	const styles = stylex.create({
 		/**
-		 * The current ink, on every branch. The glyph names no colour of its own: it takes whatever
+		 * The current ink, on every branch. The glyph names no color of its own: it takes whatever
 		 * the link around it is already setting, which is why nothing here reads a token.
 		 */
 		glyph: {

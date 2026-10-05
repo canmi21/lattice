@@ -72,7 +72,7 @@ fn an_echoed_context_fence_is_a_boundary_leak() {
 	// The context fence is derived from the material's, so echoing either one trips the same
 	// check and the reply is thrown away whole.
 	let fence = "K3QZ7XW1M8ND5VBRTY2LPCFA6GHJ0SEU";
-	let reply = format!("{}\n{fence}CONTEXT\nthe neighbouring paragraph\n", locale_marker("en-US"),);
+	let reply = format!("{}\n{fence}CONTEXT\nthe neighboring paragraph\n", locale_marker("en-US"),);
 	assert_eq!(parse(&reply, Some(fence)), Err(BoundaryLeak));
 }
 
@@ -84,7 +84,7 @@ fn frontmatter_is_told_to_use_target_locale_typography() {
 
 	assert!(request.text.contains("display metadata"));
 	assert!(request.text.contains("native casing and punctuation"));
-	assert!(request.text.contains("Never copy a neighbouring language's punctuation"));
+	assert!(request.text.contains("Never copy a neighboring language's punctuation"));
 	assert!(!request.text.contains("narrow table of contents"));
 	assert!(request.text.contains("Translator's notes are forbidden"));
 	assert!(!request.text.contains("add `:tn[word]"));
@@ -99,7 +99,7 @@ fn a_body_heading_is_given_the_rail_it_has_to_fit() {
 	assert!(request.text.contains("Han characters"));
 	assert!(request.text.contains(&format!("{} columns", super::super::width::CLAMP)));
 	// And the permission that makes shortening possible: the section explains itself.
-	assert!(request.text.contains("recognise the section"));
+	assert!(request.text.contains("recognize the section"));
 	assert!(request.text.contains("no parenthetical glosses"));
 }
 
@@ -119,7 +119,7 @@ fn a_subsection_is_told_it_has_no_width_to_fit() {
 	assert!(!request.text.contains("narrow rail"));
 	assert!(request.text.contains("not listed in the article's table of contents"));
 	// But the half that is about the writing still applies.
-	assert!(request.text.contains("recognise the section"));
+	assert!(request.text.contains("recognize the section"));
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn same_language_targets_are_told_to_localise_the_source() {
 		build_for(&segment(Kind::Prose), "原文", None, None, &["zh-CN", "zh-TW"], Some("zh-CN"), None);
 
 	assert!(request.text.contains("zh-CN, zh-TW use the same language"));
-	assert!(request.text.contains("localised views"));
+	assert!(request.text.contains("localized views"));
 	assert!(request.text.contains("resolve mixed-language phrasing"));
 	assert!(request.text.contains("Apply translator's notes"));
 }

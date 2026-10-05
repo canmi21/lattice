@@ -3,7 +3,7 @@
 //! Integrated loudness (LUFS) and true peak (dBTP), both from EBU R128 via ffmpeg's `loudnorm`.
 //! Stored, never baked in by re-encoding -- the bytes are the content id. See
 //! spec/architecture/video/pipeline.md, "Every clip plays at one level, and the peak is what caps
-//! it", for why loudness rather than peak sets the target, why this is normalisation and not
+//! it", for why loudness rather than peak sets the target, why this is normalization and not
 //! compression, and how the gain is applied at playback.
 
 use super::Error;

@@ -3,11 +3,11 @@
 	import { border, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the translation strip. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of the translation strip. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * This file has no scoped block left: its wash and the tint mixed from it were both visual
-	 * and reached only this element, and the custom property moved with the colour since it
+	 * and reached only this element, and the custom property moved with the color since it
 	 * resolves against the element it lands on. See spec/architecture/css/authoring.md, "A comment in
 	 * the module script cannot write a tag in angle brackets", for why this block itself must not.
 	 */
@@ -19,9 +19,9 @@
 		 */
 		notice: {
 			// The one knob. Flat across the whole strip; past roughly 20% the tint stops reading as
-			// tinted paper and becomes a coloured box.
+			// tinted paper and becomes a colored box.
 			'--wash': '10%',
-			// The shorthand this replaces said a colour and nothing else: every other longhand it
+			// The shorthand this replaces said a color and nothing else: every other longhand it
 			// reset was already at its initial value, and no rule on this element sets one.
 			backgroundColor: 'color-mix(in oklab, var(--color-blue) var(--wash), transparent)',
 			// Tailwind's right-side radius is the two physical corners rather than the logical
@@ -32,8 +32,8 @@
 			// registered with `solid` as its initial value, so the edge computes to two of solid.
 			borderLeftWidth: border.doublePx,
 			borderLeftStyle: 'solid',
-			// All four edges, three of which have no width to draw: the border-colour utility is
-			// a shorthand, and the computed style carries the colour on every side.
+			// All four edges, three of which have no width to draw: the border-color utility is
+			// a shorthand, and the computed style carries the color on every side.
 			borderColor: 'var(--color-blue-ink)',
 			fontSize: text.px14,
 			// The line as Tailwind's `--leading-snug` writes it. 1.375 terminates, so it stays a

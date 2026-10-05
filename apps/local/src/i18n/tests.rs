@@ -86,7 +86,7 @@ fn a_frontmatter_note_is_refused_before_it_can_be_stored() {
 #[test]
 fn a_reply_carrying_the_neighbouring_paragraphs_is_refused() {
 	// Measured from four articles: seventeen stored translations held their own block plus a
-	// neighbour that had been supplied as context. Filed under this block's id, the extra
+	// neighbor that had been supplied as context. Filed under this block's id, the extra
 	// prose then surfaced untranslated inside an unrelated view, a long way from the reply
 	// that caused it. A block does not gain lines in translation, so the shape says so.
 	let boundary = "K3QZ7XW1M8ND5VBRTY2LPCFA6GHJ0SEU";

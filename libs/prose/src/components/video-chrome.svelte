@@ -383,7 +383,7 @@
 		filter: drop-shadow(var(--player-shadow));
 	}
 
-	/* The same glyph in the row, and the same finding: Phosphor's `Play` is already centred on its
+	/* The same glyph in the row, and the same finding: Phosphor's `Play` is already centered on its
    mass, so the offset that used to be here was a second correction. See the cover's rule. */
 	.player-button :global(.player-glyph-play) {
 		fill: currentColor;
@@ -392,7 +392,7 @@
 	/* Both sliders hand their ring to the bar a reader can actually see, the same call
    `focus-ring-inner` makes elsewhere -- but neither utility reaches an `<input>`, whose bar is
    a sibling or a shadow pseudo-element rather than a descendant, so the two placements are
-   written out below by hand. The colour they are stated in at rest is in the vocabulary, on
+   written out below by hand. The color they are stated in at rest is in the vocabulary, on
    the three elements a class reaches. See spec/styling/focus.md for the measurement. */
 	.player-scrub:has(.player-seek:focus-visible) .player-track {
 		outline: 0.125rem solid var(--color-accent);

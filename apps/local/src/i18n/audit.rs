@@ -3,7 +3,7 @@
 //! every locale" and spec/i18n/prose.md, "A translation that runs far longer or shorter
 //! than its source is reported", for what each policy is and why none of them are a hard gate.
 //!
-//! Triage, not judgement: `local i18n --check` prints findings for a person to read, on the
+//! Triage, not judgment: `local i18n --check` prints findings for a person to read, on the
 //! premise that a check tuned until nothing is reported has stopped working rather than found a
 //! clean corpus.
 
@@ -67,7 +67,7 @@ fn has_han(text: &str) -> bool {
 }
 
 /// Leading characters that are neither letters nor digits carry no restatement signal.
-fn normalised(text: &str) -> String {
+fn normalized(text: &str) -> String {
 	text.trim_start_matches(|c: char| !c.is_alphanumeric()).to_lowercase()
 }
 
@@ -90,7 +90,7 @@ pub fn of(
 	// Two lines is a legitimate outcome for a section heading; `validate` refuses only what gets
 	// cut off. This reports the band in between, with the source beside it, since only a person
 	// can judge whether the language could have said it shorter. A subsection is never in the
-	// rail, so it is reported only past the clamp, as a reading judgement rather than a fit. See
+	// rail, so it is reported only past the clamp, as a reading judgment rather than a fit. See
 	// spec/i18n/segments.md, "A section heading is also a label, and the rail is narrow".
 	if kind == Kind::Heading {
 		let columns = width::of(translation);
@@ -102,7 +102,7 @@ pub fn of(
 			))),
 			Some(level) if level > 2 && columns > width::CLAMP => findings.push(finding(format!(
 				"subsection heading runs long ({columns} columns, source is {}); it is not in the \
-				 table of contents, so this is a reading judgement rather than a fit",
+				 table of contents, so this is a reading judgment rather than a fit",
 				width::of(source),
 			))),
 			_ => {}
@@ -115,14 +115,14 @@ pub fn of(
 	if !super::validate::author_notes_preserved(source, translation) {
 		findings.push(finding(format!(
 			"carries {} author's notes where the source has {} -- probably a translation of a \
-			 neighbouring block",
+			 neighboring block",
 			translation.matches(":fn[").count(),
 			source.matches(":fn[").count(),
 		)));
 	}
 	if !super::validate::markers_resolved(translation) {
 		findings.push(finding(
-			"carries a code marker that stands for nothing -- text copied from the neighbouring \
+			"carries a code marker that stands for nothing -- text copied from the neighboring \
 			 context"
 				.to_owned(),
 		));
@@ -147,7 +147,7 @@ pub fn of(
 	// An author's note explanation continues from its words; opening by restating them is the
 	// double reading the policy exists to avoid.
 	for (words, note) in directives(translation, ":fn") {
-		if !words.is_empty() && normalised(&note).starts_with(&normalised(&words)) {
+		if !words.is_empty() && normalized(&note).starts_with(&normalized(&words)) {
 			findings.push(finding(format!(":fn explanation restates the words it follows ({words})")));
 		}
 	}
@@ -292,12 +292,12 @@ pub fn lengths(
 	let mut sorted: Vec<f32> = scaled.iter().map(|(_, v)| *v).collect();
 	sorted.sort_by(|a, b| a.partial_cmp(b).expect("widths are finite"));
 	let middle = sorted.len() / 2;
-	let centre = if sorted.len().is_multiple_of(2) {
+	let center = if sorted.len().is_multiple_of(2) {
 		(sorted[middle - 1] + sorted[middle]) / 2.0
 	} else {
 		sorted[middle]
 	};
-	if centre <= 0.0 {
+	if center <= 0.0 {
 		return Vec::new();
 	}
 
@@ -305,7 +305,7 @@ pub fn lengths(
 	scaled
 		.into_iter()
 		.filter_map(|(locale, value)| {
-			let apart = value / centre;
+			let apart = value / center;
 			let long = value > ALONE_LONG || apart > APART_LONG;
 			let short = value < ALONE_SHORT || apart < APART_SHORT;
 			if !long && !short {
@@ -405,7 +405,7 @@ mod tests {
 	fn a_translation_that_answered_a_wider_question_is_reported() {
 		// The case this check was written for: a four-word subtitle came back as a sentence with
 		// a clause the source does not have. Seven of the eight padded, which moves the sibling
-		// centre with them -- so what catches it is the half that judges a locale against its own
+		// center with them -- so what catches it is the half that judges a locale against its own
 		// language's habit. See spec/i18n/prose.md.
 		let source = "From magic to lowering.";
 		let findings = lengths(
@@ -573,7 +573,7 @@ mod tests {
 			None,
 		);
 		assert_eq!(found.len(), 1);
-		assert!(found[0].reason.contains("neighbouring block"));
+		assert!(found[0].reason.contains("neighboring block"));
 	}
 
 	#[test]

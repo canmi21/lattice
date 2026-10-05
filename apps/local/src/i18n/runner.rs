@@ -142,7 +142,7 @@ impl Runner {
 	/// The model for reading a whole article to decide what will need a note.
 	///
 	/// The strongest tier each runner offers, and unapologetically so. This is one call per
-	/// article against dozens per article for translation, and the judgement it makes -- whether
+	/// article against dozens per article for translation, and the judgment it makes -- whether
 	/// the surrounding text already carries a meaning -- is the one a cheap model cannot make.
 	/// Getting it wrong is not a bad sentence but a note nobody needed, or a missing one nobody
 	/// notices.
@@ -287,8 +287,8 @@ async fn claude(prompt: &str, model: &str) -> Result<Answer, Refusal> {
 			.model_usage
 			.as_ref()
 			.and_then(|usage| usage.keys().next())
-			.map(|name| model::normalise(name))
-			.unwrap_or_else(|| model::normalise(model)),
+			.map(|name| model::normalize(name))
+			.unwrap_or_else(|| model::normalize(model)),
 		tokens: usage.map_or(0, |u| {
 			u64::from(u.input_tokens)
 				+ u64::from(u.output_tokens)
@@ -435,7 +435,7 @@ async fn codex(prompt: &str, model: &str, images: &[&Path]) -> Result<Answer, Re
 	Ok(Answer {
 		text,
 		// Codex's event stream does not name the resolved model, so record the requested one.
-		model: model::normalise(model),
+		model: model::normalize(model),
 		tokens,
 		// The CLI reports tokens but not their cost.
 		usd: 0.0,
@@ -463,7 +463,7 @@ async fn cursor(prompt: &str, model: &str) -> Result<Answer, Refusal> {
 	Ok(Answer {
 		text: String::from_utf8_lossy(&output.stdout).into_owned(),
 		// Text output identifies neither the resolved model nor usage.
-		model: model::normalise(model),
+		model: model::normalize(model),
 		tokens: 0,
 		usd: 0.0,
 	})
@@ -577,7 +577,7 @@ async fn grok_spawn(args: Vec<OsString>, model: &str) -> Result<Answer, Refusal>
 	Ok(Answer {
 		text: String::from_utf8_lossy(&output.stdout).into_owned(),
 		// Plain stdout identifies neither the resolved model nor usage.
-		model: model::normalise(model),
+		model: model::normalize(model),
 		tokens: 0,
 		usd: 0.0,
 	})
@@ -704,7 +704,7 @@ async fn agy(prompt: &str, model: &str) -> Result<Answer, Refusal> {
 		text: envelope.response,
 		// The envelope names no model, so what was asked for is what is recorded. Weaker than
 		// Claude's answer, where the runtime says what actually ran.
-		model: model::normalise(model),
+		model: model::normalize(model),
 		tokens: envelope.usage.total_tokens,
 		// Not reported. Left at zero rather than estimated, so a run's cost is either measured
 		// or visibly absent.

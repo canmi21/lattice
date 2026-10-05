@@ -4,7 +4,7 @@
 	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the Cargo widget. Every interface colour is a `@canmi/kit/tokens` variable.
+	 * The visual half of the Cargo widget. Every interface color is a `@canmi/kit/tokens` variable.
 	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
@@ -13,7 +13,7 @@
 	 * restate").
 	 */
 	const styles = stylex.create({
-		/** A tile's crate name, over whichever palette colour the tile drew. */
+		/** A tile's crate name, over whichever palette color the tile drew. */
 		tileName: {
 			fill: 'white',
 			fontSize: text.px11,
@@ -129,7 +129,7 @@
 		},
 		/**
 		 * The crate name in the table. Its `text-align` is a utility on the cell rather than a key
-		 * here -- text behaviour is the frame -- and it no longer overrides anything: the `td`
+		 * here -- text behavior is the frame -- and it no longer overrides anything: the `td`
 		 * rule it used to fight moved to the markup with it, so each cell now carries the one
 		 * alignment it wants. See spec/architecture/css/layers.md, "Typography splits".
 		 */
@@ -219,7 +219,7 @@
 </script>
 
 <!-- `cargo-widget` carries no rule here and is not dead: it is the hook `palette.css` hangs the
-     twenty-five crate colours and the four kind colours off, and that file is a component-local
+     twenty-five crate colors and the four kind colors off, and that file is a component-local
      mirror this layer does not own. See spec/architecture/css/authoring.md, "Color is never
      retyped", and spec/styling/controls.md. -->
 <div class="cargo-widget my-[1.8em]">
@@ -474,7 +474,7 @@
 <style>
 	/* The ring a focused tile draws, which is on the rect inside the anchor rather than on the
 	   anchor: a child selected through its parent's state, which no class reaches. The white is
-	   the treemap's own, read against whichever palette colour the tile drew -- see
+	   the treemap's own, read against whichever palette color the tile drew -- see
 	   spec/styling/controls.md. */
 	.cargo-tile:focus-visible rect:first-child {
 		stroke: white;

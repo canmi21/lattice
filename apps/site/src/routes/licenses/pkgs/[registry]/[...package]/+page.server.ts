@@ -25,7 +25,7 @@ type Node = {
 /**
  * One label from the record as something a reader can look at.
  *
- * `workspace:` marks this project's own apps and libraries, which have no licence page of
+ * `workspace:` marks this project's own apps and libraries, which have no license page of
  * their own -- they are the thing the page is crediting dependencies to, not a dependency.
  * They carry no version either, because a version is what pins somebody else's release.
  */
@@ -44,7 +44,7 @@ function node(label: string, self: string): Node {
 
 const own = (entry: Node) => Number(entry.id.startsWith('workspace:'));
 
-/** Own code first, then alphabetically: a reader recognises their own app names. */
+/** Own code first, then alphabetically: a reader recognizes their own app names. */
 function ordered(labels: string[], self: string): Node[] {
 	return labels
 		.map((label) => node(label, self))
@@ -66,9 +66,9 @@ export const load: PageServerLoad = ({ params, locals, depends }) => {
 	const reverse = dependents(found.purl);
 
 	return {
-		// The one page of the licence surface kept out of the index. There are several hundred
+		// The one page of the license surface kept out of the index. There are several hundred
 		// of them and each is one row of a directory that is indexed; `follow` because the links
-		// out of a package -- its repository, its licence, its dependents -- still count.
+		// out of a package -- its repository, its license, its dependents -- still count.
 		robots: 'noindex, follow',
 		purl: found.purl,
 		entry: found.package,

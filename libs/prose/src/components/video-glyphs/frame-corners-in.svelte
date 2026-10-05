@@ -8,7 +8,7 @@
 	import.
 
 	The frame is Phosphor's, byte for byte. The two brackets are Phosphor's too, each rotated 180
-	degrees about its own centre -- so each keeps its size and its place, and only the elbow moves
+	degrees about its own center -- so each keeps its size and its place, and only the elbow moves
 	from the outer end of the mark to the inner one. The elbows then sit either side of the middle
 	instead of out at the corners, which is how `CornersIn` says small and `CornersOut` says large.
 -->

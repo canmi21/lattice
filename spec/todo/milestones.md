@@ -360,7 +360,7 @@ Published objects are immutable and already served, so development reads them wh
 only thing that must be copied is the reader state, which is a few megabytes of relational data.
 Nothing about this arrangement changes as the photography lands.
 
-C4 is where [../issues/site.md](../issues/site.md)'s wrap-policy entry is answered, and it generalises: a paragraph's
+C4 is where [../issues/site.md](../issues/site.md)'s wrap-policy entry is answered, and it generalizes: a paragraph's
 line breaking, a diagram's layout and anything else whose answer exists only inside a real browser
 is decided once, under a fixed column and a known font, and written into the published object. A
 measurement taken in whatever browser happens to be editing would record that device instead.

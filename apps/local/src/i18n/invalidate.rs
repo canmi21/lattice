@@ -9,7 +9,7 @@
 //! Dry by default, like `local gc`: the selection is printed and nothing is touched until
 //! `--live`. What a person vouched for is never dropped -- a `review: true` entry outranks any
 //! selector, because the flag means a human read that text and no policy sweep should undo a
-//! judgement it cannot see.
+//! judgment it cannot see.
 
 use super::{segment, store};
 use std::path::{Path, PathBuf};

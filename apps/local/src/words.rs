@@ -13,7 +13,7 @@
 /// Whether a character is Hangul, in every block Korean is actually written in.
 ///
 /// Syllables are what modern Korean text is; the jamo blocks are the decomposed forms, which
-/// arrive from input methods and from normalisation and read as ordinary text.
+/// arrive from input methods and from normalization and read as ordinary text.
 ///
 /// No Korean word-count crate exists to use instead: `charabia` segments morphemes rather than
 /// counting 어절, returning 13 where a word processor says 7, and carries a dictionary of tens

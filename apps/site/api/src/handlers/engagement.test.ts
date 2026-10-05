@@ -29,7 +29,7 @@ const PATH = `architecture/${SLUG}`;
 const UNREAD_SLUG = 'friends-come-in-phases';
 const UNREAD_PATH = `mirror/${UNREAD_SLUG}`;
 
-/** Enough of a root for the read counter to recognise these two slugs and refuse every other. */
+/** Enough of a root for the read counter to recognize these two slugs and refuse every other. */
 const ROOT = {
 	version: 2,
 	assets: {},
@@ -143,13 +143,13 @@ describe('newsletter', () => {
 		});
 		expect(denied.status).toBe(404);
 
-		const cancelled = await api('/newsletter', {
+		const canceled = await api('/newsletter', {
 			method: 'DELETE',
 			ip: IP_TWO,
 			body: { email: 'READER+tag@example.com', cancel_token: created.cancel_token },
 		});
-		expect(cancelled.status).toBe(200);
-		expect(await payload(cancelled)).toEqual({ cancelled: true, subscriber_count: 0 });
+		expect(canceled.status).toBe(200);
+		expect(await payload(canceled)).toEqual({ canceled: true, subscriber_count: 0 });
 	});
 });
 

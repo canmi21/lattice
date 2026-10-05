@@ -19,7 +19,7 @@ pub struct Translation {
 	pub text: String,
 	/// Who made it. `anthropic`, `openai`, `alibaba`, `deepseek`, or retired local `source` copy.
 	pub provider: String,
-	/// Normalised model id; see `model::Id`.
+	/// Normalized model id; see `model::Id`.
 	pub model: String,
 	/// ISO 8601 UTC, at the moment the request was sent rather than when it returned.
 	pub at: String,
@@ -93,7 +93,7 @@ pub fn orphans(sidecar: &Sidecar, live: &BTreeMap<String, super::segment::Segmen
 /// itself is present in the text rather than by a timestamp, which reads the fact the instruction
 /// states instead of trusting a second record to stay in step with it -- requiring the source
 /// phrase too would fail exactly the translations that correctly left it out of the prose. See
-/// spec/i18n/prose.md, "Same-language views localise the article too".
+/// spec/i18n/prose.md, "Same-language views localize the article too".
 pub fn missing(
 	sidecar: &Sidecar,
 	live: &BTreeMap<String, super::segment::Segment>,
@@ -172,7 +172,7 @@ mod tests {
 		locales.insert("ja-JP".to_owned(), multi.clone());
 		sidecar.segments.insert("abc".to_owned(), locales);
 
-		let text = serde_yaml_ng::to_string(&sidecar).expect("serialise");
+		let text = serde_yaml_ng::to_string(&sidecar).expect("serialize");
 		let back: Sidecar = serde_yaml_ng::from_str(&text).expect("parse");
 		assert_eq!(back.segments["abc"]["ja-JP"], multi);
 	}

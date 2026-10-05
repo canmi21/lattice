@@ -18,7 +18,7 @@ complexity = "warn"
 
 # Our own crates at 0 so an edit-build cycle stays short, dependencies at 3 and cached --
 # nearly all the work in a dev run is inside rav1e and fast_image_resize. Not "z": a
-# size-optimised AVIF encoder is a slower one, and nobody downloads this. See spec/code.md.
+# size-optimized AVIF encoder is a slower one, and nobody downloads this. See spec/code.md.
 [profile.dev]
 opt-level = 0
 

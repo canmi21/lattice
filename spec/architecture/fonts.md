@@ -71,7 +71,7 @@ there are three of them, and 75KB was always LXGW's number rather than the group
 latin and latin-ext. `code` and `pre` are the only selectors naming the family, so what a reader
 ever fetches is decided by what appears inside them.
 
-Measured, nothing there is ever emphasised -- but not for the reason this file used to give. It
+Measured, nothing there is ever emphasized -- but not for the reason this file used to give. It
 said neither syntax theme emits `font-style` or `font-weight`, and that was wrong: `one-dark-pro`
 marks every comment italic, `one-light` did too, and 88 published objects carry the mark. What
 saves it is that a dual-theme render emits the style as a custom property, `--shiki-dark-font-style`

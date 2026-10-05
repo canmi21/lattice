@@ -85,7 +85,7 @@ const av1 = MediaSource.isTypeSupported('video/mp4; codecs="av01.0.05M.08"');
 const wc = typeof VideoEncoder !== 'undefined';
 ```
 
-**Hardware decode.** Play it. There is nothing to optimise: a hardware decoder is fixed-function
+**Hardware decode.** Play it. There is nothing to optimize: a hardware decoder is fixed-function
 silicon, 1080p costs the CPU almost nothing, and transcoding to a smaller copy would spend a full
 decode and encode pass to save an expense that is already near zero.
 
@@ -103,7 +103,7 @@ non-native cases.
 
 **The choice to publish one encoding rather than two is deliberate and it is a storage decision.**
 An H.264 rendition beside the AV1 one would cost about 3.5MB per clip and remove both branches
-entirely, and it was declined in favour of not storing it. What that spends is the reader's battery
+entirely, and it was declined in favor of not storing it. What that spends is the reader's battery
 and about forty seconds, once, on a minority of devices. Revisit it if this site ever carries many
 long videos rather than a few short excerpts, because the storage argument is the whole of the case
 and it scales against the decision.

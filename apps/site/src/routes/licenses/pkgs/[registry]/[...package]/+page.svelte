@@ -4,7 +4,7 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the package page. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * The visual half of the package page. Every color is a `@canmi/kit/tokens` variable, so nothing
 	 * here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * Two of Tailwind's own theme variables are read differently and the difference is whether
@@ -18,12 +18,12 @@
 			color: 'var(--color-text-soft)',
 		},
 		breadcrumbLink: {
-			// No colour at rest: the trail sets one on itself and each crumb inherits it, so only
-			// the two states name a colour of their own.
+			// No color at rest: the trail sets one on itself and each crumb inherits it, so only
+			// the two states name a color of their own.
 			color: {
 				default: null,
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
@@ -160,7 +160,7 @@
 	);
 	const canonical = $derived(localeUrl(`${URLS.apps.production.site}/${slug}`, locale));
 
-	// A single licence whose identifier is the whole SPDX expression renders as one link; a
+	// A single license whose identifier is the whole SPDX expression renders as one link; a
 	// compound expression keeps the plain expression with separate links to its terms.
 	const soleLicense = $derived(
 		data.licenses.length === 1 && data.licenses[0]?.license === data.entry.spdx

@@ -4,7 +4,7 @@
 	import { figures, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a tweet card. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of a tweet card. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot keeps the corner arrow's other opacity and nothing else: it
@@ -72,7 +72,7 @@
 		 * The corner arrow's ink and the opacity it rests at. Its other opacity is in the scoped
 		 * block, for the reason above.
 		 *
-		 * One property in the list, so the delay and the behaviour are left out: their initial
+		 * One property in the list, so the delay and the behavior are left out: their initial
 		 * values are already the one-item lists the shorthand this replaced computed to. Reduced
 		 * motion is that shorthand's `none` as longhands, which is more than the property alone.
 		 */

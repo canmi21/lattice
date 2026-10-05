@@ -2,7 +2,7 @@
  * A handle beside every block, as Notion has one: pressed, it opens the block's menu; dragged, it
  * moves the block between the others. See spec/architecture/local.md, "Every block has a handle".
  *
- * It stands level with what the eye takes as the block's start: beside prose, centred on the first
+ * It stands level with what the eye takes as the block's start: beside prose, centered on the first
  * line of words; beside a rendered component, level with the component's top edge, since a
  * component has no first line and its room above is not part of it. Across, it stands in one
  * column for every block, left of the text.
@@ -27,7 +27,7 @@ import ContextMenu, { SEPARATOR, type MenuItem } from './context-menu.svelte';
 const GUTTER = 28;
 const REACH = 56;
 
-/** The handle's own height, which it is centred by. */
+/** The handle's own height, which it is centered by. */
 const GRIP = 24;
 
 /** How far below the landing line the outline of what would land there starts. */
@@ -107,8 +107,8 @@ class Handle {
 			const first = firstWords(view, island.from);
 			const last = view.coordsAtPos(island.to, -1);
 			if (!first || !last) return [];
-			const centre = (first.top + first.bottom) / 2;
-			return [{ ...island, index, top: first.top, bottom: last.bottom, mark: centre - GRIP / 2 }];
+			const center = (first.top + first.bottom) / 2;
+			return [{ ...island, index, top: first.top, bottom: last.bottom, mark: center - GRIP / 2 }];
 		});
 	}
 

@@ -89,7 +89,7 @@ async function held(url: string): Promise<Held | undefined> {
 /**
  * Keep an answer for the whole stale window, not for its freshness.
  *
- * No edge cache honours `stale-if-error`, so what one is asked to hold is the outer window and
+ * No edge cache honors `stale-if-error`, so what one is asked to hold is the outer window and
  * the age above decides the rest. A cache that refuses the write is not a failed request.
  */
 async function store(url: string, body: string): Promise<void> {

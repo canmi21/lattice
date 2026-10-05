@@ -118,7 +118,7 @@ remain understandable through `aria-pressed`, and reduced-motion users get the f
 the width transition.
 
 **The reveal answers to whether the pointer can hover, not to how wide the window is.** A touch
-screen has no hover, but a tap synthesises `mouseenter` -- so the pill would grow under the finger
+screen has no hover, but a tap synthesizes `mouseenter` -- so the pill would grow under the finger
 that meant to press it and then stay grown, with no pointer to leave and take it back. Reading the
 instruction costs a press either way; growing first only moves the target.
 
@@ -148,7 +148,7 @@ Its heading is visible rather than announced to assistive technology alone. A mo
 sentence and a bare close control reads as a fragment of the page rather than a surface of its
 own, so the notice opens with the icon of the action that summoned it beside a heading weighted
 like the page's other section headings, with the sentence below in the metadata text color. The
-icon and the close control are each centred on one line box, so a heading that wraps in a longer
+icon and the close control are each centered on one line box, so a heading that wraps in a longer
 locale moves the text without dragging them out of line with its first line.
 
 Data palettes belong to the visualization that gives them meaning, not to the site theme. The

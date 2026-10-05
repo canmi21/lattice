@@ -17,13 +17,13 @@
 		srcset?: string;
 		/** A CSS aspect-ratio to crop to, e.g. `16 / 9`. Absent means show the whole image. */
 		crop?: string;
-		/** `object-position` within that crop. Absent means centred. */
+		/** `object-position` within that crop. Absent means centered. */
 		align?: string;
 	};
 
 	/**
 	 * The frame a picture wears in the column, which the enlarged view does not. Radius, width,
-	 * style and colour are the border family, and the family is the vocabulary's by property --
+	 * style and color are the border family, and the family is the vocabulary's by property --
 	 * see spec/architecture/css/layers.md, "What each layer owns, by name" -- so the utilities
 	 * that drew this in the markup are here. 1rem is Tailwind's `--radius-2xl` and stays a
 	 * literal: the radius ladder names five steps and this is not one of them.
@@ -99,7 +99,7 @@
 	function asFormat(set: string | undefined, extension: string): string | undefined {
 		// Both halves or neither. Moving the prefix without adding the second extension names
 		// `/derive/{cid}.png`, which states one extension where that route needs two and is a 400
-		// -- and a flat-colour original is stored as PNG, so the miss is real rather than
+		// -- and a flat-color original is stored as PNG, so the miss is real rather than
 		// hypothetical. A source that is not AVIF has nothing to convert from here anyway.
 		if (!set?.includes('.avif ')) return undefined;
 		// Only ever fetched by a browser without AVIF, and held at the edge under a name carrying

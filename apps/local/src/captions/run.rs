@@ -136,7 +136,7 @@ pub fn run(
 	let Some(text) = super::cut(&vtt, window)? else {
 		return Err(Error::Silent);
 	};
-	let summary = super::summarise(&text);
+	let summary = super::summarize(&text);
 	let arriving = image::cid(text.as_bytes());
 
 	let replaced = displaced(&video.tracks, options.language, kind, &arriving);

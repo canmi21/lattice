@@ -8,7 +8,7 @@
 
 	The rectangle is the one those three agree on most: at bold, Phosphor draws no two of its boxes
 	alike, and two of the three use x 20..236 and two use y 44..212, which is `PictureInPicture`
-	exactly -- 216 x 168, centred on the canvas. The brackets are Phosphor's own, unaltered: 24
+	exactly -- 216 x 168, centered on the canvas. The brackets are Phosphor's own, unaltered: 24
 	thick, 52 long, 12 radius, elbow at the corner with both arms running inward. Only where they
 	sit has changed.
 -->

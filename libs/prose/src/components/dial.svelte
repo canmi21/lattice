@@ -97,7 +97,7 @@
 
 	/* An animation rather than a transition, because a caller may be changing this in the same
 	   frame as something that suppresses transitions document-wide -- which is what the theme flip
-	   does to stop a card's hover fade easing the page's colours through greys. An animation needs
+	   does to stop a card's hover fade easing the page's colors through grays. An animation needs
 	   no value to change and is not switched off with them. */
 	.turned .face[data-shown='true'] {
 		animation: arrive 200ms ease-out both;

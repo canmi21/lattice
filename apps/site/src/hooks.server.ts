@@ -111,7 +111,7 @@ async function agentAnswer(
 /**
  * A request for a document rather than a page.
  *
- * Why a document is recognised by having an extension, why that is written as the exception
+ * Why a document is recognized by having an extension, why that is written as the exception
  * rather than a list of pages, and the routes this test has to carve out on top of it -- see
  * spec/locale/addressing.md, "Every page negotiates; the exceptions are documents".
  */

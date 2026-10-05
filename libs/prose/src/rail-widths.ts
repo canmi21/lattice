@@ -66,13 +66,13 @@ export function steppedBars(widths: number[], texts: string[], ceiling: number):
 	const steps = widths.map((w) => Math.min(STEPS, Math.max(1, Math.round((w / max) * STEPS))));
 
 	// Bring the peaks down until no entry stands more than `MAX_ADJACENT_STEP` above a
-	// neighbour. Two passes, forward and back, make the constraint hold both ways. Down
-	// rather than up, and only ever toward a neighbour, never levelled with it -- see
+	// neighbor. Two passes, forward and back, make the constraint hold both ways. Down
+	// rather than up, and only ever toward a neighbor, never leveled with it -- see
 	// spec/styling/rail.md, "No entry stands more than three steps above a neighbor, and the
 	// outlier comes down".
 	const shaved = flatten(flatten(steps).toReversed()).toReversed();
 
-	// The other half of the same idea: two neighbours on the same step are separated by one,
+	// The other half of the same idea: two neighbors on the same step are separated by one,
 	// toward whichever side they were already nearer. Both constraints run in one pass --
 	// applied separately, the second would undo the first. See spec/styling/rail.md, "Two
 	// neighbors on the same step are separated by one step", including the tie-break rule.

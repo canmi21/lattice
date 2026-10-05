@@ -421,7 +421,7 @@
 			</button>
 		</div>
 
-		<!-- What the page floats over the pane: a drawer at its right, and a toolbar centred at its
+		<!-- What the page floats over the pane: a drawer at its right, and a toolbar centered at its
 		     foot and above everything else there, the drawer included. -->
 		{@render chrome.drawer?.()}
 		{#if chrome.toolbar}

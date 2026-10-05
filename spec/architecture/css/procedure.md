@@ -134,7 +134,7 @@ write a tag in angle brackets", and its subsection on the instance script.
 exactly as it applied to code being moved. `transition` sets five longhand lists and the obvious
 spelling writes four; no utility translates a `transform` declaration, because Tailwind 4 writes
 `scale`, `rotate` and `translate` as their own properties; and the variant above compiles to a
-condition the original did not have. [migration.md](migration.md) names the artefact to inspect for
+condition the original did not have. [migration.md](migration.md) names the artifact to inspect for
 each, which is what makes the rule followable.
 
 **A vocabulary class and a vocabulary key can both set one property.** The named recipes written

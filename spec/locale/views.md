@@ -92,7 +92,7 @@ nothing.
 ### Two states, because a reader may already speak the article's language
 
 A Chinese article read at `zh` is neither the original nor a translation in the ordinary sense.
-The view exists because every language gets one, and what it holds is the article regularised --
+The view exists because every language gets one, and what it holds is the article regularized --
 a misspelling corrected, a mark normalized -- not carried across a language boundary. Telling
 that reader they are reading a translation is simply false, and it is false in the one direction
 that costs something: they are the reader best placed to go read the original, and the notice
@@ -129,8 +129,8 @@ The state is reachable only from the view that _is_ the sibling script, so six o
 could never be shown; a table that can only ever be two-thirds filled is the wrong shape for the
 fact, and an optional row would let a real gap look deliberate.
 
-That word is held separately from the same word as a menu row label. English capitalises a
-label and not a mid-sentence noun, German capitalises both; one string cannot be correct in both
+That word is held separately from the same word as a menu row label. English capitalizes a
+label and not a mid-sentence noun, German capitalizes both; one string cannot be correct in both
 positions, and merging them would fix one language by breaking another. This is the exception
 that proves the one-fact-one-home rule rather than a violation of it: two grammatical positions
 are two facts.
@@ -219,17 +219,17 @@ when the homepage stopped being translated -- which is what
 passage went on offering in the present tense after it had stopped being true. The measurement
 stands as the reason the rule is written the way it is; nothing checks it today.
 
-Since [i18n/prose.md](../i18n/prose.md) made same-language views genuine localisations, the corpus's zh views
+Since [i18n/prose.md](../i18n/prose.md) made same-language views genuine localizations, the corpus's zh views
 measure 0.570 to 0.682: still far above every real translation, no longer above the threshold.
 So today nothing folds, every locale carries `?lang=`, and the bare URL is the Original alone --
 the anticipated outcome below, arrived at. The rule stays, measured by the test named above,
-for the view that scores high again: a single-language article whose localisation has little
-to regularise.
+for the view that scores high again: a single-language article whose localization has little
+to regularize.
 
 Exact equality was tried before either of these and rejected: only 40 of 52 segments in one
 article matched byte for byte, so the rule would never have fired in the case it exists for.
 
-### The threshold is not centred, on purpose
+### The threshold is not centered, on purpose
 
 0.90 sits nearer the top of the gap the original measurement found, 0.719 to 0.947. That is
 the safer end.

@@ -13,7 +13,7 @@
 	} from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the article shell. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of the article shell. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The scoped block at the foot of this file styles the markdown compiler's prose output and
@@ -35,7 +35,7 @@
 			backgroundColor: 'var(--color-paper-hover)',
 			fontSize: text.px12,
 			fontWeight: weight.medium,
-			// unnamed: the title's own line box, matched so the mark centres on it. Not a step.
+			// unnamed: the title's own line box, matched so the mark centers on it. Not a step.
 			lineHeight: '1.5rem',
 			letterSpacing: tracking.caps,
 			color: 'var(--color-text-soft)',
@@ -105,7 +105,7 @@
 		},
 		summaryPanel: {
 			borderLeftWidth: border.doublePx,
-			// The strong border colour lands on all four edges and only one of them has width, so
+			// The strong border color lands on all four edges and only one of them has width, so
 			// the shorthand is what keeps the computed style the same on the other three.
 			borderColor: 'var(--color-border-strong)',
 			fontSize: text.px14,
@@ -270,7 +270,7 @@
 	 * Anchor the mark to the rightmost ink in the summary, through the widest line's last letter.
 	 *
 	 * The browser has already broken this paragraph, so its boxes are read back rather than
-	 * modelled: within a line `right` grows along the text, so the maximum over every letter is
+	 * modeled: within a line `right` grows along the text, so the maximum over every letter is
 	 * already the maximum over lines of each line's last letter, and punctuation never enters one.
 	 * See spec/styling/lengths.md, "A summary provider mark aligns with the summary's widest line".
 	 */
@@ -393,7 +393,7 @@
 	<meta name="twitter:description" content={meta.description} />
 	<meta name="twitter:image" content={card} />
 
-	<!-- Safe despite the raw insertion: ldJson escapes what it serialises. Stated rather than
+	<!-- Safe despite the raw insertion: ldJson escapes what it serializes. Stated rather than
 	     suppressed; see +layout.svelte and spec/lint-format.md. -->
 	{@html ldJson(article)}
 </svelte:head>

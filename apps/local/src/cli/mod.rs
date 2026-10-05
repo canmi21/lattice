@@ -185,7 +185,7 @@ fn print_tasks() -> anyhow::Result<ExitCode> {
 			Ok(ExitCode::SUCCESS)
 		}
 		Err(error) => {
-			eprintln!("could not encode the task catalogue: {error}");
+			eprintln!("could not encode the task catalog: {error}");
 			Ok(ExitCode::FAILURE)
 		}
 	}

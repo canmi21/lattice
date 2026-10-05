@@ -28,7 +28,7 @@ pub struct Stored {
 ///
 /// The split exists so the network call and the disk write can be separated by the caller: the
 /// fetch is seconds of somebody else's server, the write is microseconds, and holding the record
-/// across both would serialise every domain behind the slowest one. See spec/tasks.md.
+/// across both would serialize every domain behind the slowest one. See spec/tasks.md.
 #[derive(Debug)]
 pub struct Icons {
 	/// File name to bytes, already expanded to every tone the icon should be written under.
@@ -236,7 +236,7 @@ fn resolve(domain: &str) -> Vec<(Tone, fetch::Fetched)> {
 	out
 }
 
-/// The `-dark` neighbour of an icon URL, by convention.
+/// The `-dark` neighbor of an icon URL, by convention.
 ///
 /// Surveyed sites rarely declare `media="(prefers-color-scheme: dark)"` on a link, yet plenty
 /// ship two icons and swap them with JavaScript -- GitHub serves `favicon.svg` and
@@ -265,7 +265,7 @@ mod tests {
 
 	#[test]
 	fn refuses_urls_with_no_usable_extension() {
-		// The dot is in the host, not a filename, so there is no neighbour to guess.
+		// The dot is in the host, not a filename, so there is no neighbor to guess.
 		assert_eq!(dark_sibling("https://a.example/icon"), None);
 		assert_eq!(dark_sibling("https://a.example/"), None);
 	}

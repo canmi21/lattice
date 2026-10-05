@@ -263,7 +263,7 @@ mod tests {
 
 	#[test]
 	fn keeps_apple_touch_icon() {
-		// Unlike mask-icon this is a real, full-colour icon and worth having as a fallback.
+		// Unlike mask-icon this is a real, full-color icon and worth having as a fallback.
 		let html = r#"<head><link rel="apple-touch-icon" href="/a.png"></head>"#;
 		assert_eq!(parse_head(html).links.len(), 1);
 	}

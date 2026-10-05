@@ -7,7 +7,7 @@
 		 * Bare, and not `surfaces.quietControl`.
 		 *
 		 * That surface is taken whole or not at all -- its own comment says the cursor arrives with
-		 * the colour and the plate or none of them does -- and the plate is what this cannot have.
+		 * the color and the plate or none of them does -- and the plate is what this cannot have.
 		 * The control sits alone in the action bar with nothing behind it, so a hover ground would
 		 * be a rectangle appearing in empty margin. Its sibling above writes its own for the same
 		 * reason. What is kept is what a control owes a reader: the hand, and ink that answers.

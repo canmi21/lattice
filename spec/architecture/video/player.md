@@ -104,7 +104,7 @@ what left.
 So the frame it leaves on is copied into a canvas at `enterpictureinpicture`, and the canvas
 stands in for it: same box, same crop, nothing moves when one replaces the other. **Gray and
 dimmed, because it is a picture of the clip and not the clip** -- the live one is in the other
-window, and a full-colour still would be claiming otherwise. It sits above the element rather than
+window, and a full-color still would be claiming otherwise. It sits above the element rather than
 inside it, because the browser's placeholder is shadow content and no selector reaches it.
 
 The canvas is always in the DOM rather than conditional on the state, because the state and the

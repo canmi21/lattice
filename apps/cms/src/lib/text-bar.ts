@@ -1,7 +1,7 @@
 /**
  * The bar over a selection of prose: bold, italic, strike, code, as the keys set them.
  *
- * It stands centred over a selection on one line and at the start of one across lines, and shows
+ * It stands centered over a selection on one line and at the start of one across lines, and shows
  * only while the editor has focus and the selection is prose -- not inside a block whose source is
  * open, where an asterisk is not emphasis. See spec/architecture/local.md, "Every block has a
  * handle, and a selection a bar".

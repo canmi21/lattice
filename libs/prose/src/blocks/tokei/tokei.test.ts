@@ -35,8 +35,8 @@ describe('tokei output', () => {
 		expect(plain).toMatchObject({ files: 2, lines: 100, code: 0, comments: 100 });
 	});
 
-	it('colours a language the same way wherever it is rendered', () => {
-		// The original handed colours out in arrival order from a module-level counter, so the
+	it('colors a language the same way wherever it is rendered', () => {
+		// The original handed colors out in arrival order from a module-level counter, so the
 		// server and the browser produced different charts and the page changed on hydration.
 		expect(langColor('Rust')).toBe('#dea584');
 		const first = langColor('Brainfuck');

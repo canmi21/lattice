@@ -32,7 +32,7 @@ describe('locale resolution', () => {
 		expect(resolveLocale({ query: '%', cookie: 'unknown', acceptLanguage: 'ko-KR' })).toBe('ko');
 	});
 
-	it('honours Accept-Language weights and the two Chinese scripts', () => {
+	it('honors Accept-Language weights and the two Chinese scripts', () => {
 		expect(acceptedLocale('de-DE;q=0.5, zh-Hant-TW;q=0.9, en-US;q=0.8')).toBe('tw');
 		expect(acceptedLocale('zh-Hans-CN')).toBe('zh');
 		expect(acceptedLocale('zh-TW-u-nu-hanidec')).toBe('tw');
@@ -72,7 +72,7 @@ it('marks HTML private without changing an asset response', async () => {
 	expect(asset.headers.get('cache-control')).toBe('public, max-age=31536000');
 });
 
-it('serialises the client language preference with the server cookie lifetime', () => {
+it('serializes the client language preference with the server cookie lifetime', () => {
 	expect(contentLanguageCookie('ja', false)).toBe(
 		'language=ja; Path=/; Max-Age=31536000; SameSite=Lax',
 	);

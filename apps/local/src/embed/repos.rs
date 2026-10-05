@@ -22,7 +22,7 @@ pub struct Repo {
 
 /// The subset of GitHub's reply this reads.
 ///
-/// Named rather than taken whole: the response carries around a hundred fields, and deserialising
+/// Named rather than taken whole: the response carries around a hundred fields, and deserializing
 /// into a shape that says which eight are used documents the dependency better than a `Value`.
 #[derive(Debug, Deserialize)]
 pub struct Response {
@@ -54,8 +54,8 @@ impl From<Response> for Repo {
 			stars: response.stargazers_count,
 			forks: response.forks_count,
 			open_issues: response.open_issues_count,
-			// `NOASSERTION` is GitHub's way of saying it could not identify the licence, which is
-			// not a licence name and should not be printed as one.
+			// `NOASSERTION` is GitHub's way of saying it could not identify the license, which is
+			// not a license name and should not be printed as one.
 			license: response
 				.license
 				.and_then(|license| license.spdx_id)
@@ -71,7 +71,7 @@ mod tests {
 
 	#[test]
 	fn only_the_fields_the_card_shows_are_read() {
-		// GitHub's reply carries around a hundred fields. Deserialising into a named shape is
+		// GitHub's reply carries around a hundred fields. Deserializing into a named shape is
 		// what makes the eight that matter visible to the next reader.
 		let json = r#"{
 			"full_name": "canmi21/seam",

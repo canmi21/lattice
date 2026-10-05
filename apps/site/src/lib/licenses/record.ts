@@ -36,7 +36,7 @@ export type LicenseRecord = {
 };
 
 /**
- * The sentence every licence route opens with.
+ * The sentence every license route opens with.
  *
  * The routes credit other people's work, so they have to say what the code around that credit
  * is, or a reader has the terms of the dependencies and nothing about the thing using them.
@@ -104,7 +104,7 @@ export type GithubRepository = {
 };
 
 /**
- * The host this function recognises, taken from the same declaration it rewrites URLs to.
+ * The host this function recognizes, taken from the same declaration it rewrites URLs to.
  *
  * Written out as a literal, the test and the rewrite below would be two halves of one fact with
  * nothing holding them together: a host change would follow the rewrite and leave the test
@@ -175,7 +175,7 @@ export function routeTable(record: LicenseRecord): Map<string, string> {
 }
 
 /**
- * The distinct licences an SPDX expression names, in the order it names them, so a package under
+ * The distinct licenses an SPDX expression names, in the order it names them, so a package under
  * `MIT OR Apache-2.0` is filed under both. See spec/architecture/data.md, "A dependency's license
  * is an asset like any other", for why it flattens this way and the tree's test cases for how an
  * expression can go wrong (`WITH`, `FSL-1.1-MIT`/`MIT-0`, `-or-later`, nested parentheses).
@@ -209,14 +209,14 @@ export function licenseTerms(expression: string): string[] {
 	return [...new Set(terms)];
 }
 
-/** How the licence is known, said in the shortest form that stays true. */
+/** How the license is known, said in the shortest form that stays true. */
 export function licenseOf(entry: LicensePackage): string {
 	if (!entry.spdx) return 'not declared';
 	return entry.asserted ? `${entry.spdx} (asserted)` : entry.spdx;
 }
 
 /**
- * A licence text is addressed by its content id and nothing else.
+ * A license text is addressed by its content id and nothing else.
  *
  * `/object` rather than a route naming what kind of thing this is: the id already identifies the
  * bytes, and the bucket's fan-out stays behind the route either way. A link is an interface; the
@@ -229,7 +229,7 @@ export function textUrl(cdn: string, cid: string): string {
 /**
  * Plain text, never a page, and never negotiated by locale.
  *
- * A licence is not translated -- a translated one is a different licence -- so unlike every
+ * A license is not translated -- a translated one is a different license -- so unlike every
  * other route here these vary on nothing. That also keeps them cacheable by one shared key.
  */
 export const TEXT_HEADERS = {

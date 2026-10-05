@@ -163,7 +163,7 @@ function viewUrl(slug: string, locale: LocaleCode): string {
 const SEPARATOR = '\u0000';
 
 const lookupView = createBatcher<ViewAnswer>({
-	// Longer than the read-count window: a pointer travelling down a menu of nine languages moves
+	// Longer than the read-count window: a pointer traveling down a menu of nine languages moves
 	// slower than one crossing a list of cards, and a batch of one helps nobody.
 	window: 90,
 	limit: LOCALE_CODES.length,

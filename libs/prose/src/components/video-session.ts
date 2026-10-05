@@ -1,5 +1,5 @@
 /**
- * The system's own media controls -- media keys, the lock screen, the control centre, and the
+ * The system's own media controls -- media keys, the lock screen, the control center, and the
  * buttons a browser puts in its own picture-in-picture window -- driving the clip last played.
  *
  * There is one session per page and several clips on it, so a clip claims it when it starts

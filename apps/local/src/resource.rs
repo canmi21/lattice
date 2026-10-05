@@ -493,21 +493,21 @@ mod tests {
 		let mut record = envelope("media.image", &[("media", 1), ("image", 1)]);
 		let cid = "44b6081deaf0242ca3bf83d62a3b6c95".to_owned();
 		record.canonical = Some(Canonical::Object { cid, extension: "avif".into() });
-		let text = serde_json::to_string(&record).expect("serialise");
+		let text = serde_json::to_string(&record).expect("serialize");
 		assert!(text.contains(r#""canonical":"cid:44b6081deaf0242ca3bf83d62a3b6c95.avif""#), "{text}");
-		assert_eq!(serde_json::from_str::<Opaque>(&text).expect("deserialise"), record);
+		assert_eq!(serde_json::from_str::<Opaque>(&text).expect("deserialize"), record);
 
 		record.canonical = None;
-		let bare = serde_json::to_string(&record).expect("serialise");
+		let bare = serde_json::to_string(&record).expect("serialize");
 		assert!(!bare.contains("canonical"), "{bare}");
-		assert_eq!(serde_json::from_str::<Opaque>(&bare).expect("deserialise"), record);
+		assert_eq!(serde_json::from_str::<Opaque>(&bare).expect("deserialize"), record);
 	}
 
 	#[test]
 	fn an_envelope_round_trips_through_json() {
 		let record = envelope("media.image", &[("media", 1), ("image", 1)]);
-		let text = serde_json::to_string(&record).expect("serialise");
-		assert_eq!(serde_json::from_str::<Opaque>(&text).expect("deserialise"), record);
+		let text = serde_json::to_string(&record).expect("serialize");
+		assert_eq!(serde_json::from_str::<Opaque>(&text).expect("deserialize"), record);
 		// `type` is a keyword in Rust and the field this whole shape turns on.
 		assert!(text.contains("\"type\":\"media.image\""), "{text}");
 		assert!(text.contains("\"resource\":\"k7m2x\""), "{text}");

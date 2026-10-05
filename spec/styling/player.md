@@ -114,7 +114,7 @@ and a third again their height, and it reads as the big one in the row. A diamet
 to a rectangle at the number between the rectangle's two, which is 192 here.
 
 It comes down by growing the canvas under it and not by shrinking the element: the `viewBox` is
-replaced with a larger one centred on the same point, which every Phosphor component accepts
+replaced with a larger one centered on the same point, which every Phosphor component accepts
 because props are spread after it. The element stays 16 by 16, so **the focus ring is unchanged**
 -- the ring is the site's and belongs to the control, and an optical correction to the drawing
 inside it must not move it.

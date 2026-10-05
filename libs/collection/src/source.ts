@@ -45,7 +45,7 @@ export const resources = sqliteTable('resource', {
  * A run of bytes. Rows are added and never updated, because a cid is what its bytes hash to.
  *
  * What lives here is what a different original invalidates anyway -- dimensions, a thumbhash, a
- * colour space, camera data -- and all of it can be derived again from the bytes.
+ * color space, camera data -- and all of it can be derived again from the bytes.
  */
 export const contents = sqliteTable('content', {
 	cid: text('cid').primaryKey(),

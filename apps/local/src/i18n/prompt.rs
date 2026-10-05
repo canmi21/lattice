@@ -11,7 +11,7 @@ use rand::RngExt as _;
 
 /// Every locale a translation is produced for.
 ///
-/// The source is not among them. It is the article itself -- a mixed artefact with a dominant
+/// The source is not among them. It is the article itself -- a mixed artifact with a dominant
 /// language rather than a translation of anything -- so it has no entry to fill.
 pub const LOCALES: [&str; 8] =
 	["en-US", "zh-CN", "ja-JP", "de-DE", "ko-KR", "fr-FR", "es-ES", "zh-TW"];
@@ -36,7 +36,7 @@ pub struct BoundaryLeak;
 
 /// A fresh boundary for one request.
 ///
-/// New every time, because the defence is that the author cannot have written it. A fixed
+/// New every time, because the defense is that the author cannot have written it. A fixed
 /// string, however strange, could appear in an article that happens to discuss this system.
 pub fn boundary() -> String {
 	let mut rng = rand::rng();
@@ -98,12 +98,12 @@ pub fn build_for(
 		String::new()
 	} else {
 		format!(
-			"\n- {} use the same language as the source, but they are still localised views rather \
+			"\n- {} use the same language as the source, but they are still localized views rather \
 			 than copies of the original. Rewrite them into direct, idiomatic target-locale prose: \
-			 regularise grammar and orthography, resolve mixed-language phrasing where a natural \
+			 regularize grammar and orthography, resolve mixed-language phrasing where a natural \
 			 local expression exists, and make implied connections explicit enough to read plainly. \
 			 Preserve the facts, first-person perspective, emotional force, emphasis and uncertainty; \
-			 do not summarise, sanitise or invent. Apply translator's notes under the same rule as \
+			 do not summarize, sanitize or invent. Apply translator's notes under the same rule as \
 			 every other locale. The unedited voice remains available in the Original view.",
 			same_language.join(", ")
 		)
@@ -119,8 +119,8 @@ pub fn build_for(
 
 	// The material is fenced and the context was not, which put three passages of article prose in
 	// one request with only one of them marked -- and the unmarked ones read as the cleaner text,
-	// because the marked one is full of code placeholders. Answering the neighbour instead of the
-	// block was the result, and no output check can tell the two apart once the neighbour is the
+	// because the marked one is full of code placeholders. Answering the neighbor instead of the
+	// block was the result, and no output check can tell the two apart once the neighbor is the
 	// same shape and length. So the context gets a fence of its own, derived from the same random
 	// string, and each side is named. See spec/i18n/request.md.
 	let context_fence = format!("{fence}CONTEXT");
@@ -142,7 +142,7 @@ pub fn build_for(
 	};
 	let metadata = if segment.region == Region::Frontmatter {
 		"\n- This block is display metadata. Match whether the source ends in punctuation, but use \
-		 each target locale's native casing and punctuation. Never copy a neighbouring \
+		 each target locale's native casing and punctuation. Never copy a neighboring \
 		 language's punctuation into the translation."
 	} else {
 		""
@@ -191,14 +191,14 @@ pub fn build_for(
 	// heading is also a label, and the rail is narrow".
 	let navigation = if segment.kind == Kind::Heading && segment.region == Region::Body {
 		let source_columns = super::width::of(&segment.source);
-		let recognise = "The heading only has to let a reader recognise the section. It does not \
+		let recognize = "The heading only has to let a reader recognize the section. It does not \
 			 have to explain it: the section's own opening paragraph is the context shown below, \
 			 and a reader who reaches it arrives there immediately. Translate the heading, not \
 			 what the section is about -- no added qualifiers, no parenthetical glosses, no \
 			 restating in the target language what a technical term already says.";
 		let spacing = "Written in a language that separates words with spaces, the heading needs \
 			 those spaces around any note directive as well: the source may write one flush \
-			 against the neighbouring characters because its script does not space words, and \
+			 against the neighboring characters because its script does not space words, and \
 			 copying that joins two of your words into one. Only where a word actually touches \
 			 it -- after an opening mark such as ¿ or ( the directive stays flush against it, \
 			 because that mark is already the boundary and a space after it is a typographic \
@@ -211,7 +211,7 @@ pub fn build_for(
 				 a Han character as two, and your translation should read about that long. Two \
 				 lines are acceptable where the target language genuinely needs them; beyond \
 				 {clamp} columns the end is cut off and the reader never sees it.\n\
-				 - {recognise}\n\
+				 - {recognize}\n\
 				 - {spacing}",
 				han = super::width::ONE_LINE / 2,
 				latin = super::width::ONE_LINE,
@@ -223,7 +223,7 @@ pub fn build_for(
 				 contents, so it has no width to fit -- but it is read in running prose, where it \
 				 is {source_columns} columns wide in the source, counting a Han character as two. \
 				 Keep it about that long unless the target language cannot.\n\
-				 - {recognise}\n\
+				 - {recognize}\n\
 				 - {spacing}"
 			)
 		}
@@ -251,7 +251,7 @@ pub fn build_for(
 		 once. Move them where the target grammar needs them, never translate or alter them.\n\
 		 - The dominant language is the one the block is mostly written in, and it is the \
 		 language being translated away from. Ordinary words and technical phrases in it are \
-		 translated like everything else, however specialised they look. Only a *minority* \
+		 translated like everything else, however specialized they look. Only a *minority* \
 		 language in the block signals a deliberate choice, and even then only quotations, \
 		 names and brands keep their original form -- prose around them is translated.\n\
 		 - Nothing may survive untranslated merely because it is a term of art. If a phrase has \

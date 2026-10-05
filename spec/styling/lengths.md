@@ -33,7 +33,7 @@ liability: a background knows where the box is and nothing about where the basel
 Flex and grid stretch their items by default, so a link inside either gets whatever height the
 row grew to, and paints its stroke at the bottom of that. Measured on a license page, the same
 class of link sat 27.5px under its glyphs in one row and 2.5px in the next -- the difference was
-a neighbouring cell being tall, not anything about the link. `align-self: baseline` on the class
+a neighboring cell being tall, not anything about the link. `align-self: baseline` on the class
 is the fix, declared once rather than at each call site: the failure is invisible until some
 unrelated cell in the same row happens to grow, which is exactly the kind of thing nobody
 remembers to guard at the point of use. It is ignored outside a flex or grid container.

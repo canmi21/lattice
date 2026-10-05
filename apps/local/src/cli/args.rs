@@ -19,7 +19,7 @@ use std::path::PathBuf;
 ///
 /// This is a local Rust CLI standing next to `cargo` in the same terminal, and matching what its
 /// user's eye already sorts -- green for headings, cyan for the things you type -- costs one
-/// constant and saves them learning a second colour language.
+/// constant and saves them learning a second color language.
 const STYLES: clap::builder::Styles = clap::builder::Styles::styled()
 	.header(anstyle::AnsiColor::Green.on_default().bold())
 	.usage(anstyle::AnsiColor::Green.on_default().bold())
@@ -104,7 +104,7 @@ pub enum Command {
 	Articles,
 	/// Print what each derived record class still owes
 	Derived,
-	/// Print the catalogue of long-running operations
+	/// Print the catalog of long-running operations
 	Tasks,
 	/// Print what is running right now, machine-wide
 	Runs,
@@ -116,7 +116,7 @@ pub enum Command {
 	Segments,
 	/// List referenced assets that are not present
 	Check,
-	/// Record the licence of every dependency the apps ship
+	/// Record the license of every dependency the apps ship
 	Licenses,
 
 	/// Collect the icons the linkcards need
@@ -470,7 +470,7 @@ mod tests {
 	#[test]
 	fn an_unknown_track_kind_names_the_three_that_exist() {
 		// The wrong one here is silently wrong for the reader it exists for: someone deaf takes a
-		// track labelled captions, gets subtitles, and is told nothing.
+		// track labeled captions, gets subtitles, and is told nothing.
 		let error = Cli::try_parse_from([
 			"local",
 			"captions",

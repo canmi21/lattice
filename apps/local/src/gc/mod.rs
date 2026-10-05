@@ -87,7 +87,7 @@ pub fn save_record(path: &Path, record: &Pending) -> std::io::Result<()> {
 /// Whether an id first seen unnamed at `first_seen` has been unnamed for the whole delay.
 ///
 /// A stamp that does not parse reads as now rather than as long ago. The record exists to say
-/// when deleting becomes safe, and evidence nobody can read is not a licence to delete.
+/// when deleting becomes safe, and evidence nobody can read is not a license to delete.
 fn unnamed_long_enough(first_seen: &str, now: jiff::Timestamp) -> bool {
 	first_seen.parse::<jiff::Timestamp>().is_ok_and(|seen| now.duration_since(seen) >= DELAY)
 }
@@ -296,9 +296,9 @@ pub fn plan(
 	// stands between them and this sweep. See spec/architecture/fonts.md.
 	keep.extend(fonts_named(repo, &fanned)?);
 
-	// Licence texts are content-addressed too and share the flat space, but nothing in an article
+	// License texts are content-addressed too and share the flat space, but nothing in an article
 	// or the root reaches one: they hang off the dependency record instead. Without this every
-	// licence in the bucket reads as garbage.
+	// license in the bucket reads as garbage.
 	let record: licenses::Record = std::fs::read(licenses::record_path(repo))
 		.ok()
 		.and_then(|bytes| serde_json::from_slice(&bytes).ok())
@@ -370,7 +370,7 @@ pub fn plan(
 /// Carry out a plan, and rewrite the manifest without the entries it dropped.
 ///
 /// The manifest is rewritten before a single byte is removed, and the whole document is read
-/// and serialised before either. Deleting first and then failing to record it leaves the
+/// and serialized before either. Deleting first and then failing to record it leaves the
 /// manifest pointing at files that are gone, which a site build resolves into missing images;
 /// recording first and then failing to delete leaves bytes nothing references, which the next
 /// sweep finds and offers again. Only one of those two repairs itself.

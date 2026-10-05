@@ -2,7 +2,7 @@
 	/**
 	 * The fade at each edge of a scroller of code, standing in for its scrollbars. Each is as wide as
 	 * the padding it starts over, so at rest it veils nothing and begins as code passes under it; all
-	 * four, since a scroller may scroll either way. `from-transparent` cannot grey the ramp: gradient
+	 * four, since a scroller may scroll either way. `from-transparent` cannot gray the ramp: gradient
 	 * stops interpolate premultiplied. Placed last in a `relative` box around the scroller; `framed`
 	 * steps them inside a hairline with the frame's corners, for a scroller that is its own frame,
 	 * and without it they sit flush, for a panel framed from outside.

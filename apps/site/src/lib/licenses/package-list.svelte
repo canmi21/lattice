@@ -3,10 +3,10 @@
 	import { border, family, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a package list. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of a package list. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
-	 * The row is the licence directory's row with a second column, its three declarations copied
+	 * The row is the license directory's row with a second column, its three declarations copied
 	 * character for character rather than shared -- where a module for the shared constant should
 	 * live is the question spec/issues/site.md is holding. See spec/architecture/css/authoring.md,
 	 * "A comment in the module script cannot write a tag in angle brackets".
@@ -34,7 +34,7 @@
 			fontSize: text.px13,
 			color: 'var(--color-text-soft)',
 		},
-		/** The badge on a licence the package states about itself. */
+		/** The badge on a license the package states about itself. */
 		asserted: {
 			borderRadius: radius.sm,
 			// `border` writes its style through `--tw-border-style`, which is registered with
@@ -45,7 +45,7 @@
 			fontSize: text.px12,
 			color: 'var(--color-text-soft)',
 		},
-		/** The expression, shown only where it differs from the licence this list is under. */
+		/** The expression, shown only where it differs from the license this list is under. */
 		spdx: {
 			fontSize: text.px13,
 			color: 'var(--color-text-soft)',

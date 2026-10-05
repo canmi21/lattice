@@ -4,7 +4,7 @@
 	import { border, family, figures, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the licence directory. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of the license directory. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The page is the package page's sibling -- a trail, a header, a row of quiet controls and a
@@ -18,7 +18,7 @@
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
@@ -38,7 +38,7 @@
 		introNote: {
 			color: 'var(--color-text-soft)',
 		},
-		/** A link inside prose. The named classes draw the underline; this is only its colour. */
+		/** A link inside prose. The named classes draw the underline; this is only its color. */
 		proseLink: {
 			color: 'var(--color-text)',
 		},
@@ -48,7 +48,7 @@
 		actionLink: {
 			fontSize: text.px15,
 		},
-		/** One row of the directory: a licence name, a leader, and its count. */
+		/** One row of the directory: a license name, a leader, and its count. */
 		entry: {
 			borderRadius: radius.lg,
 			backgroundColor: {
@@ -126,7 +126,7 @@
 	<meta property="og:description" content={description} />
 	<meta property="og:url" content={canonical} />
 	<!--
-		No robots meta: the directory pages of the licence surface are indexable, which is what
+		No robots meta: the directory pages of the license surface are indexable, which is what
 		app.html already says by default. Only one page here departs from it, and that is the
 		individual package page, which sets `noindex, follow` itself. See the sitemap route.
 	-->

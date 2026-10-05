@@ -4,7 +4,7 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of a Mermaid diagram's frame. Every colour is a `@canmi/kit/tokens` variable.
+	 * The visual half of a Mermaid diagram's frame. Every color is a `@canmi/kit/tokens` variable.
 	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Nothing here reaches the diagram: Mermaid writes the SVG, and its own palette stays a
@@ -140,12 +140,12 @@
 		aria-busy={!svg && !failed}
 	>
 		{#if svg}
-			<!-- Labelled as one picture rather than left as loose text. Mermaid's output is a
+			<!-- Labeled as one picture rather than left as loose text. Mermaid's output is a
 			     graph of `text` nodes in draw order, which reads as a word list; the description
 			     says what the graph shows. Without one the nodes stay readable, which is worse
 			     than a description and better than nothing.
 
-			     Mermaid sanitises tracked diagram source in strict mode before returning this SVG.
+			     Mermaid sanitizes tracked diagram source in strict mode before returning this SVG.
 			     Stated rather than suppressed; see spec/lint-format.md. -->
 			<div
 				class="mermaid-result min-w-[30rem]"

@@ -4,7 +4,7 @@
 	import { border, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the home page. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * The visual half of the home page. Every color is a `@canmi/kit/tokens` variable, so nothing
 	 * here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * The two link styles below say the same thing twice at two sizes. They are written out
@@ -46,7 +46,7 @@
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
@@ -191,7 +191,7 @@
 		/>
 
 		<!-- Left-aligned like everything above it: the page is one text column all the way down,
-		and a centred footer was the only thing arguing otherwise. The ICP badge shares the row
+		and a centered footer was the only thing arguing otherwise. The ICP badge shares the row
 		rather than taking one of its own. -->
 		<div
 			class="mt-12 flex flex-wrap items-center justify-between gap-x-4 gap-y-3 max-sm:justify-center"

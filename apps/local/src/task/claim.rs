@@ -217,7 +217,7 @@ mod tests {
 	}
 
 	/// The same key under two tasks is two items. `alt` and `tag` both work per content id, and
-	/// treating those as one claim would serialise the pair this design exists to keep parallel.
+	/// treating those as one claim would serialize the pair this design exists to keep parallel.
 	#[test]
 	fn the_same_key_under_two_tasks_is_two_claims() {
 		let temporary = temp();

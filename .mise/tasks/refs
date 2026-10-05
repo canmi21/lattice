@@ -128,7 +128,7 @@ def code_files() -> list[pathlib.Path]:
 	"""Files whose URLs something other than a reader would resolve.
 
 	Narrower than the files that may cite, and deliberately: an address written in a shell task
-	is a judgement about single-sourcing that this repository has already argued out in prose,
+	is a judgment about single-sourcing that this repository has already argued out in prose,
 	and widening a URL gate is not the same decision as widening a citation gate.
 	"""
 	return [path for path in files() if path.suffix in CODE_SUFFIXES]
@@ -158,10 +158,10 @@ def locate(cited: str) -> pathlib.Path | None:
 
 
 def resolve(path: pathlib.Path, cited: str) -> pathlib.Path | None:
-	"""Where a citation points: up the tree for a rule, beside the citing file for a neighbour.
+	"""Where a citation points: up the tree for a rule, beside the citing file for a neighbor.
 
 	A `spec/` path and a root doc are both rules, and a rule may be this project's or the
-	workspace's, so both walk up. Anything else is a doc naming a neighbour of its own.
+	workspace's, so both walk up. Anything else is a doc naming a neighbor of its own.
 	"""
 	if cited.startswith("spec/") or ROOT_DOC.fullmatch(cited):
 		return locate(cited)

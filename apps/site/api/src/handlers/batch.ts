@@ -8,7 +8,7 @@
  * and a case here, and no route at all.
  *
  * Nothing here is cacheable, which is the trade a batch makes. A `POST` is not a cacheable request,
- * so the caller memoises what it asked for; see the site's `cache.ts`. See
+ * so the caller memoizes what it asked for; see the site's `cache.ts`. See
  * spec/architecture/site-api.md, "One batch entry point".
  */
 import {

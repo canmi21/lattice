@@ -105,7 +105,7 @@ const fonts = new Map<string, string>();
  * A measurement taken during a navigation has no element on the page it is for; that page does
  * not exist yet. The stylesheet does, and it is the site's rather than any page's, so a probe
  * wearing the class in the document already open resolves to the same font the real element
- * will. Memoised, because that is a fact about the stylesheet and cannot have changed.
+ * will. Memoized, because that is a fact about the stylesheet and cannot have changed.
  */
 export function fontOfClass(className: string): string {
 	return fontOfProbe([['span', className]]);

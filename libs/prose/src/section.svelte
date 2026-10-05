@@ -20,7 +20,7 @@
 	}: { slug: string; depth?: number; notes?: number[]; children: Snippet } = $props();
 </script>
 
-<!-- A subsection matches a section's size, weight and colour and sits closer to what precedes
+<!-- A subsection matches a section's size, weight and color and sits closer to what precedes
      it: see spec/styling/rail.md, "A subsection is nearer, and for that reason unlisted", for why
      space rather than size carries the distinction and why only sections are in the rail. -->
 <svelte:element

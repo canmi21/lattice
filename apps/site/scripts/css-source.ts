@@ -30,7 +30,7 @@ const SRC = [join(SITE, 'src'), join(SITE, '../../libs/prose/src')];
 const KIT = dirname(fileURLToPath(import.meta.resolve('@canmi/kit/tokens/surfaces')));
 const SCAN = relative(ROOT, fileURLToPath(import.meta.url));
 
-/** The module every `stylex.create` call comes from, and the only one this scan recognises. */
+/** The module every `stylex.create` call comes from, and the only one this scan recognizes. */
 const STYLEX = '@stylexjs/stylex';
 /** Where the visual layer's named values live, and where its named groups do. */
 const VOCABULARY = '@canmi/kit/tokens/vocabulary.stylex';

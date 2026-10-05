@@ -8,8 +8,8 @@ where two of them say the same thing, is [architecture/css/layers.md](../archite
 
 Keyboard focus uses a real `0.125rem` outline in the accessibility accent color. The outline is
 flush with the control rather than floating outside it: the visible edge is the location being
-identified, and a second page-coloured moat makes compact controls look larger than they are. A
-real outline also remains available to forced-colours mode; a `box-shadow` is not a substitute.
+identified, and a second page-colored moat makes compact controls look larger than they are. A
+real outline also remains available to forced-colors mode; a `box-shadow` is not a substitute.
 
 The focusable DOM box does not always represent the control. A padded row whose identity is an
 icon puts the outline on that icon; a focusable code child puts it on the surrounding code frame.
@@ -122,7 +122,7 @@ switcher and the theme toggle add nothing at all, and the article's summary disc
 what it does while there is nothing to disclose. A recipe composes, so the name survives being
 specialized. See [architecture/css/extraction.md](../architecture/css/extraction.md).
 
-Only the appearance is in the recipe. The geometry -- the inline-flex box, the centred items, the
+Only the appearance is in the recipe. The geometry -- the inline-flex box, the centered items, the
 padding, and the negative inline margin that lets a padded control keep its ink aligned with the
 unpadded text beside it -- is layout, and it is Tailwind utilities on each of the seven controls.
 The class was a mixed rule and the two halves went to the two layers that own them.
@@ -144,7 +144,7 @@ besides. The English, Spanish and Simplified rows read up to 15.5% smaller than 
 them, in a column whose whole job is to be compared by scanning straight down it.
 
 **The figure each mark is normalized on is `sqrt(extent * sqrt(mass))`**: how far the ink reaches,
-corrected by how much of it is inside that reach. Reach alone is the wrong thing to equalise --
+corrected by how much of it is inside that reach. Reach alone is the wrong thing to equalize --
 bringing a narrow mark up to the widest reach scales its strokes with it and it arrives as the
 heaviest mark in the menu -- and mass alone under-corrects for the same reason in reverse. Both
 terms scale with the box, so the figure does too, and each mark's height is a ratio of measured

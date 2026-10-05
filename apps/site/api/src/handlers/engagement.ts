@@ -128,7 +128,7 @@ engagement.delete('/newsletter', JSON_LIMIT, async (c) => {
 	}
 
 	const subscriberCount = await rowCount(database, newsletterSubscriptions);
-	return success(c, { cancelled: true, subscriber_count: subscriberCount }, NO_STORE);
+	return success(c, { canceled: true, subscriber_count: subscriberCount }, NO_STORE);
 });
 
 engagement.put('/like', JSON_LIMIT, async (c) => {

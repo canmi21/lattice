@@ -161,10 +161,10 @@ fn split_scope(name: &str) -> (Option<&str>, &str) {
 	}
 }
 
-/// The licence expression and author a package declares in its manifest.
+/// The license expression and author a package declares in its manifest.
 ///
 /// `None` means the manifest could not be read at all, which is a different fact from a
-/// manifest that declares no licence -- the first is a package that is not installed, the
+/// manifest that declares no license -- the first is a package that is not installed, the
 /// second is a package somebody has to make a decision about.
 fn declared(directory: &Path) -> Option<Declared> {
 	let bytes = std::fs::read(directory.join("package.json")).ok()?;
@@ -181,7 +181,7 @@ fn declared(directory: &Path) -> Option<Declared> {
 /// npm's `license` field, which has outlived two of its own formats.
 ///
 /// The modern form is an SPDX string. The 2013-era object form is still in the wild and still
-/// says which licence it is, so it is read rather than discarded -- dropping it would report a
+/// says which license it is, so it is read rather than discarded -- dropping it would report a
 /// package as undeclared when it plainly declared something.
 fn license_expression(value: &serde_json::Value) -> Option<String> {
 	match value {

@@ -2,7 +2,7 @@
 //!
 //! The caller is a person typing domains today and the article pipeline handing over every
 //! link it found tomorrow. Both give a messy mix -- bare domains, full URLs, duplicates,
-//! things that are not sites at all -- so normalising and filtering belongs here rather than
+//! things that are not sites at all -- so normalizing and filtering belongs here rather than
 //! in each caller.
 
 use std::collections::BTreeSet;
@@ -12,7 +12,7 @@ use url::Url;
 ///
 /// Sorted rather than input-ordered so that running twice over the same article produces the
 /// same sequence of requests, which makes a failure reproducible.
-pub fn normalise<I, S>(inputs: I) -> Vec<String>
+pub fn normalize<I, S>(inputs: I) -> Vec<String>
 where
 	I: IntoIterator<Item = S>,
 	S: AsRef<str>,
@@ -67,7 +67,7 @@ pub fn is_fetchable(host: &str) -> bool {
 	})
 }
 
-/// Resolve an icon href against the page it was found on, honouring `<base href>`.
+/// Resolve an icon href against the page it was found on, honoring `<base href>`.
 ///
 /// A page that declares a base and serves its icons from a CDN is otherwise resolved against
 /// the wrong origin, which fetches a 404 from the site itself.
@@ -142,20 +142,20 @@ mod tests {
 
 	#[test]
 	fn deduplicates_across_forms() {
-		let out = normalise(["https://example.com/a", "example.com", "EXAMPLE.com/b"]);
+		let out = normalize(["https://example.com/a", "example.com", "EXAMPLE.com/b"]);
 		assert_eq!(out, vec!["example.com"]);
 	}
 
 	#[test]
 	fn sorts_so_repeat_runs_match() {
-		let out = normalise(["https://b.example.com", "a.example.com"]);
+		let out = normalize(["https://b.example.com", "a.example.com"]);
 		assert_eq!(out, vec!["a.example.com", "b.example.com"]);
 	}
 
 	#[test]
 	fn drops_unusable_entries_without_failing_the_batch() {
 		// One bad link in an article must not stop the other icons being fetched.
-		let out = normalise(["example.com", "not a url", "localhost", "other.example.com"]);
+		let out = normalize(["example.com", "not a url", "localhost", "other.example.com"]);
 		assert_eq!(out, vec!["example.com", "other.example.com"]);
 	}
 

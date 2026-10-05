@@ -4,10 +4,10 @@
 	import { family, figures, line, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of one licence's page. Every colour is a `@canmi/kit/tokens` variable, so
+	 * The visual half of one license's page. Every color is a `@canmi/kit/tokens` variable, so
 	 * nothing here can change one. See spec/architecture/css/authoring.md.
 	 *
-	 * Third of the licence surface's directory pages, writing the same trail, heading and tabular
+	 * Third of the license surface's directory pages, writing the same trail, heading and tabular
 	 * count as the two above it, name for name. Written out rather than shared -- where a module
 	 * for this should live is the question spec/issues/issues.md is already holding.
 	 */
@@ -17,12 +17,12 @@
 			color: {
 				default: 'var(--color-text-soft)',
 				// Gated on a pointer that can actually hover, which is what Tailwind's `hover`
-				// variant does and what keeps the colour from latching on after a tap.
+				// variant does and what keeps the color from latching on after a tap.
 				'@media (hover: hover)': { default: null, ':hover': 'var(--color-text-strong)' },
 				':focus-visible': 'var(--color-text-strong)',
 			},
 		},
-		/** The licence identifier as a heading. */
+		/** The license identifier as a heading. */
 		title: {
 			color: 'var(--color-text-strong)',
 		},

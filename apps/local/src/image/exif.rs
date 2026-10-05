@@ -39,7 +39,7 @@ pub struct Metadata {
 	pub software: Option<String>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub color_space: Option<String>,
-	/// Read and honoured. Ignoring this turns every derived image.
+	/// Read and honored. Ignoring this turns every derived image.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub orientation: Option<u16>,
 }
@@ -98,7 +98,7 @@ pub struct Location {
 	pub longitude: Option<f64>,
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub altitude: Option<f64>,
-	/// `GPSHPositioningError`, in metres.
+	/// `GPSHPositioningError`, in meters.
 	#[serde(default, skip_serializing_if = "Option::is_none")]
 	pub accuracy: Option<f64>,
 	/// `GPSImgDirection`, degrees true.

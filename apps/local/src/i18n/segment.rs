@@ -1,7 +1,7 @@
 //! Cutting an article into the units a translation is addressed by.
 //!
 //! A segment is a markdown block, and its id is the hash of its canonical text. That is the whole
-//! synchronisation mechanism: edit a paragraph and only that paragraph's id changes, so only
+//! synchronization mechanism: edit a paragraph and only that paragraph's id changes, so only
 //! its translations go stale. Move a paragraph and nothing changes at all, because order lives
 //! in the article and never in the sidecar. See spec/i18n/segments.md.
 
@@ -189,7 +189,7 @@ pub fn mask(source: &str) -> Masked {
 	Masked { text, slots }
 }
 
-/// What a neighbouring block looks like when it is shown as context: folded, never whole, and
+/// What a neighboring block looks like when it is shown as context: folded, never whole, and
 /// never translatable material. A block with nothing to read collapses to a word saying what
 /// sits there; prose keeps its words but loses its inline code to a placeholder that cannot be
 /// restored, so text copied from here is refused as a marker resolving to nothing. See
@@ -343,7 +343,7 @@ fn frontmatter_segments(
 	}
 
 	// A phone card clips the title and the subtitle, so each also has a short form, never written
-	// in the article but modelled here as a segment so the rest of the pipeline treats it like any
+	// in the article but modeled here as a segment so the rest of the pipeline treats it like any
 	// other block. Its source is the full form under a namespaced id, so the two never collide and
 	// its byte range is the full form's -- a short title goes stale exactly when its title does.
 	let shorts: Vec<Segment> = segments
@@ -371,7 +371,7 @@ fn frontmatter_segments(
 
 /// Whether a block is CommonMark's thematic break: three or more of one mark, spaces allowed.
 ///
-/// Recognised positively rather than by what is left over. The classifier above is otherwise a
+/// Recognized positively rather than by what is left over. The classifier above is otherwise a
 /// chain ending in "anything else is prose", and that ending is what sent `---` to a translator
 /// in the first place; a new structural spelling should have to be named here to be understood,
 /// not fall through by default. See spec/i18n/request.md.
@@ -467,7 +467,7 @@ mod tests {
 
 	#[test]
 	fn an_edit_changes_only_its_own_segment() {
-		// The whole synchronisation design rests on this: a small change must not invalidate
+		// The whole synchronization design rests on this: a small change must not invalidate
 		// the translations of everything around it.
 		let before = split("first para\n\nsecond para\n\nthird para").expect("segments");
 		let after = split("first para\n\nsecond para edited\n\nthird para").expect("segments");
@@ -665,7 +665,7 @@ mod tests {
 	#[test]
 	fn a_description_is_not_drawn_and_brings_no_short_form() {
 		let segments =
-			split("---\ndescription: Something summarised\nlang: zh\n---\n\nBody").expect("split");
+			split("---\ndescription: Something summarized\nlang: zh\n---\n\nBody").expect("split");
 		assert!(segments.iter().all(|s| s.display.is_none()));
 	}
 

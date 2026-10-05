@@ -117,7 +117,7 @@ type BuildPaths = {
 	contents: string;
 	/** Which CDN the built markup names; see createAssetResolver. */
 	cdnUrl: string;
-	/** Where the Paraglide message catalogues live, read directly; see newTabNotes. */
+	/** Where the Paraglide message catalogs live, read directly; see newTabNotes. */
 	messages: string;
 	assets: string;
 	media: string;

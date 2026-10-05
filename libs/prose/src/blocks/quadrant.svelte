@@ -4,7 +4,7 @@
 	import { border, family, line, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the quadrant figure. Every colour is a `@canmi/kit/tokens` variable. See
+	 * The visual half of the quadrant figure. Every color is a `@canmi/kit/tokens` variable. See
 	 * spec/architecture/css/authoring.md.
 	 *
 	 * The figure's geometry is the frame, written on the elements in the markup. What is left in

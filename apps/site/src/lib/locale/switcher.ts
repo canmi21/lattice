@@ -238,7 +238,7 @@ export function sourceLanguageName(sourceLanguage: string, currentCode: LocaleCo
 /**
  * The eight, then the original last, as one entry among them rather than a section of its own.
  *
- * `mw` is labelled in whichever language is being read, because it names a state rather than a
+ * `mw` is labeled in whichever language is being read, because it names a state rather than a
  * language; the row stays on every page since the choice is one site-wide cookie, and preferring
  * the original differs from preferring English the moment an article opens. See
  * spec/locale/interface.md, "A page names the site's own language, which is what its tag already

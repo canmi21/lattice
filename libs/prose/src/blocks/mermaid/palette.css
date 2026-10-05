@@ -1,12 +1,12 @@
 /*
- * Mermaid's theme engine accepts hex colours only. These are the sRGB mirrors of the
- * interface colours in @canmi/kit/tokens; they stay together here because Mermaid is the sole
+ * Mermaid's theme engine accepts hex colors only. These are the sRGB mirrors of the
+ * interface colors in @canmi/kit/tokens; they stay together here because Mermaid is the sole
  * consumer and must never make the ordinary site palette abandon OKLCH. See spec/styling/blocks.md.
  *
  * Both palettes are named rather than switched by a `.dark` ancestor, because the adapter draws
  * each diagram in both themes at once and therefore has to read the one that is not on screen.
  *
- * The corner is here for the same reason the colours are: a node box takes it through CSS while a
+ * The corner is here for the same reason the colors are: a node box takes it through CSS while a
  * decision takes it as geometry the adapter computes, and the two must not be two numbers.
  */
 .mermaid-block {

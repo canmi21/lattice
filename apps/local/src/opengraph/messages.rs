@@ -23,7 +23,7 @@ pub fn load(repo: &Path, view: &str) -> BTreeMap<String, String> {
 		.unwrap_or_default()
 }
 
-/// Every view's catalogue, read once for a whole run.
+/// Every view's catalog, read once for a whole run.
 ///
 /// The nine files do not change while `local og` is running -- they are build input, and this
 /// command does not write them -- so reading one per card meant reading nine files several
@@ -32,7 +32,7 @@ pub fn load_all(repo: &Path) -> BTreeMap<&'static str, BTreeMap<String, String>>
 	super::locale::VIEWS.iter().map(|view| (view.code, load(repo, view.code))).collect()
 }
 
-/// The catalogue for one view, or an empty one when that view has none.
+/// The catalog for one view, or an empty one when that view has none.
 ///
 /// Borrowed from the set above rather than looked up by path, so a caller cannot reach past it
 /// and read the file again.

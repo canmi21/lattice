@@ -4,16 +4,16 @@
 	import { border, family, line, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the Tokei figure. Every interface colour is a `@canmi/kit/tokens` variable.
+	 * The visual half of the Tokei figure. Every interface color is a `@canmi/kit/tokens` variable.
 	 * See spec/architecture/css/authoring.md.
 	 *
-	 * Two exceptions stay put: the whites over a tile's own colour (spec/issues/css.md, "Tokei draws
+	 * Two exceptions stay put: the whites over a tile's own color (spec/issues/css.md, "Tokei draws
 	 * from a palette of its own, and it is the third one") and `shadow-sm` on the tooltip
 	 * (spec/issues/css.md, "A shadow is one utility, two declarations and four variables the visual
 	 * layer cannot restate").
 	 */
 	const styles = stylex.create({
-		/** A treemap tile's language name, over the tile's own colour. */
+		/** A treemap tile's language name, over the tile's own color. */
 		tileName: {
 			fontSize: text.px12,
 			fontWeight: weight.medium,
@@ -41,11 +41,11 @@
 		summary: {
 			fontSize: text.px12,
 		},
-		/** The quieter half of a labelled figure, in the summary and in the tooltip both. */
+		/** The quieter half of a labeled figure, in the summary and in the tooltip both. */
 		muted: {
 			color: 'var(--color-text-soft)',
 		},
-		/** The square of colour a legend entry and a nested language each put before their name. */
+		/** The square of color a legend entry and a nested language each put before their name. */
 		swatch: {
 			borderRadius: '0.125rem',
 		},

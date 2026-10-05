@@ -24,7 +24,7 @@ pub(super) fn fetch_favicons(force: bool, domains: &[String]) -> anyhow::Result<
 			}
 		}
 	} else {
-		favicon::host::normalise(inputs)
+		favicon::host::normalize(inputs)
 			.into_iter()
 			.map(|domain| refs::Wanted { domain, source: None, tone: None })
 			.collect()
@@ -178,8 +178,8 @@ pub(super) fn process_videos(
 	for value in &outcome.missing {
 		eprintln!("warn  no original for {value}");
 	}
-	if outcome.levelled > 0 {
-		println!("{} clip(s) measured for loudness without re-encoding", outcome.levelled);
+	if outcome.leveled > 0 {
+		println!("{} clip(s) measured for loudness without re-encoding", outcome.leveled);
 	}
 	println!(
 		"{} encoded, {} unchanged, {} failed, {} references rewritten, {} posters sourced",

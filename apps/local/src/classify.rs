@@ -75,7 +75,7 @@ fn prompt(path: &Path, existing: &[String]) -> String {
 		 use `cellular-network`, not `cellular`; use `mold-linker` for the named linker and `mold` \
 		 for fungal growth.\n\
 		 \n\
-		 A technical tag is a proper name -- a brand, named tool, format, protocol or organisation \
+		 A technical tag is a proper name -- a brand, named tool, format, protocol or organization \
 		 whose name stays the same in every language. Its display is the official casing and spacing, \
 		 including deliberately lowercase names: `cargo|technical|Cargo|Rust package manager and \
 		 build tool`, `typescript|technical|TypeScript|programming language`, or \

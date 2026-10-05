@@ -7,7 +7,7 @@ import { homepageContent } from './content';
 const ROOT = new URL('../../../../../', import.meta.url);
 
 describe('standalone page locale views', () => {
-	it('keeps the bio in English while localising the writing heading', async () => {
+	it('keeps the bio in English while localizing the writing heading', async () => {
 		const { pages } = await buildPages({
 			contents: fileURLToPath(new URL('contents', ROOT)),
 			messages: fileURLToPath(new URL('libs/messages/messages', ROOT)),

@@ -76,7 +76,7 @@ article. It is also the fallback the locale negotiation lands on, so it serves t
 asked for originals and the reader whose language this site does not have.
 
 None of that is a settings problem any more, but it remains a records problem: the `mw` view
-cannot borrow another locale's. The translation pipeline localises terms the original
+cannot borrow another locale's. The translation pipeline localizes terms the original
 deliberately left in English -- the source writes `hydration mismatch` where the `zh` view
 writes 水合不匹配, while `tw` keeps the English. Three Chinese views, three different answers
 about one term. Titles differ too: `mw` carries the source title, every other view a translated
@@ -137,7 +137,7 @@ translation writes French records and nothing else.
 [indexing.md](indexing.md) keeps `data/record/indexnow.json` because IndexNow is write-only: it cannot
 be asked what it already knows, so a local record is the only thing that can answer "what
 changed". Algolia can be browsed. That difference is worth taking, rather than copying the
-shape of the neighbouring task.
+shape of the neighboring task.
 
 **The fingerprint is stored as an attribute on the record itself**, and left out of
 `searchableAttributes` so it is written to be compared and never matched. A run browses the
@@ -244,7 +244,7 @@ does.
 the first response can still arrive second, leaving the reader looking at results for a prefix
 of what they typed -- which reads as the search being wrong rather than late. Each request takes
 a ticket and only the newest may write to the screen. Not an `AbortController`, because the
-client exposes no signal to abort with, and because the request has left either way: cancelling
+client exposes no signal to abort with, and because the request has left either way: canceling
 would refund no part of the budget and save only the parsing. What has to be right is which
 answer may be believed.
 

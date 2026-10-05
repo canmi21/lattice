@@ -3,7 +3,7 @@
  * above it needs a `GainNode` and therefore `crossorigin`. Built once, lazily, since
  * `createMediaElementSource` takes the element's audio over for good with no way back --
  * which two things can push past the cap: the reader's own ceiling, and a clip quiet enough
- * that its levelling alone is above one. One per clip, held by `video-controls.svelte`.
+ * that its leveling alone is above one. One per clip, held by `video-controls.svelte`.
  */
 export class Level {
 	#gain: GainNode | undefined;

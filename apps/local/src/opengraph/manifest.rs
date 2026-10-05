@@ -1,4 +1,4 @@
-//! What each published card was drawn from, so a stale one can be recognised.
+//! What each published card was drawn from, so a stale one can be recognized.
 //!
 //! The command used to skip any card whose file already existed. That is only correct while a
 //! card is a function of its own path, and it never quite was -- editing a title left the old

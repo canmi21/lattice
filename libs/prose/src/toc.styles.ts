@@ -2,7 +2,7 @@ import * as stylex from '@stylexjs/stylex';
 import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
 
 /**
- * The visual half of the table of contents. Every colour is a `@canmi/kit/tokens` variable, so
+ * The visual half of the table of contents. Every color is a `@canmi/kit/tokens` variable, so
  * nothing here can change one. See spec/architecture/css/authoring.md.
  *
  * Nothing here draws a bar's width or the indicator's height. Those are measured and written
@@ -11,7 +11,7 @@ import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
  */
 export const styles = stylex.create({
 	/**
-	 * The rail's own offset near the end of an article, on top of the box's vertical centring.
+	 * The rail's own offset near the end of an article, on top of the box's vertical centering.
 	 *
 	 * Here rather than in the markup because no utility translates a `transform` -- Tailwind 4
 	 * writes `translate` as its own property, a different declaration with a different computed

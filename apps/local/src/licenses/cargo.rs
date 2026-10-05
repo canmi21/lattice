@@ -91,7 +91,7 @@ fn found(package: CratePackage) -> Found {
 		repository: web_url(package.repository),
 		origins: BTreeMap::new(),
 		dependents: BTreeSet::new(),
-		// The manifest's directory is the crate root, which is where a licence sits.
+		// The manifest's directory is the crate root, which is where a license sits.
 		directory: package.manifest_path.parent().map(Path::to_path_buf).unwrap_or_default(),
 	}
 }
@@ -169,7 +169,7 @@ fn collect_dependents(
 			let Some(purl) = package_purls.get(dependency) else {
 				continue;
 			};
-			// A crate reached from itself is a feature-resolution artefact, not a dependency
+			// A crate reached from itself is a feature-resolution artifact, not a dependency
 			// anybody can act on.
 			if purl == label {
 				continue;

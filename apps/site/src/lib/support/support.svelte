@@ -4,7 +4,7 @@
 	import { figures, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 	/**
-	 * The visual half of the support row. Every colour is a `@canmi/kit/tokens` variable, so nothing
+	 * The visual half of the support row. Every color is a `@canmi/kit/tokens` variable, so nothing
 	 * here can change one. See spec/architecture/css/authoring.md.
 	 *
 	 * What is left in the block at the foot of this file is the reveal's geometry -- the masks, the
@@ -13,7 +13,7 @@
 	 * cannot see. See spec/issues/issues.md.
 	 */
 	const styles = stylex.create({
-		/** One pill: the like, the favour and the sponsor all wear this. */
+		/** One pill: the like, the favor and the sponsor all wear this. */
 		action: {
 			borderRadius: '624.9375rem',
 			fontWeight: weight.medium,
@@ -43,7 +43,7 @@
 		},
 		/**
 		 * The like pill's figures: tabular, so a changing count does not resize the pill and shift
-		 * its neighbours. See spec/styling/prose.md, "A number's treatment follows the role it plays".
+		 * its neighbors. See spec/styling/prose.md, "A number's treatment follows the role it plays".
 		 */
 		likeFigures: {
 			fontVariantNumeric: figures.tabular,
@@ -113,7 +113,7 @@
 
 	/**
 	 * Expanding answers to whether the pointer can hover, not to how wide the window is -- a tap
-	 * synthesises `mouseenter`, and a width guard was open on the one device class, an iPad, it was
+	 * synthesizes `mouseenter`, and a width guard was open on the one device class, an iPad, it was
 	 * meant to catch. Queried live rather than once, so a tablet given a trackpad finds the other
 	 * answer. See spec/styling/controls.md, "The reveal answers to whether the pointer can hover, not
 	 * to how wide the window is".
@@ -143,7 +143,7 @@
 	} = $props();
 
 	/**
-	 * Which favour this row asks for, in the one slot that asks for one. Two stores decide it --
+	 * Which favor this row asks for, in the one slot that asks for one. Two stores decide it --
 	 * see spec/styling/controls.md, "Compact action rails reveal detail on demand" -- and share this
 	 * one key, `PREFERRED`, across the `reader` and `tab` records in `client/state.ts` so the two
 	 * never drift. Both short forms are a six-letter brand name, so what moves is the label and
@@ -369,7 +369,7 @@
 			{@render copy(formattedCount, m['support.like']({ count: formattedCount }, { locale }))}
 		</button>
 
-		<!-- One slot, two favours. The star is right for either: it is the mark Google's preference
+		<!-- One slot, two favors. The star is right for either: it is the mark Google's preference
 		     list and GitHub's repositories both use, so the pill keeps its shape and only its
 		     words change. -->
 		<a

@@ -30,7 +30,7 @@
 		 * on the frame and the element inherits; its other value is behind `data-settled`, which
 		 * only the block can spell and which outranks this layer. See
 		 * spec/architecture/video/player.md. One property in the list, so the delay and the
-		 * behaviour keep the initial values the shorthand this replaced already computed to.
+		 * behavior keep the initial values the shorthand this replaced already computed to.
 		 */
 		surface: {
 			opacity: 'var(--clip-hold, 1)',
@@ -340,7 +340,7 @@
 	>
 		<!--
 		`block`, for `picture.svelte`'s reason: a replaced inline box discards the vertical margins
-		its neighbours are spaced with, and Tailwind's reset only says so by default. `crossorigin`
+		its neighbors are spaced with, and Tailwind's reset only says so by default. `crossorigin`
 		is load-bearing, not decoration -- the tracks come from the CDN and a `<track>` that is not
 		CORS-fetched never loads. The sources are smallest first, which is the pre-hydration answer:
 		see spec/architecture/video/pipeline.md ("Why 1080 and not 720") for why that rung is not a
@@ -518,7 +518,7 @@
 		border: 0;
 		border-radius: 0;
 		/* Also the letterbox. The frame's ground is `paper`, so without this a clip that does not
-		   match the screen's shape is bordered by the page's colour on two sides. */
+		   match the screen's shape is bordered by the page's color on two sides. */
 		background: oklch(0 0 0);
 	}
 

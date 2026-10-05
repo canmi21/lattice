@@ -205,15 +205,15 @@ fn gemini_spells_effort_into_the_model_id() {
 fn a_gemini_model_normalises_to_the_recorded_spelling() {
 	// Dots to hyphens, like every other id this project stores.
 	assert_eq!(
-		model::normalise(Runner::Gemini.model_for(Kind::Heading, 0)),
+		model::normalize(Runner::Gemini.model_for(Kind::Heading, 0)),
 		"gemini-3-6-flash-medium"
 	);
 }
 
 #[test]
 fn a_grok_model_normalises_to_the_recorded_spelling() {
-	assert_eq!(model::normalise(Runner::Grok.model_for(Kind::Heading, 0)), "grok-4-5");
-	assert_eq!(model::normalise(Runner::Grok.model_for(Kind::Prose, 0)), "grok-4-6");
+	assert_eq!(model::normalize(Runner::Grok.model_for(Kind::Heading, 0)), "grok-4-5");
+	assert_eq!(model::normalize(Runner::Grok.model_for(Kind::Prose, 0)), "grok-4-6");
 }
 
 #[test]

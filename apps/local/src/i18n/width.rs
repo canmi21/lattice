@@ -18,7 +18,7 @@ use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 pub const ONE_LINE: usize = 19;
 
 /// Two lines, where the label is clamped. Past this the end of the heading is not shown at all,
-/// which is the one outcome that is a loss rather than a judgement -- see `validate`.
+/// which is the one outcome that is a loss rather than a judgment -- see `validate`.
 pub const CLAMP: usize = ONE_LINE * 2;
 
 /// What a string draws to, in pixels, at the 16px type the card list and the article title use.
@@ -220,7 +220,7 @@ pub fn raw(text: &str) -> usize {
 
 /// How much wider than its source a translation may be before it is not a translation.
 ///
-/// Catches a reply answering the neighbouring context instead of the block: invisible to every
+/// Catches a reply answering the neighboring context instead of the block: invisible to every
 /// other check, since a short source has no markers to lose and the shape stays valid. Four times
 /// plus forty columns, so a short block still gets room -- `OR` is two columns and its German is
 /// four. See spec/i18n/request.md, "A count the source fixes is worth more than a size that has

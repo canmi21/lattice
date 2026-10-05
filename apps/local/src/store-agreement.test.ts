@@ -56,7 +56,7 @@ describe('the loop an icon travels', () => {
 		return chain.find((arm) => arm.needles.some((needle) => lower.includes(needle)))?.extension;
 	}
 
-	/** `infer_content_type`'s arms: the URL extensions it recognises, and the type each names. */
+	/** `infer_content_type`'s arms: the URL extensions it recognizes, and the type each names. */
 	const inferred = [...FETCH_RS.matchAll(/\(\) if ([^=]+)=> "([a-z0-9/+.-]+)"/g)].map((arm) => ({
 		extensions: [...arm[1]!.matchAll(/ends_with\("\.([a-z0-9]+)"\)/g)].map((found) => found[1]!),
 		contentType: arm[2]!,

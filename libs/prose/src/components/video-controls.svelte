@@ -53,7 +53,7 @@
 		frame,
 		clip,
 		rungs,
-		gain: levelling = 1,
+		gain: leveling = 1,
 		filling = $bindable(false),
 		locale,
 	}: {
@@ -77,7 +77,7 @@
 		clip: string;
 		rungs?: VideoRung[];
 		/**
-		 * The clip's own levelling, so this one plays at the same loudness as every other.
+		 * The clip's own leveling, so this one plays at the same loudness as every other.
 		 *
 		 * Measured at import and computed in the build; see `assets.ts`. It multiplies the
 		 * reader's level rather than replacing it -- the slider still says what fraction of full
@@ -119,7 +119,7 @@
 	/**
 	 * Half, and it is a decision rather than a default.
 	 *
-	 * Every clip is levelled to the same target, so 1.0 is a calibrated level and starting there
+	 * Every clip is leveled to the same target, so 1.0 is a calibrated level and starting there
 	 * is defensible. Starting at half is the other reading: the first clip a reader ever unmutes
 	 * should not be the loudest thing on their machine, and the cost of being too quiet is one
 	 * drag where the cost of being too loud is a closed tab.
@@ -149,7 +149,7 @@
 	 * What web fullscreen does to the page behind it: scroll swallowed, not redirected -- see
 	 * spec/architecture/video/player.md, "Filling the window is a page mode, not a media one". Three
 	 * things hold it: `overflow: hidden`, the scrollbar gutter paid back as padding, and
-	 * `touchmove` cancelled except over the chrome, which needs it to drag the scrubber and volume.
+	 * `touchmove` canceled except over the chrome, which needs it to drag the scrubber and volume.
 	 */
 	$effect(() => {
 		if (!filling) return;
@@ -244,7 +244,7 @@
 	 * The frame the clip was on when it left for the picture-in-picture window, captured into a
 	 * canvas because the browser's own placeholder paints nothing (and painted the poster before
 	 * that was dropped). See spec/architecture/video/player.md, "A clip playing elsewhere leaves the
-	 * frame it left on", for why grey and dimmed, and why the canvas is always in the DOM rather
+	 * frame it left on", for why gray and dimmed, and why the canvas is always in the DOM rather
 	 * than conditional on state.
 	 */
 	let still = $state<HTMLCanvasElement>();
@@ -361,7 +361,7 @@
 	 * Start a preview, silent or not depending on what the reader has already allowed.
 	 *
 	 * Silent is the only kind an engine permits before a gesture, and silent is also the only
-	 * polite kind: a page that starts talking at somebody who has not asked is the behaviour every
+	 * polite kind: a page that starts talking at somebody who has not asked is the behavior every
 	 * reader has learned to dread. Once they have asked once -- by unmuting any clip here -- the
 	 * next one they point at comes with sound, because making them ask again for something they
 	 * have already said is the other half of the same rudeness.
@@ -476,10 +476,10 @@
 		}, 280);
 	}
 
-	/** The reader's level, times this clip's levelling, onto the element. See `./video-level.ts`. */
+	/** The reader's level, times this clip's leveling, onto the element. See `./video-level.ts`. */
 	function applyVolume() {
 		if (!video) return;
-		level.apply(video, volume * ceiling * levelling);
+		level.apply(video, volume * ceiling * leveling);
 	}
 
 	function setVolume(next: number) {
@@ -758,8 +758,8 @@
 		stroke: none;
 	}
 
-	/* No offset: Phosphor already centres `Play` on its mass (centroid 127.65 against a viewBox
-	   centre of 128) and `Pause` needs none either, so the `translate` that used to be here was a
+	/* No offset: Phosphor already centers `Play` on its mass (centroid 127.65 against a viewBox
+	   center of 128) and `Pause` needs none either, so the `translate` that used to be here was a
 	   correction on top of a correction. See spec/styling/player.md -- this is a result, not an
 	   omission. */
 	.player-cover :global(.player-cover-glyph),

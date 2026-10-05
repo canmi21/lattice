@@ -215,7 +215,7 @@ pub(super) fn tag_request(item: &Item) -> String {
 		 not the raw identifier in isolation. Every answer is a short, ready-to-render standalone \
 		 UI label, never an explanation or a sentence. Use the standard term a native reader would \
 		 expect.\n\nCasing rules:\n- en-US uses Title Case for a short tag label.\n- de-DE \
-		 follows normal German noun capitalisation.\n- fr-FR and es-ES capitalise the first word \
+		 follows normal German noun capitalization.\n- fr-FR and es-ES capitalize the first word \
 		 as a standalone label and otherwise follow native orthography.\n- Scripts without case use \
 		 their natural written form.\n- Preserve conventional casing inside any established term; never \
 		 apply mechanical title casing.\n\nAll locales must express the same meaning below. The English \

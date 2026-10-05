@@ -1,7 +1,7 @@
 <!--
 	Search, lowered to stand beside the sidebar frames: its lens and handle keep inside the same
 	band the 16-high frame fills, y 4 to 20, where Lucide's own `search` runs 3 to 21 and
-	stood taller than its neighbour.
+	stood taller than its neighbor.
 -->
 <script lang="ts">
 	import type { GlyphProps } from './shared';

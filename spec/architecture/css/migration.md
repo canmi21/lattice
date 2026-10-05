@@ -75,7 +75,7 @@ theme, at any width, in any locale, at rest or hovered or focused or with a menu
 
 The cause is precision, not the migration. The declared value is `624.9375rem`, which is seven
 significant digits, and the visual layer's stylesheet prints six: it emits `624.938rem`, which is
-9999.008 pixels. A neighbouring `3.0625rem` in the same sheet keeps all of its digits, so this is a
+9999.008 pixels. A neighboring `3.0625rem` in the same sheet keeps all of its digits, so this is a
 limit on significant figures rather than on decimals, and only one value on the site has seven.
 
 **It has no rendered consequence, and that is a fact about CSS rather than an opinion about
@@ -109,14 +109,14 @@ already identifies as behavior boundaries rather than a round number picked here
 Measured on the player, the largest block this repository had: four moves would have changed a
 computed value, and two of the four were reachable by reading. **Both of the two that were not are
 names that promise a translation and do not deliver one**, which is why neither sends anybody to
-look. Each rule below therefore names the artefact to inspect, because "measure carefully" is not a
+look. Each rule below therefore names the artifact to inspect, because "measure carefully" is not a
 thing anyone can follow.
 
 **Dump the emitted condition text for every at-rule rewritten as a variant, and compare it to the
 rule it replaced.** `max-[45rem]:` compiles to `@media (width < 45rem)`, not `@media (max-width:
 45rem)`: exclusive where the original was inclusive, so the declaration stops applying at exactly
 the boundary and a control reappears at 720px. The inclusive form is `[@media(max-width:45rem)]:`.
-The artefact is `conditionText` off `document.styleSheets`; the check is string equality against
+The artifact is `conditionText` off `document.styleSheets`; the check is string equality against
 the old at-rule. This is the one nothing would have sent anybody to look at -- it surfaced beside
 an unrelated dump, and without that accident it would have shipped.
 
@@ -187,7 +187,7 @@ on two edges while width and color were compared on four, so a single longhand w
 belonged would have passed. The spring underline is drawn as a background, and
 `background-size`, `-position` and `-repeat` were absent.
 
-**The shape of the mistake generalises past the names.** The list was written from the properties a
+**The shape of the mistake generalizes past the names.** The list was written from the properties a
 migration was expected to move, while what a migration was _allowed_ to move was decided by a test.
 A list and a test drift the first time somebody applies the test honestly, which is why
 [layers.md](layers.md) no longer keeps both: the enumeration there is the rule now, and the test is

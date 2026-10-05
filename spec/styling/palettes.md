@@ -12,7 +12,7 @@ again under `.dark`; an app imports the one it wears.
 | `concrete` | the site's: a black that is not quite black, a white that is not quite clean | site, cms       |
 | `mono`     | black and white, Vercel's restraint, with the site's gray ramp step for step | status, landing |
 
-- **`mono` keeps the ramp, not just the ends.** Vercel's own greys are few; here every name above
+- **`mono` keeps the ramp, not just the ends.** Vercel's own grays are few; here every name above
   gets a value of its own, so a page built on `concrete`'s tiers -- a heading over a row over a
   column name -- keeps them when it changes palette. Its accents are the three the names already
   have, chosen for a monochrome page: saturated enough to mean something on it, and nowhere else.

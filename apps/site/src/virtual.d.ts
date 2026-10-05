@@ -12,7 +12,7 @@ declare module 'virtual:licenses' {
 
 	/**
 	 * Every dependency the deployables ship, keyed by purl. Written by `local licenses` into
-	 * data/build/licenses.json and embedded here by Vite; the licence texts it points at are
+	 * data/build/licenses.json and embedded here by Vite; the license texts it points at are
 	 * published objects rather than part of this.
 	 */
 	export const licenses: LicenseRecord;

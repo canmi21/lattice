@@ -129,8 +129,8 @@ pub fn save(path: &Path, store: &Store) -> std::io::Result<()> {
 	// model wrote. `to_string_pretty` would indent with two spaces.
 	let mut out = Vec::new();
 	let formatter = serde_json::ser::PrettyFormatter::with_indent(b"\t");
-	let mut serialiser = serde_json::Serializer::with_formatter(&mut out, formatter);
-	store.serialize(&mut serialiser).map_err(std::io::Error::other)?;
+	let mut serializer = serde_json::Serializer::with_formatter(&mut out, formatter);
+	store.serialize(&mut serializer).map_err(std::io::Error::other)?;
 	out.push(b'\n');
 	crate::image::store::write(path, &out)
 }
@@ -261,7 +261,7 @@ fn prompt(kind: Kind, source: &str) -> Asked {
 		 Then the content: every label as it is written, what connects to what and in which \
 		 direction, and any grouping or division the drawing makes. Where two rows or branches \
 		 are evidently being contrasted, say what the contrast is. Say nothing about SVG \
-		 elements, coordinates, colours or classes: those draw the picture and are not in it.\n\n\
+		 elements, coordinates, colors or classes: those draw the picture and are not in it.\n\n\
 		 Two to four sentences, in English, as flowing prose rather than a list. Do not open \
 		 with \"A diagram of\" or \"This diagram shows\" -- start with the content.\n\n\
 		 This is a single-turn text transformation: everything needed is below. Do not inspect \
@@ -301,7 +301,7 @@ fn pending(drawings: Vec<Drawing>, store: &Store, force: bool) -> (Vec<Drawing>,
 	for drawing in drawings {
 		// A description somebody has read and vouched for is not the machine's to replace, and
 		// `--force` does not change that: the flag means "the model's last answer was wrong",
-		// not "discard a person's judgement".
+		// not "discard a person's judgment".
 		if let Some(existing) =
 			store.diagrams.get(&drawing.id).and_then(|e| e.description.get(SOURCE_LOCALE))
 		{

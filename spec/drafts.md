@@ -11,7 +11,7 @@ counted articles nobody could open. The fix is to read the frontmatter's own val
 through a text-only accessor.
 
 **Both readers accept the quoted form, and both trim it.** `draft: "true"` is a draft to
-`local document::is_draft` and to the site, which normalises the flag once in
+`local document::is_draft` and to the site, which normalizes the flag once in
 [compile.ts](../libs/compile/src/compile.ts)'s frontmatter reader rather than at
 each place that asks -- so `articleFrontmatter(...).draft` is the boolean the type promises and a
 caller testing `=== true` is right without knowing any of this.

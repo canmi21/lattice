@@ -19,7 +19,7 @@ import { unified } from 'unified';
  * CommonMark's flanking rules decide whether `**` opens or closes by the characters either side,
  * and they assume words are spaced: `中文**「引号」**中文` stays asterisks, because a delimiter
  * between a letter and punctuation needs a space the language does not write. The CJK-friendly
- * extension relaxes that where a CJK character is the neighbour and nowhere else. Measured on
+ * extension relaxes that where a CJK character is the neighbor and nowhere else. Measured on
  * adoption: no article or draft parsed differently with it. See spec/architecture/local.md, "The
  * site's parser is the judge".
  */

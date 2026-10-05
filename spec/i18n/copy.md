@@ -51,7 +51,7 @@ tag, `local tag` records the English source label as the `en-US` display with th
 of the vision answer that created it. `local locale` never replaces that source record, even
 under `--force`; one request covers every missing non-source locale with the source and meaning
 in the prompt. The result is a ready-to-render standalone label: English uses title case for a
-short tag; German follows noun capitalisation; French and Spanish capitalise the first word and
+short tag; German follows noun capitalization; French and Spanish capitalize the first word and
 otherwise follow native orthography; scripts without case use their natural form. Established
 terms keep their conventional internal casing. CSS does not repair casing after the fact,
 because doing so would corrupt names such as `eSIM`, `macOS` and `npm`.
@@ -69,7 +69,7 @@ while this is read by somebody deciding whether to spend twenty minutes.
 Two instructions pull against each other on purpose. Be specific about the question -- the
 problem, the alternatives weighed, the tools and flags named -- because a summary that would fit
 any article on the topic has said nothing. Be incomplete about the answer: say that the article
-reaches a design, a recommendation or a measurement and characterise it in a word, never state
+reaches a design, a recommendation or a measurement and characterize it in a word, never state
 which one. Roughly half: nearly everything about what is asked, little about what is found.
 
 Both failure modes are named in the prompt because both were observed. Handing over the
@@ -85,7 +85,7 @@ character takes that script's width. A model asked politely for no markdown most
 The summary answer is enclosed by two copies of a fresh random boundary. Text outside that pair is
 runner narration rather than summary prose and is ignored; a missing, empty or repeated pair is a
 failed answer. The article itself is fenced by a different fresh boundary, so prose cannot know
-the marker that authorises output. Summary translations use the same pair before they enter the
+the marker that authorizes output. Summary translations use the same pair before they enter the
 sidecar.
 
 ### Translated by `local locale`, not by `local i18n`

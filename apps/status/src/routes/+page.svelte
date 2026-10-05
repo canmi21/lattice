@@ -87,7 +87,7 @@
 		none: { backgroundColor: 'var(--color-border)' },
 	});
 
-	/** The dot's colour for a check's state. */
+	/** The dot's color for a check's state. */
 	function dot(state: State) {
 		return state === 'up' ? styles.up : state === 'down' ? styles.down : styles.quiet;
 	}
@@ -237,7 +237,7 @@
 	<meta property="og:description" content={DESCRIPTION} />
 	<meta property="og:url" content={CANONICAL} />
 	<meta name="twitter:card" content="summary" />
-	<!-- Safe despite the raw insertion: ldJson escapes what it serialises. -->
+	<!-- Safe despite the raw insertion: ldJson escapes what it serializes. -->
 	{@html ldJson(entities)}
 </svelte:head>
 

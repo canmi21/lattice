@@ -29,7 +29,7 @@ pub struct Outcome {
 	/// Posters given a `cid://` source in `data/record/media.yaml` because they had none.
 	pub sourced: usize,
 	/// Clips already published that gained a loudness measurement without being re-encoded.
-	pub levelled: usize,
+	pub leveled: usize,
 }
 
 pub struct Options<'a> {
@@ -105,7 +105,7 @@ pub fn run(
 	// nothing derived -- which is exactly the clip this has to reach: the measurement is a fact
 	// about bytes that already exist, it changes none of them, and re-encoding a 4K clip to learn
 	// how loud it is would spend minutes producing pixels that are already correct.
-	outcome.levelled = level_all(&mut merged, originals);
+	outcome.leveled = level_all(&mut merged, originals);
 
 	merged.updated = manifest::now();
 	let json = serde_json::to_string_pretty(&merged)

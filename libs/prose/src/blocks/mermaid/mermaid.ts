@@ -20,7 +20,7 @@ function color(style: CSSStyleDeclaration, name: string): string {
 	const value = style.getPropertyValue(name).trim();
 	if (!/^#(?:[\da-f]{3}|[\da-f]{6})$/i.test(value)) {
 		throw new TypeError(
-			`${name} must be one three- or six-digit hex colour, got ${value || 'nothing'}`,
+			`${name} must be one three- or six-digit hex color, got ${value || 'nothing'}`,
 		);
 	}
 	return value.length === 4
@@ -58,7 +58,7 @@ function roundedOutline(points: string, radius: number): string | undefined {
 		const forward = Math.hypot(nx - x, ny - y);
 		if (back === 0 || forward === 0) return undefined;
 		// Never take more than half an edge, so a short one blunts rather than crossing into the
-		// cut its neighbour is making from the other end.
+		// cut its neighbor is making from the other end.
 		const from = Math.min(radius, back / 2) / back;
 		const to = Math.min(radius, forward / 2) / forward;
 		outline += index === 0 ? 'M' : 'L';

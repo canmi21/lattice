@@ -332,7 +332,7 @@ const PEAK_CEILING = -1;
  * towards the target and stops at the point where its loudest instant would distort -- measured
  * on this corpus, one clip wants 1.93 and is held to 1.81 by its own peak.
  */
-function levelling(source: VideoLayer['source']): number {
+function leveling(source: VideoLayer['source']): number {
 	if (source.loudness === undefined || source.peak === undefined) return 1;
 	const byLoudness = 10 ** ((LOUDNESS_TARGET - source.loudness) / 20);
 	const byPeak = 10 ** ((PEAK_CEILING - source.peak) / 20);
@@ -393,7 +393,7 @@ export function createVideoResolver(
 			})),
 			description: entry?.description?.[descriptionLocale]?.text,
 			source: entry?.source,
-			gain: levelling(video.source),
+			gain: leveling(video.source),
 		};
 	};
 }

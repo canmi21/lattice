@@ -40,7 +40,7 @@ Shiki's bundle holds 65 themes and two of the One family: `one-dark-pro` and `on
 no `one-light-pro`, and the pair is mismatched because of it. One Dark Pro is the elaborated One
 Dark -- it colors 250 scopes One Light leaves alone, bare identifiers among them -- so a light
 page read beside a dark one looked bare, and the difference was visible in ordinary prose: the
-component name inside a closing JSX tag is coloured in dark and was not in light.
+component name inside a closing JSX tag is colored in dark and was not in light.
 
 So the light half is derived rather than picked.
 [one-light-pro.ts](../../libs/compile/src/one-light-pro.ts) keeps every rule One
@@ -98,7 +98,7 @@ receive keyboard focus while hidden. The panel uses `motion` to spring between i
 height and its content height, including when a reader reverses direction mid-animation. The title
 separator remains until a collapse settles, so the moving surfaces never expose a transient seam.
 Its border color remains assigned while its zero-width collapsed edge is dormant; otherwise the
-header's color transition reveals a frame of text-coloured border when that edge returns.
+header's color transition reveals a frame of text-colored border when that edge returns.
 Once expanded, the panel returns to natural height rather than retaining a stale measurement;
 reduced-motion readers receive the state change without animation.
 
@@ -113,7 +113,7 @@ preview beside the same source rather than migrating articles to a repository-on
 The public page renders the diagram in the browser. Only an article that contains one pays for the
 Mermaid runtime, and the bordered paper frame is server-rendered first so the late SVG replaces a
 deliberate loading surface rather than an empty hole. That first server-rendered frame names its
-state with a quiet, centred `Loading diagram…` label as well as an abstract placeholder, so the
+state with a quiet, centered `Loading diagram…` label as well as an abstract placeholder, so the
 reader does not have to infer whether an unfinished graphic is decorative or still working. The
 optional fence metadata `ratio="2.77366"` records the rendered SVG's width-to-height ratio as a
 positive decimal. When present, the loading surface uses that ratio with the same `30rem` minimum
@@ -133,8 +133,8 @@ palette beside them so they cannot become two numbers. An edge label's ground is
 keeps its own shape. The frame is the sheet and the nodes the step off it, so which of the two is
 the lighter follows the theme -- [surfaces.md](surfaces.md), "A sheet takes the theme's own end of
 the range, and a step off it goes the other way". An inset border or contrasting padding band makes
-a diagram look heavier than the prose and is not used. The stage centres every result vertically
-within its reserved height; Mermaid already centres the SVG horizontally. A short horizontal flow
+a diagram look heavier than the prose and is not used. The stage centers every result vertically
+within its reserved height; Mermaid already centers the SVG horizontally. A short horizontal flow
 therefore does not cling to the top of the fallback-height frame, and the loading and final
 compositions share the same center. Horizontal overflow remains scrollable. A failed render leaves
 the authored source readable inside that surface. The reveal is opacity and blur and carries no
@@ -165,7 +165,7 @@ window, which is the whole of why the `!important` sheet cannot help here.
 So both drawings are made while the loading surface is still up, and the toggle picks one. The
 subscription is `observeTheme` in @canmi/kit/theme, whose callback is a
 microtask: it runs before the next paint, so an assignment made there turns the diagram in the same
-frame as the page. The adapter serialises its renders because Mermaid's `initialize` is global and
+frame as the page. The adapter serializes its renders because Mermaid's `initialize` is global and
 every diagram now configures twice, and the two palettes are named rather than switched by a `.dark`
 ancestor so the theme that is not on screen stays readable. The price is a second render per diagram
 on first load, behind a surface that was already reserving the space.
@@ -239,7 +239,7 @@ body asks.
 **The node hover is a CSS capability query, not the script one.** `(hover: hover)` is the same
 question the Support rail asks and the answer is the same answer, but the two are settled in
 different places because they are different kinds of thing: the rail changes what a press does and
-has to know before it renders, while this changes only a color. A touch screen synthesises hover
+has to know before it renders, while this changes only a color. A touch screen synthesizes hover
 from a tap and leaves it applied, so without the query the node under the finger stays dimmed
 behind the view that tap opened, and is still dimmed when it closes. In CSS that costs a media
 block and is right in the first frame the server sends.
@@ -368,9 +368,9 @@ that structural fallback rather than replacing it. The template connective langu
 English-only; author-provided labels remain in their source language, matching the code-like directive
 translation boundary.
 
-The rendered figure uses a centred Cartesian cross. Its intersection stays at the exact center of the
+The rendered figure uses a centered Cartesian cross. Its intersection stays at the exact center of the
 outer frame. The four regions first take their intrinsic item sizes, then the largest region defines
-four equal-width and equal-height corner tracks. Content is not centred within those tracks. Every
+four equal-width and equal-height corner tracks. Content is not centered within those tracks. Every
 non-empty region anchors its first authored item by the card corner nearest the cross, using the same
 inline and block gap in all four directions; further items flow away from the cross. The nearest card
 in a sparse region therefore aligns with the nearest card in a denser region opposite it, while an
@@ -385,7 +385,7 @@ four content corners with a short axis extension at the center of each outer edg
 stealing length from the cross. The vertical line carries an arrow only at its top end and the
 horizontal line only at its right end, so the positive directions remain explicit without decorating
 all four endpoints. A region accepts zero or more independent items. Each item becomes its own
-content-width bordered paper-hover label; siblings are centred together and wrap as a group instead
+content-width bordered paper-hover label; siblings are centered together and wrap as a group instead
 of being concatenated into an invented combined object, and no axis line crosses one. An empty region
 is whitespace, not a dashed placeholder: absence already carries meaning here, while an outlined empty
 object would imply missing or loading data. Numeric ticks remain absent.
@@ -398,7 +398,7 @@ everything into one oversized accessible name. The visual stage remains `aria-hi
 the semantic summary once rather than traversing decorative axis and card markup.
 
 The outer frame therefore contains only the visible comparison. It matches a code block or Mermaid
-diagram and uses only shared interface tokens; it has no data-visualisation palette of its own. The
+diagram and uses only shared interface tokens; it has no data-visualization palette of its own. The
 page receives static HTML and CSS; the figure adds no client-side renderer or component-local runtime.
 Feed, Markdown and plain-text targets lower the figure to a readable list of axis-region labels and
 items instead of dropping its meaning. Directive attributes remain structural and therefore follow

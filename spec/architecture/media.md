@@ -221,7 +221,7 @@ run, and the two are summed -- which is what Word, WPS and Google Docs all repor
 means in Chinese. The rule this replaced was characters, on the argument that a word is not a unit
 CJK has. That argument is true and the conclusion drawn from it was not: counting characters does
 not remove the mismatch, it moves it. Measured over this corpus a character was worth 1.23 units
-in a Chinese article and 4.78 in an English one, so the number quietly favoured whichever articles
+in a Chinese article and 4.78 in an English one, so the number quietly favored whichever articles
 happened to be in English by nearly four to one.
 
 **Each view counts what that view serves.** The old rule counted the source text for all nine
@@ -421,7 +421,7 @@ from either file.
 **Where the formatting is decided is not a preference here, it is the only place it can be
 decided.** `GET /media` returns the stored object's body as it stands -- it never parses, and it
 echoes the store's ETag, which is computed over those exact bytes. Reshaping a record on the way
-out would mean buffering and re-serialising it on every cache miss, and would make the ETag
+out would mean buffering and re-serializing it on every cache miss, and would make the ETag
 describe bytes nobody was sent.
 
 The records published before this rule was written were minified in place. Their key is the
@@ -430,7 +430,7 @@ orphans nothing, and needs no republication of anything that points at it.
 
 ## Cropping is presentation, so the browser does it
 
-`::image{src=...}` is how an article names one of its own images. It crops to 16:9, centred,
+`::image{src=...}` is how an article names one of its own images. It crops to 16:9, centered,
 with `ratio` and `align` to say otherwise. Markdown's `![]()` is left to external images,
 which have no manifest entry and nothing to inherit.
 

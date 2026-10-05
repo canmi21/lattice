@@ -238,7 +238,7 @@ describe an _ancestor_ or a _sibling_, so a component varying on **its own** dat
 supported spelling, and every migration that met one left the rule in the selector layer.
 
 **The general lesson is not about attributes.** This section first said such a rule had no spelling
-at all, which was a true observation about the type generalised one step past what had been tested,
+at all, which was a true observation about the type generalized one step past what had been tested,
 by the same hand that had written "measure the machine before blaming the program" an hour earlier.
 A rule inferred from a type definition is a reading, and this directory's own protocol is that
 a reading is confirmed by measurement before it becomes a rule.

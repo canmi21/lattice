@@ -179,7 +179,7 @@ that lands on one browser and is invisible when it does is not worth the line it
 ## An article rule is a pause, not a wall
 
 A Markdown thematic break inside article prose renders as five short strokes in the strong border
-color. Together they occupy roughly three sixteenths of the text measure and stay centred, because
+color. Together they occupy roughly three sixteenths of the text measure and stay centered, because
 the mark separates thoughts rather than dividing the page into structural regions. The strokes are
 two pixels thick: enough to remain deliberate at that short length without becoming a structural
 rule. Generous vertical space supplies the pause the compact mark implies.
