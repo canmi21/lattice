@@ -21,10 +21,10 @@ feed:
 indexnow: 4db98e0b887a45b1b983c3f5715afa90
 
 # Cloudflare Turnstile's site key, public by construction like the search keys below: the page hands
-# it to the widget. Null until the widget exists, which leaves every page as it was. See
+# it to the widget. While it is null no page runs anything; see
 # spec/architecture/trust.md.
 turnstile:
-  siteKey: null
+  siteKey: 0x4AAAAAAFN-Uu93HAj726Yi
 
 # The search index's application id and its search-only key. Both reach the browser, so both
 # are public by construction and are written here in plain text rather than pretending a secret
