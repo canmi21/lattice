@@ -1,6 +1,7 @@
 import { PUBLISHED } from '@monoflake/sdk/cache';
 import { counted, limited } from '@monoflake/sdk/limits';
 import { URLS } from '@monoflake/sdk';
+import { poweredBy } from '@canmi/web/disclose/hono';
 import { Hono } from 'hono';
 import type { Bindings } from './bindings';
 import batch from './handlers/batch';
@@ -17,6 +18,9 @@ import { LIMITS } from './contract/limits';
  * in the site's Worker".
  */
 const app = new Hono<{ Bindings: Bindings }>();
+
+// First, so every answer says what made it. See lib's spec/web/disclose.md.
+app.use(poweredBy());
 
 /** The public API host. A request naming it came through the gateway, which counted it already. */
 const API_HOST = new URL(URLS.apps.production.api).hostname;
