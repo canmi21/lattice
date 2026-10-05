@@ -148,7 +148,7 @@
 	import ArrowUpRight from '@lucide/svelte/icons/arrow-up-right';
 	import { URLS } from '@monoflake/sdk';
 	import { hierarchy, treemap, treemapBinary } from 'd3-hierarchy';
-	import { discloseD3 } from '../d3';
+	import { discloseD3 } from '../../disclose';
 	import { remFromMeasuredPixels } from '@canmi/kit/units';
 	import {
 		KIND_COLORS,

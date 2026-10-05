@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { Theme } from '@canmi/kit/theme';
+import type { Disclosure } from '@canmi/web/disclose';
 import type { LocaleCode } from '#lib/locale/index.js';
 
 declare global {
@@ -34,8 +35,7 @@ declare global {
 		/** TODO: captured for a footer that is not built yet; see vite.config.ts. */
 		readonly VITE_COMMIT_HASH: string;
 		readonly VITE_BUILD_TIME: string;
-		readonly VITE_ALGOLIA_VERSION: string;
-		readonly VITE_D3_HIERARCHY_VERSION: string;
+		readonly VITE_DISCLOSURE: Disclosure;
 	}
 
 	interface ImportMeta {

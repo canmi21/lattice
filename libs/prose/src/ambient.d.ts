@@ -22,9 +22,9 @@ interface Window {
 	canmiArticleInitialHash?: string;
 }
 
-/** What an app defines at build time for this package; absent in an app that does not. */
+/** What an app's build disclosed, for the Wappalyzer patches; absent in an app that does not. */
 interface ImportMetaEnv {
-	readonly VITE_D3_HIERARCHY_VERSION?: string;
+	readonly VITE_DISCLOSURE?: import('@canmi/web/disclose').Disclosure;
 }
 
 interface ImportMeta {

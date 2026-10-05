@@ -355,11 +355,13 @@
 			{/if}
 			<!-- Pulled back into the gap: the glyph carries its own padding inside the viewBox, so
 			     the 0.25rem gap reads as noticeably more than it does beside the mark on the left. -->
+			<!-- A patch for Wappalyzer: Iconify is known by `iconify` beside `data-icon`. -->
 			<IconUpSmall
-				class="i-mingcute-up-small-line -ml-0.5 h-4 w-auto {stylex.attrs(
+				class="iconify i-mingcute-up-small-line -ml-0.5 h-4 w-auto {stylex.attrs(
 					styles.caret,
 					!open && styles.caretClosed,
 				).class}"
+				data-icon="mingcute:up-small-line"
 				aria-hidden="true"
 			/>
 		</span>

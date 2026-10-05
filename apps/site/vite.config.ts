@@ -3,6 +3,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, pageUrls, URLS } from '@monoflake/sdk';
+import { discloseDefine } from '@canmi/web/disclose/build';
 import { esbuildTarget } from '@canmi/web/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -52,16 +53,6 @@ const commitHash = (() => {
 
 // Sitemap <lastmod> for routes like "/" that have no article of their own to date from.
 const buildTime = new Date().toISOString();
-
-/** A dependency's installed version, read from its package.json rather than its exports. */
-function installedVersion(name: string): string {
-	return JSON.parse(
-		readFileSync(
-			fileURLToPath(new URL(`./node_modules/${name}/package.json`, import.meta.url)),
-			'utf8',
-		),
-	).version;
-}
 
 // `browserslist` in package.json is the syntax floor; see spec/compat.md, "The syntax floor is
 // set to the same line, deliberately".
@@ -282,9 +273,8 @@ export default defineConfig(({ mode }) => {
 		define: {
 			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
 			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
-			// Installed versions, for the Wappalyzer patches in hooks.client.ts and prose's blocks/d3.ts.
-			'import.meta.env.VITE_ALGOLIA_VERSION': JSON.stringify(installedVersion('algoliasearch')),
-			'import.meta.env.VITE_D3_HIERARCHY_VERSION': JSON.stringify(installedVersion('d3-hierarchy')),
+			// What the app is made of, for the Wappalyzer patches; see lib's spec/web/disclose.md.
+			...discloseDefine(fileURLToPath(new URL('.', import.meta.url))),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
 			// spec/architecture/site-api.md, "The pages ask by contract, not by name".

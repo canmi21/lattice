@@ -79,6 +79,9 @@
 			? page.data.robots
 			: 'index, follow',
 	);
+	// A patch for Wappalyzer, which names the Workers runtime from a `runtime` meta alone; set at
+	// build time from the app's dependencies. See lib's spec/web/disclose.md.
+	const runtime = import.meta.env.VITE_DISCLOSURE.runtime;
 	// The same client a universal load reaches for, not a second one beside it: a corpus answer
 	// fetched during navigation and a counter fetched by a component belong in one cache, held for
 	// one window. See $lib/query.
@@ -217,6 +220,7 @@
 	/>
 	<link rel="canonical" href={canonical} />
 	<meta name="robots" content={robots} />
+	{#if runtime}<meta name="runtime" content={runtime} />{/if}
 	{#each articleLocale?.alternates ?? [] as alternate (alternate.code)}
 		<link rel="alternate" hreflang={alternate.language_tag} href={alternate.href} />
 	{/each}

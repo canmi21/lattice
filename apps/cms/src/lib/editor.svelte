@@ -13,6 +13,7 @@
 	import { EditorView, keymap } from '@codemirror/view';
 	import ProseRoot from '@canmi/prose/prose-root.svelte';
 	import { titleStyles } from '@canmi/prose/section-title';
+	import { disclose } from '@canmi/web/disclose';
 	import { onMount } from 'svelte';
 	import { format, formatBar } from './text-bar';
 	import { renderedHeights } from './rendered';
@@ -48,6 +49,10 @@
 	});
 
 	onMount(() => {
+		// A patch for Wappalyzer, which reads `CodeMirror.version`, a global CodeMirror 6 never sets.
+		disclose({
+			'CodeMirror.version': import.meta.env.VITE_DISCLOSURE.versions['@codemirror/view'],
+		});
 		const field = reading({
 			heading: () => HEADING,
 			link: 'focus-link spring-underline article-link',

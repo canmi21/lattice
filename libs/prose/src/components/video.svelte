@@ -55,6 +55,7 @@
 	import { positionOf } from '@canmi/kit/behavior/progress';
 	import { pageUrls } from '@monoflake/sdk';
 	import { onMount } from 'svelte';
+	import { discloseVideoJs } from '../disclose';
 	import Controls from './video-controls.svelte';
 	import { chooseRung, playable } from './video-rungs.ts';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
@@ -238,6 +239,7 @@
 	let driven = $state(false);
 	onMount(() => {
 		driven = true;
+		discloseVideoJs();
 	});
 
 	/**

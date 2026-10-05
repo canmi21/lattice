@@ -15,7 +15,7 @@ registerAnalytics();
 // The lite search client sets no global, and asks Algolia only on a search; Motion's `animate`
 // sets none either, only its React components do. See lib's spec/web/disclose.md.
 disclose({
-	'__algolia.algoliasearch.version': import.meta.env.VITE_ALGOLIA_VERSION,
+	'__algolia.algoliasearch.version': import.meta.env.VITE_DISCLOSURE.versions.algoliasearch,
 	MotionIsMounted: true,
 });
 

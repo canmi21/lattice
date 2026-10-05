@@ -203,6 +203,9 @@ const pageHandle: Handle = async ({ event, resolve }) => {
 			),
 	});
 	const html = privateHtml(response);
+	// A patch for Wappalyzer, which knows Hono only by this header and reads the page's alone; the
+	// API this Worker answers with is Hono. See lib's spec/web/disclose.md.
+	html.headers.set('X-Powered-By', 'Hono');
 	// A page and its markdown are one address: say so, and say where the markdown is. See
 	// spec/architecture/markdown.md.
 	if ((isPage || pathname === '/') && html.status === 200) {
