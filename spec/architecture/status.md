@@ -85,6 +85,11 @@ are deleted after the upload; without it the build emits none and skips silently
 build compiles the site, and no longer compiles the corpus". The site alone fails a CI build that lacks the token, since that build is the one
 deployed; the status page is built on Vercel, where the token may not exist.
 
+**"Report a problem" is the status page's way to write**, the same as the site's error page and its
+`Cmd+I`: `report(mailtoOf('support'))` from `@canmi/web/sentry/report`, which opens Sentry's
+feedback dialog into this page's own project and sends the reader to the `support` box when it does
+not open. See lib's spec/web/sentry.md.
+
 **Development initializes the SDK and sends nothing**: every integration is installed, and the
 transport drops what it is handed -- the rule [../analytics.md](../analytics.md) states under
 "Development loads the client and reports nothing". `enabled: false` would install no

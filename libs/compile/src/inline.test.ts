@@ -7,7 +7,7 @@ import { compile, compilePage } from './compile';
 
 it('keeps an email link working when its visible label is translated', () => {
 	const page = compilePage(
-		'---\ntitle: Test\n---\n\n:link[メール]{to=t@ffoni.com}\n',
+		'---\ntitle: Test\n---\n\n:link[メール]{to=t@example.com}\n',
 		'opens in new tab',
 	);
 	const paragraph = page.blocks[0];
@@ -16,7 +16,7 @@ it('keeps an email link working when its visible label is translated', () => {
 	expect(paragraph.segments).toContainEqual({
 		type: 'link',
 		icon: 'email',
-		href: 'mailto:t@ffoni.com',
+		href: 'mailto:t@example.com',
 		label: 'メール',
 		new_tab: false,
 	});

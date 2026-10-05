@@ -16,7 +16,7 @@
 		"./style-classes": "./src/style-classes.ts"
 	},
 	"dependencies": {
-		"@canmi/me": "^2026.1005.0",
+		"@canmi/me": "^2026.1005.1",
 		"@monoflake/sdk": "^2026.1004.6",
 		"hast-util-to-html": "^9.0.5",
 		"mdast-util-directive": "^3.1.1",

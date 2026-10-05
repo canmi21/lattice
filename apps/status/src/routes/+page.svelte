@@ -118,6 +118,8 @@
 </script>
 
 <script lang="ts">
+	import { mailtoOf } from '@canmi/me/mail';
+	import { report } from '@canmi/web/sentry/report';
 	import { NAME } from '#lib/manifest.js';
 	import Title from '@canmi/kit/behavior/title.svelte';
 	import { authorRef, graph, ldJson, person, ref } from '@canmi/social/structured';
@@ -242,8 +244,11 @@
 <header class="flex flex-col items-center pt-20 pb-16 text-center">
 	<h1 class={stylex.attrs(styles.title).class}>{title[0]}<br />{title[1]}</h1>
 	<div class="mt-6 flex flex-wrap justify-center gap-4">
+		<!-- Sentry's dialog, fetched on the press, or mail when it does not open. See lib's
+		     spec/web/sentry.md. -->
 		<button
 			type="button"
+			onclick={() => report(mailtoOf('support'))}
 			class="focus-ring inline-flex h-10 items-center gap-1 px-4 {stylex.attrs(
 				styles.action,
 				styles.primary,

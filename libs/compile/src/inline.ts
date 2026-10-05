@@ -4,9 +4,8 @@
  * rendered to HTML for the page or lowered to plain markdown for the text targets. `compile.ts`
  * assembles blocks out of these.
  */
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 import { author as identity } from '@canmi/me/identity';
+import { addressOf, BOXES, type Box } from '@canmi/me/mail';
 import { URLS } from '@monoflake/sdk';
 import { toHtml } from 'hast-util-to-html';
 import { toHast, type Handler } from 'mdast-util-to-hast';
@@ -14,7 +13,6 @@ import { toString as mdastToString } from 'mdast-util-to-string';
 import remarkGfm from 'remark-gfm';
 import remarkStringify from 'remark-stringify';
 import { unified } from 'unified';
-import { parse as parseYaml } from 'yaml';
 import { styleClasses } from './style-classes.ts';
 import type { InlineSegment, ArticleNote } from '@monoflake/sdk/artifacts/types';
 import type { TextDirective } from 'mdast-util-directive';
@@ -64,27 +62,19 @@ const SOCIAL: Record<
 const ADDRESS = /^[^@\s]+@[^@\s]+$/u;
 
 /**
- * Every mailbox the corpus may name, as a name to an address.
- *
- * Read from the files rather than through `virtual:site`, because this runs outside the Vite
- * graph -- the same reason `scripts/indexnow.ts` reads it. The site's boxes are composed from
- * the one domain the config carries, so no article and no consumer writes an address out.
+ * Every mailbox the corpus may name, as a name to an address: the author's own, and each box
+ * `@canmi/me/mail` names, so no article and no consumer writes an address out. See lib's
+ * spec/me/mail.md.
  */
 function readMailboxes(): Record<string, string> {
-	const path = fileURLToPath(new URL('../../../apps/site/site.config.yaml', import.meta.url));
-	const config = parseYaml(readFileSync(path, 'utf8')) as {
-		mail?: { domain?: string; boxes?: Record<string, string> };
-	};
 	const author = identity.email;
-	const domain = config.mail?.domain;
 	if (!author) throw new Error("@canmi/me's author: email is required");
-	if (!domain) throw new Error('site.config.yaml: mail.domain is required');
 	// The author is a person and a box is not, so that one name is reserved: a box called
 	// `author` would put two addresses under one token with nothing to say which won.
 	const named: Record<string, string> = { author };
-	for (const box of Object.keys(config.mail?.boxes ?? {})) {
-		if (box in named) throw new Error(`site.config.yaml: mail box "${box}" is a reserved name`);
-		named[box] = `${box}@${domain}`;
+	for (const box of Object.keys(BOXES) as Box[]) {
+		if (box in named) throw new Error(`@canmi/me/mail: box "${box}" is a reserved name`);
+		named[box] = addressOf(box);
 	}
 	return named;
 }

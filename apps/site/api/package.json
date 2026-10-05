@@ -14,9 +14,9 @@
 		"database:generate": "drizzle-kit generate"
 	},
 	"dependencies": {
-		"@canmi/me": "^2026.1005.0",
+		"@canmi/me": "^2026.1005.1",
 		"@canmi/response": "^2.0.0",
-		"@canmi/web": "^2026.1005.5",
+		"@canmi/web": "^2026.1005.7",
 		"@monoflake/sdk": "^2026.1004.6",
 		"drizzle-orm": "^0.45.3",
 		"hono": "^4.13.12",

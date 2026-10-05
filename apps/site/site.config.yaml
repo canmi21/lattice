@@ -11,13 +11,6 @@ tagline: Notes on the software and hardware I build.
 # resolvable address is still declared there alone, and a test holds the two to the same host.
 domain: canmi.net
 
-# Every address the site answers on is a name at this domain, so moving the domain is one edit.
-# The author's own address is @canmi/me/identity's and is deliberately not one of these.
-mail:
-  domain: canmi.net
-  boxes:
-    support: reader mail, and the address an error page offers
-
 feed:
   id: tag:canmi.net,2023:atom
   followDescription: feedId:259981957098517504+userId:125528261992773632

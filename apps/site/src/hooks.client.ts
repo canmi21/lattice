@@ -13,7 +13,7 @@ registerAnalytics();
 
 // The feedback dialog is deliberately absent here. Naming it in `integrations` puts its widget
 // in the app entry, which every reader downloads for a control that only the error page has --
-// measured at 24KB gzipped. It is added on demand instead; see lib/error/report.ts.
+// measured at 24KB gzipped. It is added on demand instead; see lib's spec/web/sentry.md.
 initClient({ dsn: URLS.external.sentry.site, dev });
 
 export const init: ClientInit = prepareBrowserRuntime;

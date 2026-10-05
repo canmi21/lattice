@@ -36,13 +36,12 @@
 	import { ParaglideMessage } from '@inlang/paraglide-js-svelte';
 	import type { LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
-	import { site } from '#lib/site.js';
+	import { addressOf, mailtoOf } from '@canmi/me/mail';
+	import { report } from '@canmi/web/sentry/report';
 
-	// The error page speaks for the site, so it offers the site's box and not the author's. The
-	// annotation is what makes renaming the box in site.config.yaml fail here rather than ship an
-	// address nobody reads.
-	const box: keyof typeof site.mail.boxes = 'support';
-	const contact = `${box}@${site.mail.domain}`;
+	// The error page speaks for the site, so it offers the site's box and not the author's; naming
+	// a box `@canmi/me/mail` does not have fails here rather than ship an address nobody reads.
+	const contact = addressOf('support');
 
 	/**
 	 * What an error page offers a reader who wants to do something about it.
@@ -57,19 +56,8 @@
 		missing = false,
 	}: { locale: LocaleCode; missing?: boolean } = $props();
 
-	/**
-	 * The dialog is fetched on the first press and never before it.
-	 *
-	 * The import is here and not at the top for two reasons. Its widget is 24KB gzipped of
-	 * preact, which in the app entry is every page paying for a control only an error page has.
-	 * And this renders on the server, where `@sentry/sveltekit` resolves to an entry with no
-	 * `getFeedback` -- a top-level import of a name that is not there fails the module rather
-	 * than the call, which 500ed the error page itself.
-	 */
-	async function openReport(): Promise<void> {
-		const { openReport: show } = await import('./report');
-		await show();
-	}
+	// Sentry's dialog, fetched on the press, or mail when it does not open; lib's spec/web/sentry.md.
+	const openReport = (): Promise<void> => report(mailtoOf('support'));
 </script>
 
 <!-- Declared once and handed to whichever sentence is being rendered. Both name the address and

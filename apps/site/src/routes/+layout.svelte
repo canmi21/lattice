@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { mailtoOf } from '@canmi/me/mail';
+	import { report } from '@canmi/web/sentry/report';
 	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { browser, dev } from '$app/env';
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
@@ -142,7 +144,7 @@
 	 * Shift: `Cmd+Opt+I` and `Ctrl+Shift+I` are the developer tools, which a page cannot override.
 	 *
 	 * The form's widget is fetched by the press and not before, so a shortcut on every page costs
-	 * every page nothing. See lib/error/report.ts.
+	 * every page nothing. See lib's spec/web/sentry.md.
 	 */
 	async function onWindowKeydown(event: KeyboardEvent): Promise<void> {
 		// `key` is absent when the keydown did not come from the browser -- an extension or an
@@ -151,8 +153,7 @@
 		if (event.key?.toLowerCase() !== 'i' || !(event.metaKey || event.ctrlKey)) return;
 		if (event.shiftKey || event.altKey) return;
 		event.preventDefault();
-		const { openReport } = await import('#lib/error/report.js');
-		await openReport();
+		await report(mailtoOf('support'));
 	}
 
 	/**
