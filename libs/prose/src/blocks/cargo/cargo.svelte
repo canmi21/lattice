@@ -8,7 +8,7 @@
 	 * See spec/architecture/css/authoring.md.
 	 *
 	 * Two exceptions stay: a tile's white ink and its fill in `palette.css`, a local mirror this
-	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on it (spec/todo/css.md,
+	 * layer does not own (spec/styling/controls.md), and `shadow-sm` on it (spec/issues/css.md,
 	 * "A shadow is one utility, two declarations and four variables the visual layer cannot
 	 * restate").
 	 */
@@ -67,7 +67,7 @@
 		 * One of the three registry links in the footer.
 		 *
 		 * One property transitions, so the four lists are single-item and `transition-behavior` is
-		 * left to the initial value the shorthand also set. See spec/todo/css.md, "A `transition`
+		 * left to the initial value the shorthand also set. See spec/issues/css.md, "A `transition`
 		 * shorthand sets five lists and the migrated form writes three".
 		 */
 		link: {

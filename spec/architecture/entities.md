@@ -37,7 +37,7 @@ person who runs it can never share one; each takes a fragment of its own.
 **The author's identifier is their entity home, `/about`, which does not exist yet.** An entity
 home is the one page that says, first-hand, who an entity is; the identifier names it now so it
 never has to move when the page arrives. Until then the IRI does not resolve, which a parser does
-not mind. `/about` is a fixed address because of this: see [todo/site.md](../todo/site.md), "The
+not mind. `/about` is a fixed address because of this: see [issues/site.md](../issues/site.md), "The
 author has no entity home yet". The site's identifier sits beside its address rather than on it,
 so the root is the site's and the author is not standing on it.
 

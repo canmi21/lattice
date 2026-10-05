@@ -3,7 +3,7 @@
 Where the authoring side is not what it should be -- what the CMS cannot offer, and what a
 published resource cannot be reached by.
 
-The rules over an entry are the index's; see [todo.md](todo.md).
+The rules over an entry are the index's; see [issues.md](issues.md).
 
 ## Publishing is a mise task and cannot become a CMS button
 

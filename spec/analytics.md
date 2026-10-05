@@ -105,7 +105,7 @@ OpenPanel on the site still counts the hash: its views compare the full address.
 `trackHashChanges` only adds `hashchange` as a trigger, and cutting the hash would take a
 `filter` that rewrites the event. Not done; see Open.
 
-## Open
+## What is still open
 
-- **OpenPanel still reports an anchor followed on the site as a view of its own**, with the hash in
-  its path. Whether to rewrite its events or leave it until the site keeps one service is undecided.
+See [issues/site.md](issues/site.md), "OpenPanel reports an anchor followed on the site as a view of
+its own".

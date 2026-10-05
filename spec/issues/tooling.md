@@ -2,7 +2,7 @@
 
 Findings about the things that describe the repository rather than the things that run: ignore lists, commit messages, and the gates over both.
 
-The rules over an entry are the index's; see [todo.md](todo.md).
+The rules over an entry are the index's; see [issues.md](issues.md).
 
 ## `.gitattributes` is a list only a long file is held to
 
@@ -24,8 +24,8 @@ hard limit of a thousand lines. Each is marked `lines=deferred` in `.gitattribut
 reports it and passes, and each is split after the migration into layers rather than during it.
 
 - `data/record/media.yaml` and `tags.yaml`, the curated records, which A2 moves into the database
-  -- see [milestones.md](milestones.md); they leave rather than split.
-- `spec/todo/css.md`, the CSS backlog, split by area.
+  -- see [../todo/milestones.md](../todo/milestones.md); they leave rather than split.
+- `spec/issues/css.md`, the CSS backlog, split by area.
 - six of the translation sidecars, `contents/**/*.i18n.yaml`, the longest at 9329 lines, whose shape waits
   on the segment layer's redesign -- see [cms.md](cms.md), "The segment layer waits for its
   redesign".

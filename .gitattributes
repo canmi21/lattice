@@ -10,11 +10,11 @@ libs/collection/drizzle/*/meta/*.json linguist-generated=true
 
 # Over the workspace's hard limit, known, and owed a split after the migration rather than now:
 # the curated records until A2 moves them into the database, the CSS backlog, and the translation
-# sidecars until the segment layer is redesigned. See spec/todo/tooling.md, "Over the line limit,
+# sidecars until the segment layer is redesigned. See spec/issues/tooling.md, "Over the line limit,
 # and deferred".
 data/record/media.yaml lines=deferred
 data/record/tags.yaml lines=deferred
-spec/todo/css.md lines=deferred
+spec/issues/css.md lines=deferred
 contents/architecture/compile-time-rendering.i18n.yaml lines=deferred
 contents/architecture/observation-to-lowering.i18n.yaml lines=deferred
 contents/development/rust-cargo-cranelift-tuning.i18n.yaml lines=deferred

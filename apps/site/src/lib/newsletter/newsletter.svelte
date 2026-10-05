@@ -17,8 +17,8 @@
 	 *
 	 * The scoped block at the foot of this file keeps the eight keyframes and their names, the
 	 * `--pill-overhang` geometry, and `--pill-height`, read back down through `app.css` -- a
-	 * migration moves a declaration between layers and never changes how a value is arrived at. See
-	 * spec/todo/todo.md, and spec/architecture/css/authoring.md for what these comments must not do.
+	 * migration moves a declaration between layers and never changes how a value is arrived at.
+	 * See spec/issues/issues.md, and spec/architecture/css/authoring.md for these comments.
 	 */
 	const styles = stylex.create({
 		/** Both readings of the pitch; which one shows is a width question, kept in the markup. */
@@ -46,7 +46,7 @@
 			// shows it is the same control settling rather than a different one appearing.
 			//
 			// These two are also the `cool` keyframe's `to` block, which cannot be written here
-			// and now restates them from the other layer. See spec/todo/todo.md.
+			// and now restates them from the other layer. See spec/issues/issues.md.
 			backgroundColor: 'var(--color-paper-hover)',
 			color: 'var(--color-text-soft)',
 		},
@@ -499,7 +499,7 @@ otherwise need. See spec/engagement.md. -->
 	/* Set on the section rather than on the pill, so the row below can measure from it too.
 	   `.pill-metrics` above derives the radius and the overhang from this one number, and the two
 	   rules under it read them back. A length arrived at through a cascade keeps being arrived at
-	   that way, so the declaration stays where it was declared. See spec/todo/todo.md. */
+	   that way, so the declaration stays where it was declared. See spec/issues/issues.md. */
 	section {
 		--pill-height: 3.375rem;
 	}

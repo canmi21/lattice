@@ -42,4 +42,4 @@ themes without removing it, and swapping the palette's two light values fixes th
 of the thumbnail, the card and the hover feedback, all three of which were right.
 
 So a band that must always recede needs a pair of its own, and that pair is not written yet --
-[site.md](../todo/site.md), "A table head wants a ground that stays the darker one in both themes".
+[site.md](../issues/site.md), "A table head wants a ground that stays the darker one in both themes".

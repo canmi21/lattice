@@ -383,7 +383,7 @@ function of the text and the caret alone:
   corners, its markers hidden unless the caret is in it, and a line holding only `>` is the 12px
   between its paragraphs whether its marker shows or not; a rule is the page's `<hr>` over its
   dashes. A list is drawn as its source, because the page draws none -- see
-  [../todo/site.md](../todo/site.md).
+  [../issues/site.md](../issues/site.md).
 - **A block the site draws with a component is drawn with it, and edited in its own place.** A
   leaf or container directive, a fence and a table are replaced by the site's rendering of their
   source, compiled by `local`, and carry the room above them themselves because the lines they

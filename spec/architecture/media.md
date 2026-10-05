@@ -326,7 +326,7 @@ The cost is what decided it rather than the design being wrong: a card per packa
 a defensible trade while the bucket held nothing else, and it stopped being one once the corpus
 moved in beside it. The pages still render, still carry `og:title` and `og:description`, and a
 crawler that wants a picture gets none rather than a wrong one. What to do with the license
-surface at all is [todo.md](../todo/todo.md)'s, and a decision there is what would bring cards back
+surface at all is [todo.md](../issues/issues.md)'s, and a decision there is what would bring cards back
 or retire the question.
 
 A view with no card falls back to the source view rather than to a 404. Translation arrives

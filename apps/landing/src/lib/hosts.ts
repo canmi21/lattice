@@ -1,7 +1,7 @@
 /**
  * The service domains this page answers for, and what each says about itself. One app serves all
- * of them and tells them apart by the request's own host. See spec/todo/site.md, "The service
- * domains answer nothing of their own yet".
+ * of them and tells them apart by the request's own host. See spec/architecture/landing.md,
+ * "`ixc.one` and `il.lli.lil.ill.li` share one app, on Netlify".
  */
 export const HOSTS = {
 	'ixc.one': { name: 'ixc.one', line: 'A service domain of the platform.' },

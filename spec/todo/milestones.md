@@ -276,7 +276,7 @@ what B3 would otherwise have to invent.
 | B3a | Preview moves into the CMS     | A route that reads a draft the way the site would; the draft root retires with it                 | B3       | **done** |
 | B4  | Metadata has a surface         | Path, description, publication, the lock -- editable where the article is                         | A5 B3    | near     |
 | B5  | Images are managed             | Upload and replace: new bytes, a new content, the rid repointed, derivation triggered             | A6 B3    | near     |
-| B6  | Publishing from the CMS        | Publication stops being only a mise task; see [cms.md](cms.md)                                    | B3       | mid      |
+| B6  | Publishing from the CMS        | Publication stops being only a mise task; see [../issues/cms.md](../issues/cms.md)                | B3       | mid      |
 | B7  | Albums                         | The surface photography needs before any of it is worth importing                                 | B4 B5    | mid      |
 | B8  | Reader data has a surface      | Comment moderation and counter repair, over the public API with a local token                     | A8       | mid      |
 
@@ -360,7 +360,7 @@ Published objects are immutable and already served, so development reads them wh
 only thing that must be copied is the reader state, which is a few megabytes of relational data.
 Nothing about this arrangement changes as the photography lands.
 
-C4 is where [site.md](site.md)'s wrap-policy entry is answered, and it generalises: a paragraph's
+C4 is where [../issues/site.md](../issues/site.md)'s wrap-policy entry is answered, and it generalises: a paragraph's
 line breaking, a diagram's layout and anything else whose answer exists only inside a real browser
 is decided once, under a fixed column and a known font, and written into the published object. A
 measurement taken in whatever browser happens to be editing would record that device instead.
@@ -393,21 +393,15 @@ repositories they became, then split: `canmi21/lattice` is this repository, `can
 `monoflake/infra` and `monoflake/platform` continue from the same commit. The arrangement is
 the workspace's `spec/architecture/layers.md`.
 
-## Open questions
+## Settled alongside the plan
 
-Each of these is a decision rather than a discovery. One is settled and kept here because the
-milestone it shaped has not been taken yet; a question the work has answered is removed instead.
+Decided while the milestones were being shaped, and kept here because the milestone each shapes has
+not been taken yet. What is still open about the plan is [../issues/plan.md](../issues/plan.md).
 
 **The editor holds unsaved keystrokes in `localStorage`, and that is decided.** A save writes the
 draft row; everything before it is the browser's, keyed by rid so two tabs on two articles do not
 share a buffer. What is left is a detail of B3 rather than a question blocking it: whether a
 warning on closing an unsaved tab is enough, or a recovered buffer is offered against the row.
-
-**How a fixed page is edited, if at all.** The homepage is imported and has no way in afterwards,
-which is accepted for now: it has one permanent address rather than a chosen one, it belongs to no
-collection, and what a reader sees there is its text plus components the site's router adds. That
-makes it a different shape from an article rather than a simpler one, and it is worth designing
-once the editor has settled rather than guessing alongside it. Blocks nothing; revisit after B4.
 
 **The authored database stays one file, and the collection stays where it is for now.** Two files
 exist and that split is settled: `source.sqlite` is what a person wrote, `derived.sqlite` is what
@@ -419,20 +413,3 @@ Moving the collection out of the working tree was argued for here on a reason th
 be false: version control cannot reach it, because it is ignored, and an abandoned change leaves
 it untouched -- measured, not assumed. `clean` is barred from local state by its own rule. What is
 actually left for C1 is growth and D2's move to another machine, neither of which presses today.
-
-**How a one-shot command reads the collection.** More than half the readers of the three record
-files are Rust -- ten of `media.yaml`'s, six of `metadata.json`'s -- and `local` holds no line
-that opens the collection's database, because B1 gave the authored database to the TypeScript
-half so that its schema is declared once. Every one of those readers is a command that runs and
-exits: `local alt`, `local image`, `local gc`. `local serve` is one subcommand beside them, not a
-thing they can assume is up.
-
-So there are four answers and none is free. A command spawns the other half and pays node's
-startup every run. A command requires `serve` to be up, which changes what the command line
-promises. Rust opens the file read-only, which is a second set of column names to drift. Or the
-commands that read records move to the other half, away from the derivation they were written
-for. Blocks the second half of A2, and C5 behind it.
-
-**What `local` is called once it is not local.** The name describes where it runs, and D2 moves it
-to another machine while D4 puts its surface on the public internet. It is the right name for the
-year it is true and a lie afterwards, so the rename belongs in D2 rather than being avoided now.

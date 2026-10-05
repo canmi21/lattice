@@ -182,7 +182,7 @@ an adjective cannot be looked up. Every property nobody had thought of needed a 
 the rulings piled up here -- `cursor`, `pointer-events`, `user-select`, `visibility` and
 `transform`, five properties settled one at a time in a file that was supposed to have settled
 them all with one sentence. The rest of the arguing moved to the deferred list, whose CSS file,
-[todo/css.md](../../todo/css.md), is the largest in `spec/` and is largely made of it.
+[issues/css.md](../../issues/css.md), is the largest in `spec/` and is largely made of it.
 
 The clearest evidence that the adjective does not decide is in the tree, where one property has
 already been ruled both ways by two people applying the same test in good faith. `white-space:

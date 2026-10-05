@@ -87,8 +87,8 @@ function metaOf(frontmatter: Frontmatter, path: string): DraftMeta {
  *
  * Its shape is a different one from an article's rather than a smaller one, and designing it is
  * deliberately deferred -- so the page declares `document` and carries no layer, which stops the
- * chain there and leaves the record valid. See spec/todo/milestones.md, "How a fixed page is
- * edited, if at all", and platform's spec/architecture/resource.md, "The catalog".
+ * chain there and leaves the record valid. See spec/issues/plan.md, "How a fixed page is edited,
+ * if at all", and platform's spec/architecture/resource.md, "The catalog".
  */
 function layersFor(type: string, frontmatter: Frontmatter, path: string) {
 	if (type !== ARTICLE_TYPE) return {};

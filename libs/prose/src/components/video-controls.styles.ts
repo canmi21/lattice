@@ -19,7 +19,7 @@ import {
  * spec/architecture/css/authoring.md, "Color is never retyped".
  *
  * A transition naming two properties writes its lists doubled and as literals, the way
- * `surfaces.quietControl` does: spec/todo/css.md, "A `transition` shorthand sets five lists".
+ * `surfaces.quietControl` does: spec/issues/css.md, "A `transition` shorthand sets five lists".
  */
 export const styles = stylex.create({
 	/**

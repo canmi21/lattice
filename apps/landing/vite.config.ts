@@ -20,8 +20,8 @@ const BROWSERSLIST: string[] = JSON.parse(
 
 /**
  * Netlify's adapter, rendering on its Edge Functions: every request is rendered and the rest is
- * `Cache-Control`'s, as on the site. See spec/todo/site.md, "The service domains answer nothing of
- * their own yet".
+ * `Cache-Control`'s, as on the site. See spec/architecture/landing.md, "`ixc.one` and
+ * `il.lli.lil.ill.li` share one app, on Netlify".
  */
 const adapter = netlify({ edge: true });
 

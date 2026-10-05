@@ -62,7 +62,7 @@ sees before editing it.
 
 A generated file over the hard limit that nobody marked fails the line check, which is how this
 list found one of its own entries pointing at a path the file had left. One under the limit goes
-on being counted and nothing fails; see [../todo/tooling.md](../todo/tooling.md).
+on being counted and nothing fails; see [../issues/tooling.md](../issues/tooling.md).
 
 ## Layout
 

@@ -7,7 +7,7 @@
  * granted yet, so the first evidence would be an id somebody is embarrassed by.
  *
  * A guard rather than a fix, and honest about it: the fix is one owner, which
- * spec/todo/cms.md says arrives by `local` giving up granting rather than by either side
+ * spec/issues/cms.md says arrives by `local` giving up granting rather than by either side
  * generating the other. Until then this fails the moment they disagree, which is the property
  * the duplication was missing. Reading Rust from a test is the idiom `assets.test.ts` and
  * `frontmatter-keys.test.ts` already use for exactly this.

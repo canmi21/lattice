@@ -61,7 +61,7 @@ output and is never hand-edited.
 in a canonical form, and a segment is no longer keyed by the hash of one: a hash over text is too
 unstable an identity for a translation to hang on. The editor saves what the author wrote, and the
 segment layer is to be redefined by structural equivalence instead -- see
-[../todo/cms.md](../todo/cms.md), "The segment layer waits for its redesign". Until then no new
+[../issues/cms.md](../issues/cms.md), "The segment layer waits for its redesign". Until then no new
 article is translated. What follows is kept as the record of what the existing sidecars were built
 by, which the redesign has to read.
 

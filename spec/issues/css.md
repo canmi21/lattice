@@ -2,7 +2,7 @@
 
 Findings from the layer migration. [architecture/css/migration.md](../architecture/css/migration.md) says a migrated component renders exactly what it rendered before, and that moving a declaration into the layer it belongs in is a second change. This is where that second change waits.
 
-The rules over an entry are the index's; see [todo.md](todo.md).
+The rules over an entry are the index's; see [issues.md](issues.md).
 
 ## The named layer in CSS is the visual layer, written before there was one
 

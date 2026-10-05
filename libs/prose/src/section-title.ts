@@ -13,7 +13,7 @@ export const titleStyles = stylex.create({
 	title: {
 		color: 'var(--color-text-strong)',
 		// 40 over the site's own `strong`. Which of the two a heading should be is a question nobody
-		// answered. See spec/todo/css.md.
+		// answered. See spec/issues/css.md.
 		fontWeight: weight.semibold,
 	},
 });

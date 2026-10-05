@@ -8,7 +8,7 @@
 	 * nothing here can change one. See spec/architecture/css/authoring.md. The block at the foot of
 	 * this file is `:global` because Bits UI portals this surface out of the component tree, where a
 	 * scoped rule cannot reach it. `shadow-sm` stayed in the markup: Tailwind composes it through
-	 * private variables no component can write. See spec/todo/todo.md.
+	 * private variables no component can write. See spec/issues/issues.md.
 	 */
 	const styles = stylex.create({
 		/** The floating surface itself: its edge, its ground and the type it holds. */

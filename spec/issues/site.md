@@ -2,7 +2,7 @@
 
 What the site does that it should not, or does not do that it should. Routing, rendering, the article page, and the tests that cannot reach them.
 
-The rules over an entry are the index's; see [todo.md](todo.md).
+The rules over an entry are the index's; see [issues.md](issues.md).
 
 ## A total function answers for input it does not know, and is wrong instead of failing
 
@@ -86,6 +86,11 @@ card per license, per registry and per package, in each of the nine views: 6804 
 87% of everything the bucket held. Those are gone and the routes are not -- see
 [architecture/media.md](../architecture/media.md), "The license routes have no card". It narrows
 nothing about the addresses; it stops an undecided surface from being the largest thing published.
+
+**The direction is set and waits on the platform.** The surface leaves the site: its routes take
+another form, and the page becomes a shared one that `apps/landing` serves, which depends on the
+platform's hosts being built first -- see the workspace's `spec/issues.md` for the layer in front of
+every page it may sit behind. What stays open is the shape the addresses take.
 
 **What deciding it would cost.** The intent is two or three addresses rather than eight, and which
 ones is open: a single page carrying the directory inline, or a page plus the text endpoints that
@@ -328,27 +333,8 @@ which of its concerns are its own and which it only borrows from the platform.
 an application asks -- which of two hosts a page is indexed under, what a page's title is -- stay
 with it, and none of the platform's leaks into it.
 
-## The service domains answer nothing of their own yet
+## OpenPanel reports an anchor followed on the site as a view of its own
 
-The platform's service domains have no page at their apex: `ixc.one` and `monoflake.*` answer
-nothing, `symlink.si`'s root redirects to the site, and `ill.li`'s root is the short links'
-redirect, so it has no page anywhere. The shared app below is built and checked here; what is left
-is the records that send the hosts to it. What is decided, as this layer's:
-
-- **`ixc.one`, `symlink.si` and `il.lli.lil.ill.li` share one app, on Netlify.** `ill.li` was bought
-  for the joke -- a capital I and a small l are one stroke in any proportional face, so the name
-  reads as a row of lines -- and kept because it is shorter on screen than `t.co` or `t.me`; its
-  page goes three labels down to keep the joke. The app is SvelteKit 3, rendered on Netlify's Edge
-  Functions rather than prerendered, as the site's Worker renders everything and leaves the rest to
-  `Cache-Control`; it tells the hosts apart by the request's own URL.
-- **`il.lli.lil.ill.li` is a DNS-only `CNAME` to Netlify**, which issues its certificate: Cloudflare's
-  universal certificate covers one label under a zone and no deeper. `ixc.one` and `symlink.si` are
-  `CNAME`s at the apex, flattened and proxied by Cloudflare; on `symlink.si` the alias layer's
-  route keeps answering the names, and only `/` reaches the page.
-- **`monoflake.com` is an app of its own, later**: a market page, on a Cloudflare Worker.
-  `monoflake.net` redirects to it. Neither waits on the rest.
-- **Vercel holds the status page and nothing else.**
-
-The shared app is `apps/landing`, begun from the status page's shell. In development it answers on
-26525, and a host is asked for as itself under `.localhost` -- `http://ixc.one.localhost:26525/` --
-which every browser resolves to this machine, so the page tells hosts apart as it will deployed.
+It records the hash in the path, so one article read through its table of contents counts as
+several views. Whether to rewrite its events or leave it until the site keeps one service is
+undecided; the arrangement it concerns is [../analytics.md](../analytics.md).
