@@ -13,3 +13,7 @@ divide the work is the workspace's `spec/planning.md`.
   [architecture/landing.md](architecture/landing.md).
 - **The license surface leaves the site** for a shared page, once the platform's hosts are built --
   [issues/site.md](issues/site.md), "The license surface is eight addresses and one baked record".
+- **The site becomes a consumer of the platform.** It came first and built its own storage, records
+  and serving; what of that is good moves down into the platform, and the site keeps only what is
+  its own -- the workspace's `spec/architecture/layers.md`, and platform's
+  `spec/architecture/scheduling.md`.
