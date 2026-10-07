@@ -12,6 +12,7 @@
 	import { bytes } from '../format.ts';
 	import type { Node } from '../server/nodes.ts';
 	import type { Read } from '../server/read.ts';
+	import { displayOf } from '../scope/scope.ts';
 	import Card from '../card.svelte';
 	import { type } from '../style.ts';
 	import Skeleton from '../ui/skeleton.svelte';
@@ -70,7 +71,7 @@
 						format={chart.format}
 						bytes={chart.bytes}
 						band={false}
-						label="{chart.title} of {app}, by node"
+						label="{chart.title} of {displayOf(app)}, by node"
 						error={everyone ? 'No node answered' : undefined}
 						{reveal}
 					/>
@@ -94,7 +95,7 @@
 			series={stacked}
 			orientation="horizontal"
 			format={bytes}
-			label="Memory of {app} now, by node"
+			label="Memory of {displayOf(app)} now, by node"
 			error={everyone ? 'No node answered' : undefined}
 		/>
 	{:else}

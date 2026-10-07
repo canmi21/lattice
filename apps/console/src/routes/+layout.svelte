@@ -6,7 +6,7 @@
 	import { Live, provideLive } from '#lib/live.svelte.js';
 	import { nameOf } from '#lib/map/places.js';
 	import { setView } from '#lib/scope/context.js';
-	import { viewOf } from '#lib/scope/scope.js';
+	import { displayOf, viewOf } from '#lib/scope/scope.js';
 	import { sectionOf, sectionsIn } from '#lib/sections.js';
 	import Sidebar from '#lib/sidebar.svelte';
 	import TopBar from '#lib/top-bar.svelte';
@@ -72,12 +72,14 @@
 		const one = sectionOf(page.url.pathname);
 		return one && sectionsIn(view).includes(one) ? one : undefined;
 	});
-	/** A node by its display name, its code beside it; see spec/architecture/console.md. */
+	/** A node or an app by its display name, its code beside it; see spec/architecture/console.md. */
 	const node = $derived(page.params.node);
-	const detail = $derived(node ? nameOf(node).full : (page.params.run ?? page.params.app));
+	const app = $derived(page.params.app);
+	const detail = $derived(node ? nameOf(node).full : app ? displayOf(app) : page.params.run);
+	const code = $derived(node ?? app);
 	/** The one name the page is about, and nothing around it. See spec/architecture/console.md. */
 	const name = $derived(
-		page.params.run ? `#${page.params.run}` : (node ?? detail ?? section?.label ?? 'Console'),
+		page.params.run ? `#${page.params.run}` : (code ?? detail ?? section?.label ?? 'Console'),
 	);
 </script>
 
@@ -93,7 +95,7 @@
 	{view}
 	{section}
 	{detail}
-	code={detail === node ? undefined : node}
+	code={detail === code ? undefined : code}
 	actions={actions.current}
 />
 <main

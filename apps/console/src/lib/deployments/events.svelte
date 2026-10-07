@@ -5,10 +5,12 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration } from '../chart/numbers.ts';
+	import AppName from '../apps/app-name.svelte';
 	import { moment } from '../chart/series.ts';
 	import { shortImage } from '../format.ts';
 	import { nodeLabel } from '../map/places.ts';
 	import NodeName from '../nodes/node-name.svelte';
+	import { appLabel, displayOf } from '../scope/scope.ts';
 	import type { FleetEvent } from '../server/fleet.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
@@ -37,7 +39,13 @@
 			text: (event) => moment(started(event) / 1000, zone),
 		},
 		{ key: 'node', label: 'Node', value: (event) => nodeLabel(event.node), cell: nodeCell },
-		{ key: 'app', label: 'App', value: (event) => event.app },
+		{
+			key: 'app',
+			label: 'App',
+			value: (event) => displayOf(event.app),
+			text: (event) => appLabel(event.app),
+			cell: appCell,
+		},
 		{ key: 'action', label: 'Action', value: (event) => event.action },
 		{ key: 'source', label: 'Source', value: (event) => event.source.kind },
 		{ key: 'outcome', label: 'Outcome', value: word, cell: outcomeCell },
@@ -53,6 +61,8 @@
 	];
 	const styles = stylex.create({ detail: { maxWidth: '28rem' } });
 </script>
+
+{#snippet appCell(event: FleetEvent)}<AppName app={event.app} />{/snippet}
 
 {#snippet nodeCell(event: FleetEvent)}<NodeName code={event.node} short />{/snippet}
 

@@ -1,5 +1,6 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import AppName from '#lib/apps/app-name.svelte';
 	import Card from '#lib/card.svelte';
 	import { duration } from '#lib/chart/numbers.js';
 	import { moment } from '#lib/chart/series.js';
@@ -104,7 +105,7 @@
 				{#each failures as one (`${one.node}/${one.app}`)}
 					<li class="flex flex-col gap-1 px-5 py-3 {stylex.attrs(surfaces.listRule).class}">
 						<span class="flex flex-wrap items-center gap-2 {stylex.attrs(type.name).class}">
-							<span class={stylex.attrs(type.mono).class}>{one.app}</span> on
+							<AppName app={one.app} /> on
 							<a href={toNode(one.node)}><NodeName code={one.node} /></a>
 							<span class={stylex.attrs(tone.bad).class}>{said('failed', one.stage)}</span>
 						</span>

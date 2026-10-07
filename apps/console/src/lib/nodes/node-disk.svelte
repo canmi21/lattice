@@ -1,12 +1,14 @@
 <script lang="ts">
 	/** Where a node's disk goes: each mount against its size, each app's share, and its snapshots. */
 	import * as stylex from '@stylexjs/stylex';
+	import AppName from '../apps/app-name.svelte';
 	import Card from '../card.svelte';
 	import BarChart from '../chart/bar-chart.svelte';
 	import Meter from '../chart/meter.svelte';
 	import { moment } from '../chart/series.ts';
 	import { bytes } from '../format.ts';
 	import type { Disk, DiskSnapshot } from '../host.ts';
+	import { appLabel, displayOf } from '../scope/scope.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
 	import type { Column } from '../table/table.ts';
@@ -20,7 +22,13 @@
 
 	const columns: Column<DiskSnapshot>[] = [
 		{ key: 'name', label: 'Snapshot', value: (one) => one.name },
-		{ key: 'app', label: 'App', value: (one) => one.app },
+		{
+			key: 'app',
+			label: 'App',
+			value: (one) => displayOf(one.app),
+			text: (one) => appLabel(one.app),
+			cell: appCell,
+		},
 		{
 			key: 'created',
 			label: 'Taken',
@@ -30,6 +38,8 @@
 		},
 	];
 </script>
+
+{#snippet appCell(one: DiskSnapshot)}<AppName app={one.app} />{/snippet}
 
 <div class="grid gap-4 xl:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
 	<Card title="Mounts">
@@ -43,7 +53,9 @@
 	</Card>
 	<Card title="By app">
 		<BarChart
-			categories={used.map((app) => (app.partial ? `${app.app}, at least` : app.app))}
+			categories={used.map((app) =>
+				app.partial ? `${displayOf(app.app)}, at least` : displayOf(app.app),
+			)}
 			series={[
 				{
 					key: 'bytes',

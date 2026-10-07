@@ -5,7 +5,9 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration } from '../chart/numbers.ts';
+	import AppName from '../apps/app-name.svelte';
 	import { moment } from '../chart/series.ts';
+	import { appLabel, displayOf } from '../scope/scope.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
 	import type { Column } from '../table/table.ts';
@@ -46,7 +48,13 @@
 			value: (event) => Date.parse(event.started_at),
 			text: (event) => moment(seconds(event.started_at), zone),
 		},
-		{ key: 'app', label: 'App', value: (event) => event.app },
+		{
+			key: 'app',
+			label: 'App',
+			value: (event) => displayOf(event.app),
+			text: (event) => appLabel(event.app),
+			cell: appCell,
+		},
 		{ key: 'action', label: 'Action', value: (event) => capital(event.action) },
 		{ key: 'source', label: 'Source', value: source },
 		{
@@ -71,6 +79,8 @@
 		{ key: 'detail', label: 'Detail', value: (event) => event.detail ?? '' },
 	];
 </script>
+
+{#snippet appCell(event: Event)}<AppName app={event.app} />{/snippet}
 
 {#snippet stage(event: Event)}
 	{#if event.stage}<Badge tone="quiet">{capital(event.stage)}</Badge>{/if}

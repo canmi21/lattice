@@ -7,6 +7,7 @@
 	import { border, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { nodeLabel } from '../map/places.ts';
 	import { scoped } from '../scope/context.ts';
+	import { appLabel } from '../scope/scope.ts';
 	import { type } from '../style.ts';
 	import { SIZES, type Query } from './query.ts';
 
@@ -24,10 +25,13 @@
 
 	const same = (value: string) => value;
 
-	/** A node is chosen by its code and read by its city; every other value is itself. */
+	/**
+	 * A node or an app is chosen by its code and read by its display name; every other value is
+	 * itself.
+	 */
 	const selects = $derived([
 		{ name: 'node', label: 'Node', values: nodes, said: nodeLabel },
-		{ name: 'app', label: 'App', values: options.app, said: same },
+		{ name: 'app', label: 'App', values: options.app, said: appLabel },
 		{ name: 'action', label: 'Action', values: options.action, said: same },
 		{ name: 'outcome', label: 'Outcome', values: options.outcome, said: same },
 		{ name: 'stage', label: 'Stage', values: options.stage, said: same },

@@ -1,8 +1,10 @@
 <script lang="ts">
 	/** The apps one node runs, as its host lists them, each leading to the app's page. */
+	import AppName from '../apps/app-name.svelte';
 	import { ago, bytes, shortImage } from '../format.ts';
 	import type { AppDetail } from '../host.ts';
 	import { scoped } from '../scope/context.ts';
+	import { appLabel, displayOf } from '../scope/scope.ts';
 	import type { Tone } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
 	import type { Column } from '../table/table.ts';
@@ -25,7 +27,13 @@
 	const kind = (app: AppDetail) => (app.platform ? 'Platform' : app.driver ? 'Driver' : 'App');
 
 	const columns: Column<AppDetail>[] = [
-		{ key: 'name', label: 'App', value: name },
+		{
+			key: 'name',
+			label: 'App',
+			value: (app) => displayOf(name(app)),
+			text: (app) => appLabel(name(app)),
+			cell: appCell,
+		},
 		{
 			key: 'state',
 			label: 'State',
@@ -58,6 +66,8 @@
 		},
 	];
 </script>
+
+{#snippet appCell(app: AppDetail)}<AppName app={name(app)} />{/snippet}
 
 {#snippet state(app: AppDetail)}
 	{@const said = STATES[stateOf(app)]}

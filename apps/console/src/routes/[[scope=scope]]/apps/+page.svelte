@@ -2,13 +2,14 @@
 	import * as stylex from '@stylexjs/stylex';
 	import StatTile from '#lib/chart/stat-tile.svelte';
 	import { moment } from '#lib/chart/series.js';
+	import AppName from '#lib/apps/app-name.svelte';
 	import { type AppRow, rowsOf } from '#lib/apps/apps.js';
 	import NodeChip from '#lib/apps/node-chip.svelte';
 	import { shortImage } from '#lib/format.js';
 	import { nodeLabel } from '#lib/map/places.js';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
-	import { shows } from '#lib/scope/scope.js';
+	import { appLabel, displayOf, shows } from '#lib/scope/scope.js';
 	import { type } from '#lib/style.js';
 	import DataTable from '#lib/table/data-table.svelte';
 	import type { Column } from '#lib/table/table.js';
@@ -30,7 +31,13 @@
 	const TABLE = 10 * 44;
 
 	const columns: Column<AppRow>[] = [
-		{ key: 'name', label: 'App', value: (row) => row.name },
+		{
+			key: 'name',
+			label: 'App',
+			value: (row) => displayOf(row.name),
+			text: (row) => appLabel(row.name),
+			cell: name,
+		},
 		{
 			key: 'nodes',
 			label: 'Nodes',
@@ -62,6 +69,8 @@
 		},
 	];
 </script>
+
+{#snippet name(row: AppRow)}<AppName app={row.name} />{/snippet}
 
 {#snippet nodes(row: AppRow)}
 	<span class="flex flex-wrap gap-1">

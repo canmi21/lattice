@@ -12,6 +12,7 @@
 	import { nodeLabel } from '#lib/map/places.js';
 	import NodeName from '#lib/nodes/node-name.svelte';
 	import { scoped } from '#lib/scope/context.js';
+	import { displayOf } from '#lib/scope/scope.js';
 	import { surfaces, type } from '#lib/style.js';
 	import Badge from '#lib/ui/badge.svelte';
 	import { Landed } from '#lib/ui/landed.svelte.js';
@@ -68,7 +69,7 @@
 </script>
 
 <PageHeader
-	title={data.app}
+	title={displayOf(data.app)}
 	range={data.range}
 	query={page.url.search}
 	description={images.map(shortImage).join(', ')}
@@ -88,7 +89,9 @@
 {/if}
 
 {#if read?.ok && held.length === 0}
-	<p class="p-4 {stylex.attrs(surfaces.empty, type.soft).class}">No node runs {data.app}.</p>
+	<p class="p-4 {stylex.attrs(surfaces.empty, type.soft).class}">
+		No node runs {displayOf(data.app)}.
+	</p>
 {:else}
 	{#if !reads.value}
 		<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">

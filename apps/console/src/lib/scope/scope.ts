@@ -54,6 +54,52 @@ const PLATFORM = new Set([
 export const PLATFORM_APPS: readonly string[] = [...PLATFORM];
 
 /**
+ * Each app's `display_name`, as its service.toml declares it, mirrored by hand the same. See
+ * spec/architecture/console.md, "A node is shown by its city, and its code is the key".
+ */
+export const DISPLAY_NAMES: Readonly<Record<string, string>> = {
+	aka: 'Short Links',
+	apt: 'Package Updates',
+	caddy: 'Reverse Proxy',
+	cdn: 'CDN',
+	console: 'Console',
+	cron: 'Scheduler',
+	deployer: 'Worker Deployer',
+	gateway: 'API Gateway',
+	gemini: 'Gemini',
+	geo: 'IP Geolocation',
+	grok: 'Grok',
+	hook: 'Webhooks',
+	host: 'Host',
+	keeper: 'Keeper',
+	ledger: 'Task Ledger',
+	meter: 'Metrics',
+	objects: 'Object Storage',
+	postgres: 'PostgreSQL',
+	probe: 'Uptime Probe',
+	quota: 'Rate Limits',
+	relay: 'Relay',
+	resolver: 'DNS Resolver',
+	shot: 'Screenshots',
+	site: 'Website',
+	telemetry: 'Telemetry',
+	tunnel: 'Tunnel',
+};
+
+/** An app's display name; one the copy lacks is written as its code name. */
+export const displayOf = (app: string): string => DISPLAY_NAMES[app] ?? app;
+
+/**
+ * The display name and the code name in one string, where only text can be written -- an option,
+ * a chart's names: `Relay (relay)`. Markup writes the code name small beside it instead, as
+ * src/lib/apps/app-name.svelte does.
+ */
+export function appLabel(app: string): string {
+	const name = displayOf(app);
+	return name === app ? app : `${name} (${app})`;
+}
+
+/**
  * The layer whose repository built `app`. host records no repository on an app or an event, so
  * the name tells it, and a name neither list holds is a service.
  */

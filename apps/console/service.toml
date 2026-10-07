@@ -2,4 +2,5 @@
 # Worker on one host. See spec/architecture/console.md, "Live, through the nearest node".
 version = 1
 name = "console"
+display_name = "Console"
 placements = ["workers"]

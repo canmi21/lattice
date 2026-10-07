@@ -2,6 +2,7 @@
 # `site` scope of the API host. Cloudflare builds it; see platform's spec/architecture/services.md.
 version = 1
 name = "site"
+display_name = "Website"
 placements = ["workers"]
 
 # The Worker answers its API under `/api/`, beside its pages. See

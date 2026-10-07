@@ -5,6 +5,7 @@
 	 * ./moving.ts.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import AppName from '../apps/app-name.svelte';
 	import { ago, localTime } from '../format.ts';
 	import NodeName from '../nodes/node-name.svelte';
 	import type { Live } from '../live.svelte.ts';
@@ -46,7 +47,7 @@
 					{#each run.steps as step (`${step.node}/${step.app}`)}
 						<li class="flex items-center justify-between gap-2">
 							<span class="truncate {stylex.attrs(type.body).class}">
-								{step.app}
+								<AppName app={step.app} />
 								<span class={stylex.attrs(type.soft).class}
 									><NodeName code={step.node} short /></span
 								>
@@ -69,7 +70,7 @@
 					<a href={to(`/deployments/${step.run}`)} class="flex flex-col gap-1">
 						<span class="flex items-center justify-between gap-2">
 							<span class="truncate {stylex.attrs(type.body).class}">
-								{step.app}
+								<AppName app={step.app} />
 								<span class={stylex.attrs(type.soft).class}
 									><NodeName code={step.node} short /></span
 								>
