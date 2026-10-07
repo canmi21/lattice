@@ -31,6 +31,7 @@ const INFRA = new Set(['caddy', 'host', 'keeper', 'meter', 'panel', 'resolver', 
 /** The platform's, as its apps/<group>/<app>/service.toml name them, mirrored by hand the same. */
 const PLATFORM = new Set([
 	'aka',
+	'apk',
 	'apt',
 	'cdn',
 	'cron',
@@ -59,6 +60,7 @@ export const PLATFORM_APPS: readonly string[] = [...PLATFORM];
  */
 export const DISPLAY_NAMES: Readonly<Record<string, string>> = {
 	aka: 'Short Links',
+	apk: 'Package Updates',
 	apt: 'Package Updates',
 	caddy: 'Reverse Proxy',
 	cdn: 'CDN',
