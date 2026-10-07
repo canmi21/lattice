@@ -8,6 +8,10 @@
 	"cdn": {
 		"favicon.ico": "7d94982bb08f068234745364ad204e0c"
 	},
+	"console": {
+		"favicon.ico": "7d94982bb08f068234745364ad204e0c",
+		"favicon.svg": "923db6a88542f6aeaf19ba8db4e97074"
+	},
 	"platform": {
 		"favicon.ico": "7d94982bb08f068234745364ad204e0c",
 		"favicon.svg": "923db6a88542f6aeaf19ba8db4e97074"
