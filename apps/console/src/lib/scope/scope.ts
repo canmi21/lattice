@@ -69,7 +69,7 @@ export const DISPLAY_NAMES: Readonly<Record<string, string>> = {
 	deployer: 'Worker Deployer',
 	gateway: 'API Gateway',
 	gemini: 'Gemini',
-	geo: 'IP Geolocation',
+	geo: 'Geolocation',
 	grok: 'Grok',
 	hook: 'Webhooks',
 	host: 'Host',
