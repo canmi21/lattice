@@ -49,6 +49,7 @@ const PLATFORM = new Set([
 	'quota',
 	'relay',
 	'shot',
+	'store',
 	'telemetry',
 ]);
 
@@ -86,6 +87,7 @@ export const DISPLAY_NAMES: Readonly<Record<string, string>> = {
 	resolver: 'DNS Resolver',
 	shot: 'Screenshots',
 	site: 'Website',
+	store: 'Node Store',
 	telemetry: 'Telemetry',
 	tunnel: 'Tunnel',
 };
