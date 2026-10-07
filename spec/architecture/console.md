@@ -109,6 +109,16 @@ own.
 **It depends on the platform and a node does not**, which is the arrangement the workspace's
 `spec/architecture/layers.md` allows: a node is reached over the tailnet when the console is not.
 
+**What an app answers is read through its node's host.** A container's own health is on its
+node's network or its socket, which the console cannot reach, so host asks it -- `GET
+/api/apps/<app>/health`, with the read token -- and the console shows what came back. The platform's
+database is the first read so: which node is primary, each standby's lag, and whether backing up
+has stopped, which is how a database that is up and not backed up is seen without being asked
+for -- platform's `spec/architecture/databases.md`, "The container is Postgres and a keeper of it".
+Each app's `rollout` is shown beside it, as what a reader sees during one: a restart, no gap, or a
+deploy by hand -- infra's `spec/architecture/host.md`, "An app chooses how it is rolled out, and
+keeping nothing earns a gapless one".
+
 ## Live, through the nearest node
 
 **A reader's browser holds one WebSocket, to the node nearest it, and the nodes hold connections to
