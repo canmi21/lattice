@@ -34,4 +34,6 @@ the system, and it is this layer's":
 - **The console moves here from the platform**, as it is, `apps/console`, deployed to Workers by
   the platform's deployer.
 - **It writes**: restart, deploy and roll back, by a path that lends a Worker no node's root token.
+- **It shows the schedules and the tasks**: cron's jobs and the ledger's records, which infra's
+  panel showed until it retired.
 - **It is polished until the author runs the system from it**, before it is made for anybody else.
