@@ -88,6 +88,7 @@ describe('nodeRow', () => {
 		expect(row.heardAt).toBeUndefined();
 		expect(row.cpu).toBeUndefined();
 		expect(row.facts.expiry).toBeUndefined();
+		expect(row.facts.domain).toBe('int');
 	});
 });
 

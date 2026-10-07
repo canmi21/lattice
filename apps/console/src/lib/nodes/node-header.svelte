@@ -17,6 +17,7 @@
 	import Badge from '../ui/badge.svelte';
 	import PageHeader from '../ui/page-header.svelte';
 	import { timeZone } from '../ui/time-zone.ts';
+	import { providerName } from './facts.ts';
 	import { architecture, uptime, type NodeRow } from './machine.ts';
 	import { LIVENESS, capital } from './words.ts';
 
@@ -60,7 +61,11 @@
 				};
 	const facts = $derived([
 		{ label: 'Tier', value: capital(row.facts.tier) },
-		{ label: 'Failure domain', value: row.facts.domain },
+		{
+			label: 'Failure domain',
+			value: providerName(row.facts.domain),
+			title: row.facts.domain,
+		},
 		{ label: 'Held until', value: row.facts.expiry ? String(row.facts.expiry) : 'Not set' },
 		{ label: 'System', value: capital(row.facts.system) },
 		{ label: 'Architecture', value: architecture(info?.kernel) ?? '–' },
@@ -98,7 +103,10 @@
 		{#each facts as fact (fact.label)}
 			<div class="flex flex-col gap-0.5">
 				<dt class={stylex.attrs(type.label).class}>{fact.label}</dt>
-				<dd class={stylex.attrs(type.figure).class}>
+				<dd
+					class={stylex.attrs(type.figure).class}
+					title={'title' in fact ? fact.title : undefined}
+				>
 					{#if 'part' in fact && fact.part}
 						<Gauge share={fact.part.share} label={fact.part.label} figure={fact.value} />
 					{:else}

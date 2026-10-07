@@ -11,6 +11,7 @@
 	import DataTable from '../table/data-table.svelte';
 	import type { Column } from '../table/table.ts';
 	import Badge from '../ui/badge.svelte';
+	import { providerName } from './facts.ts';
 	import { share, type NodeRow } from './machine.ts';
 	import NodeName from './node-name.svelte';
 	import { LIVENESS } from './words.ts';
@@ -126,9 +127,18 @@
 			text: (row) => row.architecture ?? '–',
 		},
 		{ key: 'system', label: 'System', value: (row) => row.facts.system },
-		{ key: 'domain', label: 'Domain', value: (row) => row.facts.domain },
+		{
+			key: 'domain',
+			label: 'Domain',
+			value: (row) => providerName(row.facts.domain),
+			cell: domain,
+		},
 	];
 </script>
+
+{#snippet domain(row: NodeRow)}
+	<span title={row.facts.domain}>{providerName(row.facts.domain)}</span>
+{/snippet}
 
 {#snippet name(row: NodeRow)}<NodeName code={row.code} short />{/snippet}
 
