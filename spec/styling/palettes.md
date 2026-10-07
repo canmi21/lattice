@@ -19,8 +19,8 @@ again under `.dark`; an app imports the one it wears.
 - **A palette is chosen by the app, not by the reader.** There is no control and no cookie for it
   yet; the `palette` cookie the theme script still reads is a leftover and paints nothing. Light
   and dark are the reader's, by the `theme` cookie, as below.
-- **The panel keeps its own Nord colors for now**, under names of its own; it moves onto these
-  names, as a `nord` palette, when the panel is redesigned.
+- **Nord is the kit's `nord` palette**, on these names, which the console can choose -- platform's
+  `spec/architecture/console.md`.
 
 ## Light and dark are one cookie, read the same way everywhere
 
