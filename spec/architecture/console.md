@@ -67,7 +67,10 @@ three-letter code is the one unique name, written small beside the city where tw
 apart, in a link, and in the address. A service is shown by its display name the same way, its
 code name small beside it, in a link and in the address; the display name is `display_name` in the
 service's `service.toml`, infra's `spec/architecture/host.md`, "One name inside, and a domain label
-outside".
+outside". The console keeps a copy of every display name beside its
+scope lists, so the server writes it in the first response, for a Worker no host reports and for an
+event of an app since removed; a test compares the copy with the declarations wherever infra's and
+platform's checkouts sit beside this one. A display name the copy lacks is written as the code name.
 
 **A figure is drawn before it is written.** A share of something -- memory, storage, CPU, a disk --
 is a small ring or bar filled to the share, the figure beside it short, and the full sentence
