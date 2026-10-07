@@ -65,7 +65,9 @@ United Kingdom written `US` and `UK`, and the country alone where the two are on
 one; the
 three-letter code is the one unique name, written small beside the city where two must be told
 apart, in a link, and in the address. A service is shown by its display name the same way, its
-code where an operator needs it.
+code name small beside it, in a link and in the address; the display name is `display_name` in the
+service's `service.toml`, infra's `spec/architecture/host.md`, "One name inside, and a domain label
+outside".
 
 **A figure is drawn before it is written.** A share of something -- memory, storage, CPU, a disk --
 is a small ring or bar filled to the share, the figure beside it short, and the full sentence
