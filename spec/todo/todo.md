@@ -31,8 +31,7 @@ What [../architecture/landing.md](../architecture/landing.md) decides and is not
 In order, each when the one before it is done -- [../roadmap.md](../roadmap.md), "One console runs
 the system, and it is this layer's":
 
-- **The console moves here from the platform**, as it is, `apps/console`, still deployed to Workers.
-- **One app, two adapters**: Cloudflare's for the edge and Node's for a node, with the read layer
-  under the pages swapped by build -- VPC bindings at the edge, its own host on a node.
-- **The node's build takes over the panel's writes**, and infra's panel retires.
+- **The console moves here from the platform**, as it is, `apps/console`, deployed to Workers by
+  the platform's deployer.
+- **It writes**: restart, deploy and roll back, by a path that lends a Worker no node's root token.
 - **It is polished until the author runs the system from it**, before it is made for anybody else.

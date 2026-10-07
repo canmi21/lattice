@@ -29,7 +29,7 @@ const API_HOST = new URL(URLS.apps.production.api).hostname;
 
 // Limits first, so a request over its allowance never reaches a handler. A call is counted once, by
 // the door it entered: the gateway's own rows for what it passes on, these for the pages'. See
-// platform's spec/architecture/quota.md, "Deployed twice, counted where a request enters".
+// platform's spec/architecture/quota.md, "One deployment, counted where a request enters".
 app.use('*', async (c, next) => {
 	if (new URL(c.req.url).hostname === API_HOST) return next();
 	const taken = await counted(c.env.QUOTA, 'site', LIMITS, {
