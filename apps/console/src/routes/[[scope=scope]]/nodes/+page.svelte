@@ -87,15 +87,25 @@
 	</Card>
 	<div class="grid grid-cols-2 gap-4">
 		<Heard live={held} cluster={data.cluster}>
-			<StatTile label="Heard" value="{heard.length} of {CODES.length}" />
-			<StatTile label="Apps running" value="{apps.running} of {apps.total}" />
+			<StatTile
+				label="Heard"
+				value="{heard.length} of {CODES.length}"
+				share={heard.length / CODES.length}
+			/>
+			<StatTile
+				label="Apps running"
+				value="{apps.running} of {apps.total}"
+				share={apps.total ? apps.running / apps.total : undefined}
+			/>
 			<StatTile
 				label="CPU busy, heard nodes"
 				value={busy === undefined ? '–' : percent(busy / 100)}
+				share={busy === undefined ? undefined : busy / 100}
 			/>
 			<StatTile
 				label="Memory in use, heard nodes"
 				value={memory === undefined ? '–' : percent(memory)}
+				share={memory}
 			/>
 			{#snippet pending()}
 				{#each TILES as label (label)}<StatTile {label} pending />{/each}

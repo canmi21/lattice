@@ -39,8 +39,18 @@
 
 <div class="grid grid-cols-2 gap-4 {nodes ? 'xl:grid-cols-4' : 'xl:grid-cols-3'}">
 	<Heard {live} {cluster}>
-		{#if nodes}<StatTile label="Nodes live" value={heard} unit="of {TOTAL}" />{/if}
-		<StatTile label="Apps running" value={apps.running} unit="of {apps.total}" />
+		{#if nodes}<StatTile
+				label="Nodes live"
+				value={heard}
+				unit="of {TOTAL}"
+				share={heard / TOTAL}
+			/>{/if}
+		<StatTile
+			label="Apps running"
+			value={apps.running}
+			unit="of {apps.total}"
+			share={apps.total ? apps.running / apps.total : undefined}
+		/>
 		{#snippet pending()}
 			{#if nodes}<StatTile label="Nodes live" pending />{/if}
 			<StatTile label="Apps running" pending />

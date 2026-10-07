@@ -1,11 +1,14 @@
 <script lang="ts">
 	/**
-	 * A node's header: its code and whether it is heard, where it is and what it runs on, and the
-	 * facts infra declares of it beside what its meter measures.
+	 * A node's header: its city, the code that is its key, and whether it is heard; where it is and
+	 * what it runs on; and the facts infra declares of it beside what its meter measures, a share
+	 * drawn as a ring.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import type { Snippet } from 'svelte';
-	import { duration } from '../chart/numbers.ts';
+	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import Gauge from '../chart/gauge.svelte';
+	import { duration, percent } from '../chart/numbers.ts';
 	import { moment } from '../chart/series.ts';
 	import { ago, bytes, localTime } from '../format.ts';
 	import type { MachineInfo } from '../host.ts';
@@ -31,6 +34,9 @@
 	} = $props();
 
 	const zone = timeZone();
+	const styles = stylex.create({
+		code: { color: 'var(--color-text-muted)', fontSize: text.px14 },
+	});
 	const said = $derived(LIVENESS[row.state]);
 	const up = $derived(uptime(info?.booted, now));
 	const line = $derived(
@@ -44,22 +50,39 @@
 			.filter(Boolean)
 			.join(' · '),
 	);
+	/** A share of `total`, as the ring beside it draws it, where what is used is known. */
+	const part = (what: string, used: number | undefined, total: number) =>
+		used === undefined || total <= 0
+			? undefined
+			: {
+					share: used / total,
+					label: `${what}: ${bytes(used)} of ${bytes(total)} · ${percent(used / total)}`,
+				};
 	const facts = $derived([
 		{ label: 'Tier', value: capital(row.facts.tier) },
 		{ label: 'Failure domain', value: row.facts.domain },
 		{ label: 'Held until', value: row.facts.expiry ? String(row.facts.expiry) : 'Not set' },
 		{ label: 'System', value: capital(row.facts.system) },
 		{ label: 'Architecture', value: architecture(info?.kernel) ?? '–' },
-		{ label: 'Memory', value: info ? bytes(info.memory) : '' },
+		{
+			label: 'Memory',
+			value: info ? bytes(info.memory) : '',
+			part: info ? part('Memory', row.memory?.used, info.memory) : undefined,
+		},
 		{ label: 'Swap', value: info ? (info.swap ? bytes(info.swap) : 'None') : '' },
-		{ label: 'Storage', value: info?.storage ? bytes(info.storage) : '' },
+		{
+			label: 'Storage',
+			value: info?.storage ? bytes(info.storage) : '',
+			part: info?.storage ? part('Storage', row.storage?.used, info.storage) : undefined,
+		},
 		{ label: 'Booted', value: info?.booted ? moment(info.booted, zone) : '' },
 	]);
 </script>
 
 <div class="flex flex-col gap-4">
-	<PageHeader title={row.code} description={line} {actions}>
+	<PageHeader title={row.name} description={line} {actions}>
 		{#snippet meta()}
+			<span class={stylex.attrs(type.mono, styles.code).class}>{row.code}</span>
 			<Badge tone={said.tone}>{said.word}</Badge>
 			<Badge tone="quiet">{ROLES[row.role]}</Badge>
 			{#if row.heardAt}
@@ -75,7 +98,13 @@
 		{#each facts as fact (fact.label)}
 			<div class="flex flex-col gap-0.5">
 				<dt class={stylex.attrs(type.label).class}>{fact.label}</dt>
-				<dd class={stylex.attrs(type.figure).class}>{fact.value || '–'}</dd>
+				<dd class={stylex.attrs(type.figure).class}>
+					{#if 'part' in fact && fact.part}
+						<Gauge share={fact.part.share} label={fact.part.label} figure={fact.value} />
+					{:else}
+						{fact.value || '–'}
+					{/if}
+				</dd>
 			</div>
 		{/each}
 	</dl>

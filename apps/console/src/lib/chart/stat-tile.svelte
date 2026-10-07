@@ -1,7 +1,8 @@
 <script lang="ts">
 	/**
 	 * One figure as the headline: its name, the value large, how it moved against a named period,
-	 * and a sparkline of how it got here. The number is the chart; there is no plot to hover.
+	 * and a sparkline of how it got here. The number is the chart; there is no plot to hover. A
+	 * figure that is a share has its ring beside it.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import ArrowDown from '@lucide/svelte/icons/arrow-down';
@@ -9,6 +10,7 @@
 	import Minus from '@lucide/svelte/icons/minus';
 	import { line, radius, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { surfaces, tone, type } from '../style.ts';
+	import Gauge from './gauge.svelte';
 	import { compact, signed } from './numbers.ts';
 	import Sparkline from './sparkline.svelte';
 
@@ -16,6 +18,7 @@
 		label,
 		value = '',
 		unit,
+		share,
 		delta,
 		trend = [],
 		pending = false,
@@ -24,6 +27,8 @@
 		/** A number is written compact, `12.9K`; a string as it is. */
 		value?: number | string;
 		unit?: string;
+		/** What part of its whole the value is, 0 to 1, drawn as a ring beside it. */
+		share?: number;
 		/** The change against `period`, and which way is good, which decides its tone. */
 		delta?: {
 			value: number;
@@ -76,6 +81,11 @@
 		<div class="flex items-baseline gap-1.5">
 			<span class={stylex.attrs(styles.figure).class}>{shown}</span>
 			{#if unit}<span class={stylex.attrs(type.soft).class}>{unit}</span>{/if}
+			{#if share !== undefined}
+				<span class="ml-auto self-center">
+					<Gauge {share} size={28} label="{label}: {shown}{unit ? ` ${unit}` : ''}" />
+				</span>
+			{/if}
 		</div>
 	{/if}
 	{#if delta && !pending}

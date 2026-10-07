@@ -15,8 +15,16 @@
 		view,
 		section,
 		detail,
+		code,
 		actions,
-	}: { view: View; section?: Section; detail?: string; actions?: Snippet } = $props();
+	}: {
+		view: View;
+		section?: Section;
+		detail?: string;
+		/** The key beside a `detail` that is a display name, as a node's city takes its code. */
+		code?: string;
+		actions?: Snippet;
+	} = $props();
 
 	const styles = stylex.create({
 		crumb: {
@@ -31,6 +39,10 @@
 		},
 		slash: {
 			color: 'var(--color-line-strong)',
+		},
+		code: {
+			color: 'var(--color-text-muted)',
+			fontSize: text.px12,
 		},
 	});
 </script>
@@ -63,9 +75,16 @@
 					>{section.label}</a
 				>
 				{@render slash()}
-				<span class="truncate {stylex.attrs(styles.here, type.mono).class}" aria-current="page"
-					>{detail}</span
-				>
+				{#if code}
+					<span class="flex min-w-0 items-baseline gap-2" aria-current="page">
+						<span class="truncate {stylex.attrs(styles.here).class}">{detail}</span>
+						<span class={stylex.attrs(type.mono, styles.code).class}>{code}</span>
+					</span>
+				{:else}
+					<span class="truncate {stylex.attrs(styles.here, type.mono).class}" aria-current="page"
+						>{detail}</span
+					>
+				{/if}
 			{:else}
 				<span class={stylex.attrs(styles.here).class} aria-current="page">{section.label}</span>
 			{/if}

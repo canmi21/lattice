@@ -1,9 +1,9 @@
 /**
- * What the map says of each node beyond where it is: its place and its role in the relay, and how
- * nodes in one place gather into one mark. A `Record<Node, ...>`, so a node added to
- * `server/nodes.ts` fails the type check here until it is placed. A role is one of the relay's
- * three core nodes, a relay, or the relay at home, which may go offline -- see platform's
- * spec/architecture/relay.md.
+ * What the console says of each node beyond where it is: its place, the name it is shown by, its
+ * role in the relay, and how nodes in one place gather into one mark. A `Record<Node, ...>`, so a
+ * node added to `server/nodes.ts` fails the type check here until it is placed. A role is one of
+ * the relay's three core nodes, a relay, or the relay at home, which may go offline -- see
+ * platform's spec/architecture/relay.md.
  */
 import type { Node } from '../server/nodes.ts';
 import type { Shown } from './marks.ts';
@@ -11,24 +11,107 @@ import type { Shown } from './marks.ts';
 export type Role = 'core' | 'relay' | 'home';
 
 export interface Place {
+	/** Where it is, as specific as is known: `Tokyo, Haneda`. */
 	place: string;
+	city: string;
+	/** In full, as `displayName` reads it: `United States`, not `US`. */
+	country: string;
 	role: Role;
-	/** The place it shares with other nodes, which the map draws as one mark (`CLUSTERS`). */
+	/** The place it shares with other nodes, which the map draws as one mark. */
 	cluster?: string;
 }
 
 export const PLACES: Record<Node, Place> = {
-	tyo: { place: 'Tokyo', role: 'core', cluster: 'tokyo' },
-	nrt: { place: 'Tokyo, Narita', role: 'relay', cluster: 'tokyo' },
-	hnd: { place: 'Tokyo, Haneda', role: 'relay', cluster: 'tokyo' },
-	gvx: { place: 'Gävle', role: 'core' },
-	bru: { place: 'Brussels', role: 'relay' },
-	buf: { place: 'Buffalo', role: 'core' },
-	rdu: { place: 'Raleigh', role: 'home' },
+	tyo: { place: 'Tokyo', city: 'Tokyo', country: 'Japan', role: 'core', cluster: 'tokyo' },
+	nrt: {
+		place: 'Tokyo, Narita',
+		city: 'Tokyo',
+		country: 'Japan',
+		role: 'relay',
+		cluster: 'tokyo',
+	},
+	hnd: {
+		place: 'Tokyo, Haneda',
+		city: 'Tokyo',
+		country: 'Japan',
+		role: 'relay',
+		cluster: 'tokyo',
+	},
+	gvx: { place: 'Gävle', city: 'Gävle', country: 'Sweden', role: 'core' },
+	bru: { place: 'Brussels', city: 'Brussels', country: 'Belgium', role: 'relay' },
+	buf: { place: 'Buffalo', city: 'Buffalo', country: 'United States', role: 'core' },
+	rdu: { place: 'Raleigh', city: 'Raleigh', country: 'United States', role: 'home' },
 };
 
-/** Each shared place by the name its mark's card gives it. */
-export const CLUSTERS: Record<string, string> = { tokyo: 'Tokyo' };
+/** The European Union's members, by the names `Place.country` spells them. */
+export const EU: ReadonlySet<string> = new Set([
+	'Austria',
+	'Belgium',
+	'Bulgaria',
+	'Croatia',
+	'Cyprus',
+	'Czechia',
+	'Denmark',
+	'Estonia',
+	'Finland',
+	'France',
+	'Germany',
+	'Greece',
+	'Hungary',
+	'Ireland',
+	'Italy',
+	'Latvia',
+	'Lithuania',
+	'Luxembourg',
+	'Malta',
+	'Netherlands',
+	'Poland',
+	'Portugal',
+	'Romania',
+	'Slovakia',
+	'Slovenia',
+	'Spain',
+	'Sweden',
+]);
+
+/** The countries written short. */
+const SHORT: Readonly<Record<string, string>> = {
+	'United States': 'US',
+	'United Kingdom': 'UK',
+};
+
+/** A display name whole, and its first part, which a tight cell writes alone. */
+export interface Name {
+	full: string;
+	lead: string;
+}
+
+/**
+ * A node's display name from its city and country: `Tokyo, Japan`; `Raleigh, US` and `London, UK`;
+ * `Sweden, EU` for a member of the union, whatever the city; and the country alone where it is the
+ * city's name too, `Singapore`. See spec/architecture/console.md, "A node is shown by its city".
+ */
+export function displayName(city: string, country: string): Name {
+	if (EU.has(country)) return { full: `${country}, EU`, lead: country };
+	if (city === country) return { full: country, lead: country };
+	return { full: `${city}, ${SHORT[country] ?? country}`, lead: city };
+}
+
+/** A node's display name; a code the console does not place is named by itself. */
+export function nameOf(code: string): Name {
+	const place = PLACES[code as Node];
+	return place ? displayName(place.city, place.country) : { full: code, lead: code };
+}
+
+/**
+ * The display name and the code in one string, where only text can be written -- an option, a
+ * title, a chart's names: `Tokyo, Japan (tyo)`, or `Tokyo (tyo)` with `lead` where room is short.
+ * Markup writes the code small beside the name instead, as src/lib/nodes/node-name.svelte does.
+ */
+export function nodeLabel(code: string, part: keyof Name = 'full'): string {
+	const name = nameOf(code)[part];
+	return name === code ? code : `${name} (${code})`;
+}
 
 export const ROLES: Record<Role, string> = { core: 'Core', relay: 'Relay', home: 'Home' };
 

@@ -5,6 +5,7 @@
 	import { type AppRow, rowsOf } from '#lib/apps/apps.js';
 	import NodeChip from '#lib/apps/node-chip.svelte';
 	import { shortImage } from '#lib/format.js';
+	import { nodeLabel } from '#lib/map/places.js';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
 	import { shows } from '#lib/scope/scope.js';
@@ -35,7 +36,7 @@
 			label: 'Nodes',
 			kind: 'number',
 			value: (row) => row.placements.length,
-			text: (row) => row.placements.map((one) => `${one.node} ${one.state}`).join(', '),
+			text: (row) => row.placements.map((one) => `${nodeLabel(one.node)} ${one.state}`).join(', '),
 			cell: nodes,
 		},
 		{

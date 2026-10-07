@@ -5,6 +5,8 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { moment } from '../chart/series.ts';
+	import { nodeLabel } from '../map/places.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import { scoped } from '../scope/context.ts';
 	import type { FleetEvent } from '../server/fleet.ts';
 	import { type, type Tone } from '../style.ts';
@@ -44,7 +46,7 @@
 			value: at,
 			text: (event) => moment(at(event) / 1000, zone),
 		},
-		{ key: 'node', label: 'Node', value: (event) => event.node },
+		{ key: 'node', label: 'Node', value: (event) => nodeLabel(event.node), cell: nodeCell },
 		{ key: 'app', label: 'App', value: (event) => event.app },
 		{ key: 'action', label: 'Action', value: (event) => event.action },
 		{
@@ -71,6 +73,8 @@
 		more: { backgroundColor: 'transparent', borderWidth: 0, color: 'var(--color-text)' },
 	});
 </script>
+
+{#snippet nodeCell(event: FleetEvent)}<NodeName code={event.node} short />{/snippet}
 
 {#snippet sourceCell(event: FleetEvent)}
 	{#if event.source.kind === 'run' && event.source.run !== undefined}

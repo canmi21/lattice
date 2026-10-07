@@ -5,6 +5,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { nodeLabel } from '../map/places.ts';
 	import { scoped } from '../scope/context.ts';
 	import { type } from '../style.ts';
 	import { SIZES, type Query } from './query.ts';
@@ -21,12 +22,15 @@
 
 	const { to } = scoped();
 
+	const same = (value: string) => value;
+
+	/** A node is chosen by its code and read by its city; every other value is itself. */
 	const selects = $derived([
-		{ name: 'node', label: 'Node', values: nodes },
-		{ name: 'app', label: 'App', values: options.app },
-		{ name: 'action', label: 'Action', values: options.action },
-		{ name: 'outcome', label: 'Outcome', values: options.outcome },
-		{ name: 'stage', label: 'Stage', values: options.stage },
+		{ name: 'node', label: 'Node', values: nodes, said: nodeLabel },
+		{ name: 'app', label: 'App', values: options.app, said: same },
+		{ name: 'action', label: 'Action', values: options.action, said: same },
+		{ name: 'outcome', label: 'Outcome', values: options.outcome, said: same },
+		{ name: 'stage', label: 'Stage', values: options.stage, said: same },
 	] as const);
 
 	const styles = stylex.create({
@@ -44,7 +48,7 @@
 </script>
 
 <form method="get" class="flex flex-wrap items-end gap-3" aria-label="Filter events">
-	{#each selects as { name, label, values } (name)}
+	{#each selects as { name, label, values, said } (name)}
 		<label class="flex flex-col gap-1 {stylex.attrs(type.label).class}">
 			{label}
 			<select
@@ -54,7 +58,7 @@
 				onchange={(event) => event.currentTarget.form?.requestSubmit()}
 			>
 				<option value="">All</option>
-				{#each values as value (value)}<option {value}>{value}</option>{/each}
+				{#each values as value (value)}<option {value}>{said(value)}</option>{/each}
 			</select>
 		</label>
 	{/each}

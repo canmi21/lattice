@@ -39,7 +39,7 @@ describe('a place card on the server', () => {
 		const { body } = render(PlaceCard, {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
-		expect(body).toContain('>Tokyo<');
+		expect(body).toContain('>Tokyo, Japan<');
 		expect(body).toContain('3 nodes, 25.4 GiB, 21 apps');
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
@@ -52,8 +52,9 @@ describe('a place card on the server', () => {
 	it('keeps the figures of a node alone', () => {
 		const lone = member('gvx', { cluster: undefined, role: 'core' });
 		const { body } = render(PlaceCard, { props: { site: site([lone]), now: NOW } });
+		expect(body).toContain('Sweden, EU<');
 		expect(body).toContain('>gvx<');
-		expect(body).toContain('Gävle');
+		expect(body).toContain('>Gävle<');
 		for (const label of ['Status', 'Heard', 'Role', 'Apps running', 'CPU now', 'Memory used']) {
 			expect(body).toContain(`>${label}<`);
 		}

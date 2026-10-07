@@ -7,6 +7,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { duration } from '../chart/numbers.ts';
 	import { moment } from '../chart/series.ts';
+	import { nodeLabel } from '../map/places.ts';
 	import { scoped } from '../scope/context.ts';
 	import type { Node } from '../server/nodes.ts';
 	import type { Run } from '../server/runs.ts';
@@ -35,7 +36,7 @@
 	const placed = (run: Run) =>
 		marks(run)
 			.filter((one) => one.mark !== 'absent')
-			.map((one) => `${one.node} ${said(one.mark, one.stage)}`)
+			.map((one) => `${nodeLabel(one.node)} ${said(one.mark, one.stage)}`)
 			.join(', ');
 
 	const columns: Column<Run>[] = [

@@ -64,7 +64,7 @@ describe('world map on the server', () => {
 		const { body } = render(WorldMap, { props: { states, now: NOW } });
 		const tokyo = marks(body).tokyo ?? '';
 		expect(body).toContain('href="/nodes/tyo" data-place="tokyo"');
-		expect(tokyo).toContain('aria-label="Tokyo, 3 nodes, live"');
+		expect(tokyo).toContain('aria-label="Tokyo, Japan, 3 nodes, live"');
 		expect(body).not.toContain('data-node="nrt"');
 		expect(body).not.toContain('data-node="hnd"');
 	});

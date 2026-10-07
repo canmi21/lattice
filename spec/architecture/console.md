@@ -57,6 +57,20 @@ fills as its read lands. The server renders that layout whole -- the first respo
 never an empty shell -- and a chart that cannot be drawn on the server is drawn by the browser
 inside a card the server already placed. A tab is a link like any other and obeys the same rule.
 
+**A node is shown by its city, and its code is the key.** What the console writes for a node is a
+display name, its city and its country -- `Tokyo, Japan`, `Raleigh, US`, the United States and the
+United Kingdom written `US` and `UK`, and the country alone where the two are one name,
+`Singapore`. A node in the European Union is its country and the union instead -- `Sweden, EU`,
+`Belgium, EU` -- since its countries are too small for a city to say more. Several nodes may share
+one; the
+three-letter code is the one unique name, written small beside the city where two must be told
+apart, in a link, and in the address. A service is shown by its display name the same way, its
+code where an operator needs it.
+
+**A figure is drawn before it is written.** A share of something -- memory, storage, CPU, a disk --
+is a small ring or bar filled to the share, the figure beside it short, and the full sentence
+(`975.5 MiB of 23.4 GiB`) on hover; a table cell never carries a sentence a glance cannot read.
+
 **Every time is written in the reader's zone**, which Cloudflare names on the request, set once in
 the layout and read by every chart, so the server and the browser write the same text and the
 page does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is

@@ -5,6 +5,8 @@
 	 * away. A node that placed the app nowhere says so; one that did not answer is unknown.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import { nodeLabel } from '../map/places.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import { scoped } from '../scope/context.ts';
 	import type { Node } from '../server/nodes.ts';
 	import { type } from '../style.ts';
@@ -17,7 +19,9 @@
 
 	const hint = (cell: Cell) =>
 		cell.placement?.detail ??
-		(cell.mark === 'unknown' ? `${cell.node} did not answer` : `${cell.app} on ${cell.node}`);
+		(cell.mark === 'unknown'
+			? `${nodeLabel(cell.node)} did not answer`
+			: `${cell.app} on ${nodeLabel(cell.node)}`);
 	const styles = stylex.create({ none: { color: 'var(--color-text-faint)' } });
 </script>
 
@@ -26,7 +30,7 @@
 	<thead>
 		<tr>
 			<th scope="col">App</th>
-			{#each nodes as node (node)}<th scope="col">{node}</th>{/each}
+			{#each nodes as node (node)}<th scope="col"><NodeName code={node} short /></th>{/each}
 		</tr>
 	</thead>
 	<tbody>

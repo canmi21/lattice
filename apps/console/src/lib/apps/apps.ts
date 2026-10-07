@@ -5,6 +5,7 @@
  * See spec/architecture/console.md.
  */
 import type { Point } from '../host.ts';
+import { nodeLabel } from '../map/places.ts';
 import { type Datum, type Line, metric } from '../chart/series.ts';
 import type { Node } from '../server/nodes.ts';
 import type { Read } from '../server/read.ts';
@@ -120,7 +121,7 @@ export function lines(
 		if (read.ok) {
 			made.push({
 				key: node,
-				label: node,
+				label: nodeLabel(node, 'lead'),
 				color: colorOf(order, node),
 				points: metric(read.data, name),
 			});

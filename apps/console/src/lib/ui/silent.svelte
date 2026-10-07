@@ -2,6 +2,7 @@
 	/** The nodes a page's reads did not reach, in one line; each one's reason on hover. */
 	import * as stylex from '@stylexjs/stylex';
 	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import NodeName from '../nodes/node-name.svelte';
 	import { tone, type } from '../style.ts';
 
 	let { nodes }: { nodes: { node: string; message?: string }[] } = $props();
@@ -14,8 +15,7 @@
 		>
 		<span
 			>Not answering: {#each nodes as one, index (one.node)}{index ? ', ' : ''}<span
-					class={stylex.attrs(type.mono).class}
-					title={one.message}>{one.node}</span
+					title={one.message}><NodeName code={one.node} /></span
 				>{/each}</span
 		>
 	</p>

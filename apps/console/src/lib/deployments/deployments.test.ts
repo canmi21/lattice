@@ -96,7 +96,11 @@ describe('words', () => {
 describe('the timeline', () => {
 	it('draws a placement over its whole span in the stage it reached, and no skip', () => {
 		const drawn = tracks(run(), ['tyo', 'nrt', 'buf']);
-		expect(drawn.map((track) => track.label)).toEqual(['tyo · api', 'tyo · web', 'nrt · web']);
+		expect(drawn.map((track) => track.label)).toEqual([
+			'Tokyo (tyo) · api',
+			'Tokyo (tyo) · web',
+			'Tokyo (nrt) · web',
+		]);
 		const start = Date.parse('2026-10-05T10:00:00Z') / 1000;
 		expect(drawn[0]?.stages).toEqual([
 			{ stage: 'admitting', start, end: start + 60, failed: true },

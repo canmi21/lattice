@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { gather, type Member, rank } from './places.ts';
+import { displayName, gather, type Member, nameOf, nodeLabel, PLACES, rank } from './places.ts';
 
 const GIB = 2 ** 30;
 const member = (code: string, overrides: Partial<Member> = {}): Member => ({
@@ -75,5 +75,49 @@ describe('who leads a place', () => {
 			member('d', { apps: undefined }),
 		]);
 		expect(ranked.map((one) => one.code)).toEqual(['b', 'a', 'c', 'd']);
+	});
+});
+
+describe('what a node is called', () => {
+	it('is its city and its country', () => {
+		expect(displayName('Tokyo', 'Japan')).toEqual({ full: 'Tokyo, Japan', lead: 'Tokyo' });
+	});
+
+	it('writes the United States and the United Kingdom short', () => {
+		expect(displayName('Raleigh', 'United States')).toEqual({
+			full: 'Raleigh, US',
+			lead: 'Raleigh',
+		});
+		expect(displayName('London', 'United Kingdom')).toEqual({ full: 'London, UK', lead: 'London' });
+	});
+
+	it('names a member of the European Union by its country and the union', () => {
+		expect(displayName('Gävle', 'Sweden')).toEqual({ full: 'Sweden, EU', lead: 'Sweden' });
+		expect(displayName('Luxembourg', 'Luxembourg')).toEqual({
+			full: 'Luxembourg, EU',
+			lead: 'Luxembourg',
+		});
+	});
+
+	it('writes the country alone where the city has its name', () => {
+		expect(displayName('Singapore', 'Singapore')).toEqual({ full: 'Singapore', lead: 'Singapore' });
+	});
+
+	it('names every node, shared names and all, and a code it does not place by itself', () => {
+		expect(['tyo', 'nrt', 'hnd'].map((code) => nameOf(code).full)).toEqual([
+			'Tokyo, Japan',
+			'Tokyo, Japan',
+			'Tokyo, Japan',
+		]);
+		expect(['gvx', 'bru', 'buf', 'rdu'].map((code) => nameOf(code).full)).toEqual([
+			'Sweden, EU',
+			'Belgium, EU',
+			'Buffalo, US',
+			'Raleigh, US',
+		]);
+		expect(nodeLabel('hnd')).toBe('Tokyo, Japan (hnd)');
+		expect(nodeLabel('gvx', 'lead')).toBe('Sweden (gvx)');
+		expect(nodeLabel('xyz')).toBe('xyz');
+		expect(Object.keys(PLACES).length).toBe(7);
 	});
 });

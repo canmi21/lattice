@@ -6,6 +6,7 @@
  */
 import type { Stage, Track } from '../chart/timeline.svelte';
 import type { Key } from '../chart/series.ts';
+import { nodeLabel } from '../map/places.ts';
 import type { Node } from '../server/nodes.ts';
 import type { Placement, Run } from '../server/runs.ts';
 import { STAGES, markOf, said } from './state.ts';
@@ -49,12 +50,12 @@ export function tracks(run: Run, nodes: Node[]): Track[] {
 	if (drawn.length <= FEW) {
 		return drawn.map(({ placement, one }) => ({
 			key: `${placement.node}/${placement.app}`,
-			label: `${placement.node} · ${placement.app}`,
+			label: `${nodeLabel(placement.node, 'lead')} · ${placement.app}`,
 			stages: [one],
 		}));
 	}
 	return nodes.flatMap((node) => {
 		const stages = drawn.filter(({ placement }) => placement.node === node).map(({ one }) => one);
-		return stages.length ? [{ key: node, label: node, stages }] : [];
+		return stages.length ? [{ key: node, label: nodeLabel(node, 'lead'), stages }] : [];
 	});
 }

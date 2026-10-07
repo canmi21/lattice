@@ -15,7 +15,7 @@
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
 	import { opacity, period, radius as size, shown, type Shown } from './marks.ts';
 	import PlaceCard from './place-card.svelte';
-	import { CLUSTERS, gather, PLACES } from './places.ts';
+	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
 
 	let {
 		states,
@@ -72,7 +72,7 @@
 			/** Where in its breath a place starts, spread by the golden ratio so none pulse together. */
 			phase: (index * 0.618) % 1,
 			lead: site.members[0]?.code ?? site.key,
-			name: CLUSTERS[site.key] ?? PLACES[site.key as keyof typeof PLACES]?.place ?? site.key,
+			name: nameOf(site.members[0]?.code ?? site.key).full,
 		})),
 	);
 
@@ -227,8 +227,10 @@
 				data-radius={site.radius}
 				aria-label="{shared
 					? `${site.name}, ${site.members.length} nodes`
-					: `${site.lead}, ${site.name}`}, {WORDS[site.state].toLowerCase()}"
-				title={compact ? `${shared ? site.name : site.lead}: ${WORDS[site.state]}` : undefined}
+					: nodeLabel(site.lead)}, {WORDS[site.state].toLowerCase()}"
+				title={compact
+					? `${shared ? site.name : nodeLabel(site.lead)}: ${WORDS[site.state]}`
+					: undefined}
 				class="absolute block -translate-x-1/2 -translate-y-1/2 {stylex.attrs(styles.marker).class}"
 				style:z-index={lit === site.key ? 10 : undefined}
 				style:left={share(site.point[0], WIDTH)}

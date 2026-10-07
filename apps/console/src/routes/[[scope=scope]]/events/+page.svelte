@@ -8,6 +8,7 @@
 	import EventsTable from '#lib/events/events-table.svelte';
 	import Filters from '#lib/events/filters.svelte';
 	import { choices, search } from '#lib/events/query.js';
+	import { nodeLabel } from '#lib/map/places.js';
 	import { scoped } from '#lib/scope/context.js';
 	import Empty from '#lib/scope/empty.svelte';
 	import { type } from '#lib/style.js';
@@ -102,7 +103,7 @@
 				<Skeleton height={HEAT} chart />
 			{:then { charts }}
 				<Heatmap
-					rows={data.nodes.map((node) => ({ key: node, label: node }))}
+					rows={data.nodes.map((node) => ({ key: node, label: nodeLabel(node, 'lead') }))}
 					times={charts.hours.times}
 					values={charts.hours.values}
 					steps={5}

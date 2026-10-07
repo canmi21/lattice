@@ -5,11 +5,13 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import Gauge from '../chart/gauge.svelte';
 	import { ago } from '../format.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import { scoped } from '../scope/context.ts';
 	import { tone } from '../style.ts';
 	import type { Shown } from './marks.ts';
-	import { CLUSTERS, PLACES, ROLES, type Site } from './places.ts';
+	import { nameOf, PLACES, ROLES, type Site } from './places.ts';
 
 	let { site, now }: { site: Site; now: number } = $props();
 
@@ -18,6 +20,11 @@
 	const GIB = 2 ** 30;
 
 	const lone = $derived(site.members.length === 1 ? site.members[0] : undefined);
+	/** Where a node alone is, where its name does not say it already: Gävle, of `Sweden, EU`. */
+	const where = $derived.by(() => {
+		const place = lone && PLACES[lone.code as keyof typeof PLACES]?.place;
+		return place === nameOf(lone?.code ?? '').lead ? undefined : place;
+	});
 	const gib = (bytes: number) => `${(bytes / GIB).toFixed(1)} GiB`;
 	const percent = (cpu: number) => `${cpu < 10 ? cpu.toFixed(1) : Math.round(cpu)}%`;
 	const plural = (count: number, one: string) => `${count} ${one}${count === 1 ? '' : 's'}`;
@@ -66,11 +73,9 @@
 <div class="flex flex-col gap-1.5 {stylex.attrs(styles.card).class}" data-site={site.key}>
 	{#if lone}
 		<span class="flex items-center gap-2">
-			<span class={stylex.attrs(styles.strong).class}>{lone.code}</span>
+			<span class={stylex.attrs(styles.strong).class}><NodeName code={lone.code} /></span>
 			{@render dot(lone.state)}
-			<span class="ml-auto pl-3 {stylex.attrs(styles.muted).class}"
-				>{PLACES[lone.code as keyof typeof PLACES]?.place}</span
-			>
+			{#if where}<span class="ml-auto pl-3 {stylex.attrs(styles.muted).class}">{where}</span>{/if}
 		</span>
 		<dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
 			<dt class={stylex.attrs(styles.muted).class}>Status</dt>
@@ -89,7 +94,12 @@
 			</dd>
 			<dt class={stylex.attrs(styles.muted).class}>CPU now</dt>
 			<dd class={stylex.attrs(styles.value).class}>
-				{lone.cpu === undefined ? '–' : percent(lone.cpu)}
+				{#if lone.cpu === undefined}–{:else}<Gauge
+						share={lone.cpu / 100}
+						size={14}
+						label="CPU {percent(lone.cpu)} busy"
+						figure={percent(lone.cpu)}
+					/>{/if}
 			</dd>
 			<dt class={stylex.attrs(styles.muted).class}>Memory</dt>
 			<dd class={stylex.attrs(styles.value).class}>
@@ -98,13 +108,20 @@
 			{#if lone.memory && lone.used !== undefined}
 				<dt class={stylex.attrs(styles.muted).class}>Memory used</dt>
 				<dd class={stylex.attrs(styles.value).class}>
-					{Math.round((lone.used / lone.memory) * 100)}%
+					<Gauge
+						share={lone.used / lone.memory}
+						size={14}
+						label="Memory: {gib(lone.used)} of {gib(lone.memory)}"
+						figure="{Math.round((lone.used / lone.memory) * 100)}%"
+					/>
 				</dd>
 			{/if}
 		</dl>
 	{:else}
 		<span class="flex items-center gap-2">
-			<span class={stylex.attrs(styles.strong).class}>{CLUSTERS[site.key] ?? site.key}</span>
+			<span class={stylex.attrs(styles.strong).class}
+				>{nameOf(site.members[0]?.code ?? site.key).full}</span
+			>
 			{@render dot(site.state)}
 		</span>
 		<span class={stylex.attrs(styles.muted).class}>{summary}</span>
@@ -114,14 +131,21 @@
 					<a
 						href={toNode(member.code)}
 						data-row={member.code}
-						class="grid grid-cols-[2.5rem_auto_1fr_auto] items-center gap-x-2 px-1.5 py-0.5 {stylex.attrs(
+						class="grid grid-cols-[auto_auto_1fr_auto] items-center gap-x-2 px-1.5 py-0.5 {stylex.attrs(
 							styles.row,
 						).class}"
 					>
-						<span class={stylex.attrs(styles.strong).class}>{member.code}</span>
+						<span class={stylex.attrs(styles.strong).class}
+							><NodeName code={member.code} short /></span
+						>
 						{@render dot(member.state)}
 						<span class={stylex.attrs(styles.value).class}>
-							{member.cpu === undefined ? '–' : percent(member.cpu)}
+							{#if member.cpu === undefined}–{:else}<Gauge
+									share={member.cpu / 100}
+									size={14}
+									label="CPU {percent(member.cpu)} busy"
+									figure={percent(member.cpu)}
+								/>{/if}
 						</span>
 						<span class="min-w-14 {stylex.attrs(styles.value).class}">
 							{member.apps ? plural(member.apps.running, 'app') : '–'}

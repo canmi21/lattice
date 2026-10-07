@@ -67,6 +67,7 @@ describe('nodeRow', () => {
 		const row = nodeRow('tyo', held({ apps: [] }), machine(25), NOW);
 		expect(row).toMatchObject({
 			code: 'tyo',
+			name: 'Tokyo, Japan',
 			place: 'Tokyo',
 			role: 'core',
 			architecture: 'arm64',

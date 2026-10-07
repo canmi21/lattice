@@ -6,7 +6,7 @@
 	import Heatmap from '#lib/chart/heatmap.svelte';
 	import StackedBar from '#lib/chart/stacked-bar.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
-	import { PLACES } from '#lib/map/places.js';
+	import { nodeLabel, PLACES } from '#lib/map/places.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
 	import WorldMap from '#lib/map/world-map.svelte';
 	import Heard from '#lib/nodes/heard.svelte';
@@ -95,7 +95,7 @@
 					<Skeleton height={PLACED} chart />
 				{:then { outcomes, missing }}
 					<StackedBar
-						categories={outcomes.nodes}
+						categories={outcomes.nodes.map((node) => nodeLabel(node, 'lead'))}
 						orientation="horizontal"
 						series={[
 							{

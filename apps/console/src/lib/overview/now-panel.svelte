@@ -6,6 +6,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { ago, localTime } from '../format.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import type { Live } from '../live.svelte.ts';
 	import { scoped } from '../scope/context.ts';
 	import { surfaces, type } from '../style.ts';
@@ -45,7 +46,10 @@
 					{#each run.steps as step (`${step.node}/${step.app}`)}
 						<li class="flex items-center justify-between gap-2">
 							<span class="truncate {stylex.attrs(type.body).class}">
-								{step.app} <span class={stylex.attrs(type.mono, type.soft).class}>{step.node}</span>
+								{step.app}
+								<span class={stylex.attrs(type.soft).class}
+									><NodeName code={step.node} short /></span
+								>
 							</span>
 							<Badge tone="busy">{capital(step.stage ?? 'starting')}</Badge>
 						</li>
@@ -65,7 +69,10 @@
 					<a href={to(`/deployments/${step.run}`)} class="flex flex-col gap-1">
 						<span class="flex items-center justify-between gap-2">
 							<span class="truncate {stylex.attrs(type.body).class}">
-								{step.app} <span class={stylex.attrs(type.mono, type.soft).class}>{step.node}</span>
+								{step.app}
+								<span class={stylex.attrs(type.soft).class}
+									><NodeName code={step.node} short /></span
+								>
 							</span>
 							<Badge tone="bad">{step.stage ? `Failed while ${step.stage}` : 'Failed'}</Badge>
 						</span>

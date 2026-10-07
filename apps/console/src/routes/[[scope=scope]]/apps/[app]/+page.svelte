@@ -9,6 +9,8 @@
 	import StatTile from '#lib/chart/stat-tile.svelte';
 	import { moment } from '#lib/chart/series.js';
 	import { bytes, shortImage } from '#lib/format.js';
+	import { nodeLabel } from '#lib/map/places.js';
+	import NodeName from '#lib/nodes/node-name.svelte';
 	import { scoped } from '#lib/scope/context.js';
 	import { surfaces, type } from '#lib/style.js';
 	import Badge from '#lib/ui/badge.svelte';
@@ -123,7 +125,9 @@
 			{#each held as one (one.node)}
 				<div class="flex flex-col gap-2 px-5 py-4 {stylex.attrs(surfaces.card).class}">
 					<div class="flex items-center justify-between gap-2">
-						<a href={toNode(one.node)} class={stylex.attrs(type.name).class}>{one.node}</a>
+						<a href={toNode(one.node)} class={stylex.attrs(type.name).class}
+							><NodeName code={one.node} /></a
+						>
 						<StateBadge state={one.state} />
 					</div>
 					<span class={stylex.attrs(type.mono).class} title={one.app.image}
@@ -137,7 +141,9 @@
 			{/each}
 		</div>
 	{:else if silent.length}
-		<p class={stylex.attrs(type.soft).class}>State unknown on {silent.join(', ')}.</p>
+		<p class={stylex.attrs(type.soft).class}>
+			State unknown on {silent.map((node) => nodeLabel(node)).join(', ')}.
+		</p>
 	{/if}
 
 	<UsageCharts

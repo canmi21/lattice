@@ -3,6 +3,8 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { moment } from '../chart/series.ts';
 	import { shortImage } from '../format.ts';
+	import { nodeLabel } from '../map/places.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import { scoped } from '../scope/context.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
@@ -29,7 +31,7 @@
 			value: (event) => event.started_at,
 			text: (event) => moment(Date.parse(event.started_at) / 1000, zone),
 		},
-		{ key: 'node', label: 'Node', value: (event) => event.node, cell: node },
+		{ key: 'node', label: 'Node', value: (event) => nodeLabel(event.node), cell: node },
 		{ key: 'action', label: 'Action', value: (event) => event.action },
 		{ key: 'stage', label: 'Stage', value: (event) => event.stage ?? '', cell: stage },
 		{ key: 'outcome', label: 'Outcome', value: (event) => event.outcome, cell: outcome },
@@ -56,7 +58,7 @@
 	<span class={stylex.attrs(type.mono).class}>{text}</span>
 {/snippet}
 
-{#snippet node(event: NodeEvent)}{@render mono(event.node)}{/snippet}
+{#snippet node(event: NodeEvent)}<NodeName code={event.node} short />{/snippet}
 
 {#snippet image(event: NodeEvent)}
 	{@render mono(event.image ? shortImage(event.image) : '')}

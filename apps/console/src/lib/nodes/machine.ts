@@ -3,7 +3,7 @@
  * meter's readings, the live snapshot's where it carries them and the server's read otherwise.
  */
 import type { Now } from '../host.ts';
-import { type Role, PLACES } from '../map/places.ts';
+import { nameOf, type Role, PLACES } from '../map/places.ts';
 import { type Liveness, liveness, readings, running } from '../node.ts';
 import type { Node } from '../server/nodes.ts';
 import type { Held } from '../wire.ts';
@@ -41,6 +41,8 @@ export function uptime(booted: number | null | undefined, now: number): number |
 
 export interface NodeRow {
 	code: Node;
+	/** Its display name, which other nodes may share; `code` is the key. */
+	name: string;
 	place: string;
 	role: Role;
 	facts: Facts;
@@ -74,6 +76,7 @@ export function nodeRow(
 	const measured = machine ? readings(machine) : undefined;
 	return {
 		code,
+		name: nameOf(code).full,
 		place: PLACES[code].place,
 		role: PLACES[code].role,
 		facts: FACTS[code],

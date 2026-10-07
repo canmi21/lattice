@@ -7,11 +7,12 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, radius } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { nodeLabel } from '../map/places.ts';
 	import { STAGES, depth, said, type NodeMark } from './state.ts';
 
 	let { marks }: { marks: NodeMark[] } = $props();
 
-	const words = (one: NodeMark) => `${one.node} ${said(one.mark, one.stage)}`;
+	const words = (one: NodeMark) => `${nodeLabel(one.node)} ${said(one.mark, one.stage)}`;
 
 	const styles = stylex.create({
 		cell: {

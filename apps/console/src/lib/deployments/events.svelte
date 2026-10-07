@@ -7,6 +7,8 @@
 	import { duration } from '../chart/numbers.ts';
 	import { moment } from '../chart/series.ts';
 	import { shortImage } from '../format.ts';
+	import { nodeLabel } from '../map/places.ts';
+	import NodeName from '../nodes/node-name.svelte';
 	import type { FleetEvent } from '../server/fleet.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
@@ -34,7 +36,7 @@
 			value: started,
 			text: (event) => moment(started(event) / 1000, zone),
 		},
-		{ key: 'node', label: 'Node', value: (event) => event.node },
+		{ key: 'node', label: 'Node', value: (event) => nodeLabel(event.node), cell: nodeCell },
 		{ key: 'app', label: 'App', value: (event) => event.app },
 		{ key: 'action', label: 'Action', value: (event) => event.action },
 		{ key: 'source', label: 'Source', value: (event) => event.source.kind },
@@ -51,6 +53,8 @@
 	];
 	const styles = stylex.create({ detail: { maxWidth: '28rem' } });
 </script>
+
+{#snippet nodeCell(event: FleetEvent)}<NodeName code={event.node} short />{/snippet}
 
 {#snippet outcomeCell(event: FleetEvent)}
 	<Badge tone={TONE[markOf(event.outcome)]}>{word(event)}</Badge>
