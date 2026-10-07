@@ -17,3 +17,9 @@ divide the work is the workspace's `spec/planning.md`.
   and serving; what of that is good moves down into the platform, and the site keeps only what is
   its own -- the workspace's `spec/architecture/layers.md`, and platform's
   `spec/architecture/scheduling.md`.
+- **One console runs the system, and it is this layer's.** The platform's console and infra's
+  per-node panel become one app here: deployed on every node it shows that node alone and reads
+  only its host, and deployed at the edge it is the whole fleet's -- later public, behind sign-in,
+  with roles and several Cloudflare accounts to deploy through. The console moves here from the
+  platform first, and the node's build replaces infra's panel once it does what the panel does --
+  [issues/console.md](issues/console.md).
