@@ -22,5 +22,7 @@ divide the work is the workspace's `spec/planning.md`.
   only its host, and deployed at the edge it is the whole fleet's -- later public, behind sign-in,
   with roles and several Cloudflare accounts to deploy through. It is made for the author first, and
   for anybody else only once the author runs everything from it. Cloudflare Access guards both
-  builds until the platform's accounts exist, and retires when they do -- [todo/todo.md](todo/todo.md),
+  builds until the platform's accounts exist, and retires when they do; then a node's build lets
+  somebody in with the platform's accounts or with the node's own key, so the accounts being down
+  never locks a node out -- [todo/todo.md](todo/todo.md),
   "The console"; [issues/console.md](issues/console.md).

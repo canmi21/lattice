@@ -24,7 +24,7 @@ which areas exist and which entries are worth reaching for first.
 
 | area                     | entries | what it holds                                                        |
 | ------------------------ | ------- | -------------------------------------------------------------------- |
-| [console.md](console.md) | 2       | how a node runs the console, and its sign-in after Access            |
+| [console.md](console.md) | 1       | how a node runs an app this repository builds                        |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
 | [site.md](site.md)       | 17      | routing, rendering, the article page, the tests, the license surface |
 | [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach              |
@@ -57,7 +57,6 @@ reasons.
 ### [console.md](console.md)
 
 - How a node runs an app this repository builds
-- The node's sign-in, with nothing above it
 
 ### [css.md](css.md)
 
