@@ -127,6 +127,14 @@ describe('node', () => {
 		expect([...sent, ...untokened.sent]).toHaveLength(0);
 	});
 
+	it('counts a 404 outside the envelope as a route the node does not have', async () => {
+		const { env } = bound({ tyo: () => new Response('not found', { status: 404 }) });
+		expect(await node({ env }, 'tyo', '/apps/database/health')).toMatchObject({
+			ok: false,
+			failure: { status: 404, code: 'no_such_route' },
+		});
+	});
+
 	it('counts an answer outside the envelope, or none, as the node unavailable', async () => {
 		const errors = vi.spyOn(console, 'error').mockImplementation(() => {});
 		const { env } = bound({ tyo: () => new Response('bad gateway', { status: 502 }), nrt: down });

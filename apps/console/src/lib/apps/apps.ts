@@ -10,6 +10,7 @@ import { type Datum, type Line, metric } from '../chart/series.ts';
 import type { Node } from '../server/nodes.ts';
 import type { Read } from '../server/read.ts';
 import type { App, Cluster, Event } from '../wire.ts';
+import { rolloutOf } from './rollout.ts';
 
 export type State = 'running' | 'held' | 'stopped';
 
@@ -30,6 +31,8 @@ export interface AppRow {
 	/** The newest deploy time among its nodes. */
 	deployed: string;
 	running: number;
+	/** Each distinct rollout its nodes show, in node order: one unless a deploy is half done. */
+	rollouts: string[];
 }
 
 /** Every node, in the order a chart's colors follow. */
@@ -69,6 +72,7 @@ function rowOf(order: Order, cluster: Cluster, name: string): AppRow {
 		drift: drifts(images),
 		deployed: times.reduce((a, b) => (Date.parse(b) > Date.parse(a) ? b : a), times[0] ?? ''),
 		running: held.filter(({ state }) => state === 'running').length,
+		rollouts: [...new Set(held.map(({ app }) => rolloutOf(app)))],
 	};
 }
 

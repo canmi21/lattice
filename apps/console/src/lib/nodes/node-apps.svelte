@@ -1,11 +1,13 @@
 <script lang="ts">
 	/** The apps one node runs, as its host lists them, each leading to the app's page. */
+	import * as stylex from '@stylexjs/stylex';
 	import AppName from '../apps/app-name.svelte';
+	import { DEFAULT_ROLLOUT, rolloutLabel, rolloutOf } from '../apps/rollout.ts';
 	import { ago, bytes, shortImage } from '../format.ts';
 	import type { AppDetail } from '../host.ts';
 	import { scoped } from '../scope/context.ts';
 	import { appLabel, displayOf } from '../scope/scope.ts';
-	import type { Tone } from '../style.ts';
+	import { type Tone, type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
 	import type { Column } from '../table/table.ts';
 	import Badge from '../ui/badge.svelte';
@@ -41,6 +43,12 @@
 			cell: state,
 		},
 		{ key: 'kind', label: 'Kind', value: kind },
+		{
+			key: 'rollout',
+			label: 'Rollout',
+			value: (app) => rolloutLabel(rolloutOf(app)),
+			cell: rollout,
+		},
 		{ key: 'image', label: 'Image', value: (app) => shortImage(app.image) },
 		{
 			key: 'deployed',
@@ -68,6 +76,15 @@
 </script>
 
 {#snippet appCell(app: AppDetail)}<AppName app={name(app)} />{/snippet}
+
+{#snippet rollout(app: AppDetail)}
+	{@const rollout = rolloutOf(app)}
+	<span
+		title={`rollout = "${rollout}"`}
+		class={rollout === DEFAULT_ROLLOUT ? stylex.attrs(type.soft).class : undefined}
+		>{rolloutLabel(rollout)}</span
+	>
+{/snippet}
 
 {#snippet state(app: AppDetail)}
 	{@const said = STATES[stateOf(app)]}

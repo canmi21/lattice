@@ -80,7 +80,10 @@ export function isNode(name: string): name is Node {
 	return Object.hasOwn(NODES, name);
 }
 
-/** The envelope's data, or its failure; anything that is not an envelope is the node's fault. */
+/**
+ * The envelope's data, or its failure; anything else that is not an envelope is the node's fault,
+ * but a 404 is a path nothing on the node answers yet, as a route host has not deployed.
+ */
 async function opened<T>(node: Node, answer: Response): Promise<Read<T>> {
 	const body = (await answer.json().catch(() => undefined)) as
 		| { status: 'success'; data: T }
@@ -91,6 +94,7 @@ async function opened<T>(node: Node, answer: Response): Promise<Read<T>> {
 		const { code, message } = body;
 		return { ok: false, failure: { status: answer.status, code, message } };
 	}
+	if (answer.status === 404) return failed(404, 'no_such_route', `${node} has no such route.`);
 	console.error(`read: ${node} answered ${answer.status} outside the envelope`);
 	return failed(502, 'upstream_unavailable', `${node} answered outside the envelope.`);
 }

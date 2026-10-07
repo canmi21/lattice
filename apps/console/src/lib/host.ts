@@ -54,7 +54,12 @@ export type Grain = 'second' | 'minute' | 'hour';
 
 /** One version of an app: its manifest as far as the console reads it, and the image it runs. */
 export interface Version {
-	manifest: { name: string; container?: { port?: number; socket?: string; memory_mb?: number } };
+	manifest: {
+		name: string;
+		container?: { port?: number; socket?: string; memory_mb?: number };
+		/** `replace`, `beside` or `manual`; see ./apps/rollout.ts. */
+		rollout?: string;
+	};
 	image: string;
 }
 
@@ -69,6 +74,23 @@ export interface AppDetail extends Version {
 	platform: boolean;
 	/** objects or postgres: no container of its own, so nothing to start or stop. */
 	driver: boolean;
+	/** `replace`, `beside` or `manual`, absent before host sends it; see ./apps/rollout.ts. */
+	rollout?: string;
+}
+
+/**
+ * `/api/apps/{name}/health`: host asking the app's own `/health` on its behalf. `body` is the app's
+ * JSON as it answered, read by whoever knows that app; see ./apps/health.ts.
+ */
+export interface Checked {
+	app: string;
+	answered: boolean;
+	/** The app's HTTP status, none when it did not answer. */
+	code: number | null;
+	body: unknown;
+	checked_at: string;
+	/** Why it did not answer. */
+	error?: string;
 }
 
 /** A page of events: `before` is an event id on that node, and the next page is the one before. */

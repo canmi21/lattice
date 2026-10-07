@@ -5,6 +5,7 @@
 	import AppName from '#lib/apps/app-name.svelte';
 	import { type AppRow, rowsOf } from '#lib/apps/apps.js';
 	import NodeChip from '#lib/apps/node-chip.svelte';
+	import { DEFAULT_ROLLOUT, rolloutLabel } from '#lib/apps/rollout.js';
 	import { shortImage } from '#lib/format.js';
 	import { nodeLabel } from '#lib/map/places.js';
 	import Empty from '#lib/scope/empty.svelte';
@@ -62,6 +63,12 @@
 			cell: image,
 		},
 		{
+			key: 'rollout',
+			label: 'Rollout',
+			value: (row) => row.rollouts.map(rolloutLabel).join(', '),
+			cell: rollout,
+		},
+		{
 			key: 'deployed',
 			label: 'Last deployed',
 			value: (row) => row.deployed,
@@ -78,6 +85,15 @@
 			<NodeChip node={one.node} state={one.state} />
 		{/each}
 	</span>
+{/snippet}
+
+{#snippet rollout(row: AppRow)}
+	<span
+		title={row.rollouts.map((one) => `rollout = "${one}"`).join(', ')}
+		class={row.rollouts.every((one) => one === DEFAULT_ROLLOUT)
+			? stylex.attrs(type.soft).class
+			: undefined}>{row.rollouts.map(rolloutLabel).join(', ')}</span
+	>
 {/snippet}
 
 {#snippet image(row: AppRow)}

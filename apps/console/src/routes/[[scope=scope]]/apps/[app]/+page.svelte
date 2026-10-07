@@ -2,7 +2,10 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { page } from '$app/state';
 	import { drifts, latest, lines, merge, placements, total } from '#lib/apps/apps.js';
+	import DatabasePanel from '#lib/apps/database-panel.svelte';
 	import HistoryTable from '#lib/apps/history-table.svelte';
+	import RolloutTag from '#lib/apps/rollout-tag.svelte';
+	import { rolloutsOf } from '#lib/apps/rollout.js';
 	import StateBadge from '#lib/apps/state-badge.svelte';
 	import UsageCharts from '#lib/apps/usage-charts.svelte';
 	import Card from '#lib/card.svelte';
@@ -43,6 +46,8 @@
 	const drift = $derived(drifts(images));
 	const series = $derived(reads.value?.series ?? {});
 	const history = $derived(reads.value && merge(data.order, reads.value.events));
+	/** One, unless the nodes disagree, when each is written with the nodes it holds on. */
+	const rollouts = $derived(rolloutsOf(reads.value?.details));
 	/** Nodes asked that did not answer one of the reads: unknown, not absent. */
 	const silent = $derived(
 		Object.entries(series)
@@ -81,6 +86,9 @@
 			</Badge>
 			{#if drift}<Badge tone="warn">Image drift, {images.length} images</Badge>{/if}
 		{/if}
+		{#each rollouts as one (one.rollout)}
+			<RolloutTag rollout={one.rollout} nodes={rollouts.length > 1 ? one.nodes : undefined} />
+		{/each}
 	{/snippet}
 </PageHeader>
 
@@ -147,6 +155,15 @@
 		<p class={stylex.attrs(type.soft).class}>
 			State unknown on {silent.map((node) => nodeLabel(node)).join(', ')}.
 		</p>
+	{/if}
+
+	{#if data.health}
+		<DatabasePanel
+			reads={data.health}
+			where={read?.ok ? held.map((one) => one.node) : data.order}
+			known={read?.ok ?? false}
+			href={`${page.url.pathname}/health`}
+		/>
 	{/if}
 
 	<UsageCharts

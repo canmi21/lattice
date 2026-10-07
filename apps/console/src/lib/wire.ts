@@ -35,6 +35,8 @@ export interface App {
 	deployed_at: string;
 	running: boolean;
 	held: boolean;
+	/** Absent until the relay passes host's on; see ./apps/rollout.ts. */
+	rollout?: string;
 }
 
 export interface Snapshot {

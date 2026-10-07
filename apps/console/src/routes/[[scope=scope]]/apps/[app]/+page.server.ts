@@ -1,5 +1,6 @@
 import { redirect } from '@sveltejs/kit';
-import { appReadsBeside } from '#lib/apps/read.js';
+import { DATABASE } from '#lib/apps/health.js';
+import { appReadsBeside, healthReads } from '#lib/apps/read.js';
 import { scopeOf, viewOf, within } from '#lib/scope/scope.js';
 import { ALL } from '#lib/server/fleet.js';
 import { edgeOf } from '#lib/server/platform.js';
@@ -12,6 +13,7 @@ import type { PageServerLoad } from './$types';
  * The span at once, the cluster and the app's reads streamed. A page already sent cannot become a
  * 404, so an app no node runs is said in the page instead. An app asked for in another scope is
  * sent to its own, which the address names; All shows every one. See spec/architecture/console.md.
+ * The database's page streams its keepers' health beside it; see src/lib/apps/health.ts.
  */
 export const load: PageServerLoad = (event) => {
 	const app = event.params.app;
@@ -32,5 +34,6 @@ export const load: PageServerLoad = (event) => {
 		range: chosen,
 		span,
 		reads: appReadsBeside(edge, held, app, span),
+		health: app === DATABASE ? healthReads(edge, app) : undefined,
 	};
 };

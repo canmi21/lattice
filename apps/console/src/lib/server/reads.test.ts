@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { bound, paths, success } from './bound.ts';
-import { app, appSeries, apps, disk, events, history } from './reads.ts';
+import { app, appHealth, appSeries, apps, disk, events, history } from './reads.ts';
 import { nodeNow, nodeSeries, range } from './reads.ts';
 
 const NOW = 1_000_000;
@@ -25,6 +25,7 @@ describe('one node', () => {
 		await nodeSeries(edge, 'tyo', span);
 		await apps(edge, 'tyo');
 		await app(edge, 'tyo', 'web');
+		await appHealth(edge, 'tyo', 'database');
 		await appSeries(edge, 'tyo', 'web', span);
 		await history(edge, 'tyo', 'web', { before: 9, limit: 5 });
 		await history(edge, 'tyo', 'web');
@@ -37,6 +38,7 @@ describe('one node', () => {
 			'/node/series?grain=hour&since=10&until=20',
 			'/apps',
 			'/apps/web',
+			'/apps/database/health',
 			'/apps/web/metrics/series?grain=hour&since=10&until=20',
 			'/apps/web/history?before=9&limit=5',
 			'/apps/web/history',

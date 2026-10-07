@@ -3,7 +3,7 @@
  * helper is one request with a timeout, so a slow node cannot hold a page. See
  * spec/architecture/console.md, "It reads, and does not write, at first".
  */
-import type { AppDetail, Disk, Grain, Now, Page, Point } from '../host.ts';
+import type { AppDetail, Checked, Disk, Grain, Now, Page, Point } from '../host.ts';
 import type { Event } from '../wire.ts';
 import { TIMEOUT } from './edge.ts';
 import { type Edge, type Read, node } from './read.ts';
@@ -65,6 +65,10 @@ export const apps = (edge: Edge, name: string): Promise<Read<AppDetail[]>> =>
 
 export const app = (edge: Edge, name: string, of: string): Promise<Read<AppDetail>> =>
 	node(edge, name, `/apps/${segment(of)}`, TIMEOUT);
+
+/** Host asking the app's own `/health` for the console; see ../apps/health.ts. */
+export const appHealth = (edge: Edge, name: string, of: string): Promise<Read<Checked>> =>
+	node(edge, name, `/apps/${segment(of)}/health`, TIMEOUT);
 
 /** An app's own metrics, `<name>.cpu` and the rest, at the span's grain. */
 export const appSeries = (
