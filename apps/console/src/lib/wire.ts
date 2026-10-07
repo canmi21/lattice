@@ -22,8 +22,9 @@ export interface Event {
 	image?: string;
 	/** `running`, `succeeded`, `failed` or `skipped`. */
 	outcome: string;
-	/** `downloading`, `admitting`, `loading` or `starting`. */
+	/** `downloading` to `draining`, as ./deployments/state.ts orders them. */
 	stage?: string;
+	/** Why it failed; on a skip of an app deployed by hand, the command that deploys it. */
 	detail?: string;
 	started_at: string;
 	finished_at?: string;

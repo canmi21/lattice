@@ -7,17 +7,46 @@ import type { Node } from '../server/nodes.ts';
 import type { Placement, Run } from '../server/runs.ts';
 import type { Tone } from '../style.ts';
 
-/** host's stages of a deploy, in the order a deploy passes them. */
-export const STAGES = ['downloading', 'admitting', 'loading', 'starting'] as const;
+/**
+ * host's stages of a deploy, in the order a deploy passes them. Every deploy passes the first four;
+ * one rolled out beside its predecessor goes on to the last three and, succeeding, ends at
+ * `draining`. See infra's spec/architecture/host.md, "An app chooses how it is rolled out".
+ */
+export const STAGES = [
+	'downloading',
+	'admitting',
+	'loading',
+	'starting',
+	'checking',
+	'switching',
+	'draining',
+] as const;
 
 /** An outcome host wrote; `absent` where a node placed none, `unknown` where it did not answer. */
 export type Mark = 'running' | 'succeeded' | 'failed' | 'skipped' | 'absent' | 'unknown';
 
 export type RunState = 'running' | 'failed' | 'succeeded' | 'skipped';
 
-/** How far through the four stages `stage` is, 1 to 4; 0 for none, or a word host added since. */
+/** How far through the stages `stage` is, from 1; 0 for none, or a word host added since. */
 export function depth(stage: string | undefined): number {
 	return STAGES.indexOf(stage as (typeof STAGES)[number]) + 1;
+}
+
+/**
+ * How much of a running deploy is behind it, 0 to 1, over every stage there is: a deploy's rollout
+ * is not on its events, so one that will end at `starting` cannot be told from one going on.
+ */
+export const share = (stage: string | undefined): number => depth(stage) / STAGES.length;
+
+/** How an operator command a skip carries begins: infra's spec/architecture/host.md, "manual". */
+const BY_HAND = 'mise run node deploy ';
+
+/**
+ * The command a skip left for the operator, where an app rolled out by hand was skipped by a run;
+ * none for any other event.
+ */
+export function handCommand(outcome: string, detail: string | undefined): string | undefined {
+	return outcome === 'skipped' && detail?.startsWith(BY_HAND) ? detail : undefined;
 }
 
 /** An outcome as a mark; one host added after this console was written is `unknown`. */
@@ -83,9 +112,14 @@ export function matrix(run: Run, nodes: Node[], unknown: ReadonlySet<Node>): Cel
 
 const capitalized = (word: string) => word.charAt(0).toUpperCase() + word.slice(1);
 
-/** A mark as a word: a running deploy by its stage, a failure by where it happened. */
-export function said(mark: Mark, stage?: string): string {
+/**
+ * A mark as a word: a running deploy by its stage, a failure by where it happened, and a skip left
+ * for the operator, its `detail` the command, as waiting for them.
+ */
+export function said(mark: Mark, stage?: string, detail?: string): string {
 	switch (mark) {
+		case 'skipped':
+			return handCommand(mark, detail) ? 'By hand' : 'Skipped';
 		case 'running':
 			return capitalized(stage ?? 'running');
 		case 'failed':

@@ -7,6 +7,7 @@
 	import { duration } from '../chart/numbers.ts';
 	import AppName from '../apps/app-name.svelte';
 	import { moment } from '../chart/series.ts';
+	import { handCommand } from '../deployments/state.ts';
 	import { appLabel, displayOf } from '../scope/scope.ts';
 	import { type } from '../style.ts';
 	import DataTable from '../table/data-table.svelte';
@@ -66,7 +67,7 @@
 		{
 			key: 'outcome',
 			label: 'Outcome',
-			value: (event) => outcome(event.outcome).word,
+			value: (event) => outcome(event.outcome, event.detail).word,
 			cell: ended,
 		},
 		{
@@ -76,18 +77,24 @@
 			value: took,
 			text: (event) => duration(took(event)),
 		},
-		{ key: 'detail', label: 'Detail', value: (event) => event.detail ?? '' },
+		{ key: 'detail', label: 'Detail', value: (event) => event.detail ?? '', cell: detail },
 	];
 </script>
 
 {#snippet appCell(event: Event)}<AppName app={event.app} />{/snippet}
+
+{#snippet detail(event: Event)}
+	{#if handCommand(event.outcome, event.detail)}<span class={stylex.attrs(type.mono).class}
+			>{event.detail}</span
+		>{:else}{event.detail ?? ''}{/if}
+{/snippet}
 
 {#snippet stage(event: Event)}
 	{#if event.stage}<Badge tone="quiet">{capital(event.stage)}</Badge>{/if}
 {/snippet}
 
 {#snippet ended(event: Event)}
-	{@const said = outcome(event.outcome)}
+	{@const said = outcome(event.outcome, event.detail)}
 	<Badge tone={said.tone}>{said.word}</Badge>
 {/snippet}
 

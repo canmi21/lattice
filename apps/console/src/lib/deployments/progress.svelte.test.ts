@@ -8,15 +8,15 @@ import type { Cell, NodeMark } from './state.ts';
 describe('the progress strip', () => {
 	it('fills a running cell as far as its stage, and says every node in words', () => {
 		const marks: NodeMark[] = [
-			{ node: 'tyo', mark: 'running', stage: 'admitting', placements: 1 },
+			{ node: 'tyo', mark: 'running', stage: 'draining', placements: 1 },
 			{ node: 'nrt', mark: 'succeeded', placements: 2 },
 			{ node: 'bru', mark: 'absent', placements: 0 },
 			{ node: 'rdu', mark: 'unknown', placements: 0 },
 		];
 		const { body } = render(Progress, { props: { marks } });
-		expect(body).toContain('height: 50%');
+		expect(body).toContain('height: 100%');
 		expect(body).toContain(
-			'aria-label="Tokyo, Japan (tyo) Admitting, Tokyo, Japan (nrt) Succeeded, Belgium, EU (bru) Not placed, Raleigh, US (rdu) Unknown"',
+			'aria-label="Tokyo, Japan (tyo) Draining, Tokyo, Japan (nrt) Succeeded, Belgium, EU (bru) Not placed, Raleigh, US (rdu) Unknown"',
 		);
 		expect(body.match(/title="/g)).toHaveLength(4);
 	});
@@ -49,5 +49,21 @@ describe('the matrix', () => {
 			context: viewedAs('platform'),
 		});
 		expect(scoped.body).toContain('href="/infra/nodes/tyo"');
+	});
+
+	it('writes a skip left for the operator as by hand, the command on hover', () => {
+		const detail = 'mise run node deploy tyo --run 41 --repository platform --app database';
+		const placement = {
+			node: 'tyo' as const,
+			app: 'database',
+			action: 'deploy',
+			outcome: 'skipped',
+			detail,
+			started_at: '2026-10-05T10:00:00Z',
+		};
+		const rows: Cell[][] = [[{ app: 'database', node: 'tyo', mark: 'skipped', placement }]];
+		const { body } = render(Matrix, { props: { rows, nodes: ['tyo'] } });
+		expect(body).toContain(`title="${detail}"`);
+		expect(body).toContain('By hand');
 	});
 });

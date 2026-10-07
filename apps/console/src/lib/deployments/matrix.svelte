@@ -47,7 +47,9 @@
 							<span class={stylex.attrs(type.soft, styles.none).class}>Not placed</span>
 						{:else}
 							<a href={toNode(cell.node)} title={hint(cell)}>
-								<Badge tone={TONE[cell.mark]}>{said(cell.mark, cell.placement?.stage)}</Badge>
+								<Badge tone={TONE[cell.mark]}
+									>{said(cell.mark, cell.placement?.stage, cell.placement?.detail)}</Badge
+								>
 							</a>
 						{/if}
 					</td>

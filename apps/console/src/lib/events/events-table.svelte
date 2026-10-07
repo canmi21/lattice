@@ -7,6 +7,7 @@
 	import AppName from '../apps/app-name.svelte';
 	import { moment } from '../chart/series.ts';
 	import { nodeLabel } from '../map/places.ts';
+	import { handCommand } from '../deployments/state.ts';
 	import NodeName from '../nodes/node-name.svelte';
 	import { scoped } from '../scope/context.ts';
 	import { appLabel, displayOf } from '../scope/scope.ts';
@@ -32,6 +33,9 @@
 		skipped: 'quiet',
 	};
 	const key = (event: FleetEvent) => `${event.node}/${event.id}`;
+	/** A skip left for the operator says so; see ../deployments/state.ts. */
+	const word = (event: FleetEvent) =>
+		handCommand(event.outcome, event.detail) ? 'by hand' : event.outcome;
 	const at = (event: FleetEvent) => Date.parse(event.started_at);
 	const commit = (event: FleetEvent) => event.source.commit?.slice(0, 7) ?? '';
 	const source = (event: FleetEvent) =>
@@ -64,7 +68,7 @@
 			text: (event) => `${source(event)} ${commit(event)}`.trim(),
 			cell: sourceCell,
 		},
-		{ key: 'outcome', label: 'Outcome', value: (event) => event.outcome, cell: outcomeCell },
+		{ key: 'outcome', label: 'Outcome', value: word, cell: outcomeCell },
 		{ key: 'stage', label: 'Stage', value: (event) => event.stage ?? '' },
 		{
 			key: 'duration',
@@ -99,7 +103,7 @@
 {/snippet}
 
 {#snippet outcomeCell(event: FleetEvent)}
-	<Badge tone={TONES[event.outcome] ?? 'quiet'}>{event.outcome}</Badge>
+	<Badge tone={TONES[event.outcome] ?? 'quiet'}>{word(event)}</Badge>
 {/snippet}
 
 {#snippet detailCell(event: FleetEvent)}
@@ -109,7 +113,10 @@
 			type="button"
 			class="block w-full max-w-96 min-w-48 text-left {wide
 				? 'break-words whitespace-pre-wrap'
-				: 'truncate'} {stylex.attrs(styles.more, type.body).class}"
+				: 'truncate'} {stylex.attrs(
+				styles.more,
+				handCommand(event.outcome, event.detail) ? type.mono : type.body,
+			).class}"
 			title={event.detail}
 			aria-expanded={wide}
 			onclick={() => toggle(key(event))}>{event.detail}</button

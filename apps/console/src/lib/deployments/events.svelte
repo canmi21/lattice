@@ -17,7 +17,7 @@
 	import type { Column } from '../table/table.ts';
 	import Badge from '../ui/badge.svelte';
 	import { timeZone } from '../ui/time-zone.ts';
-	import { TONE, markOf, said } from './state.ts';
+	import { TONE, handCommand, markOf, said } from './state.ts';
 
 	let { events, label, empty }: { events: FleetEvent[]; label: string; empty: string } = $props();
 
@@ -28,7 +28,7 @@
 	/** An outcome host added since is written as host wrote it. */
 	const word = (event: FleetEvent) => {
 		const mark = markOf(event.outcome);
-		return mark === 'unknown' ? event.outcome : said(mark, event.stage);
+		return mark === 'unknown' ? event.outcome : said(mark, event.stage, event.detail);
 	};
 
 	const columns: Column<FleetEvent>[] = [
@@ -71,8 +71,12 @@
 {/snippet}
 
 {#snippet detailCell(event: FleetEvent)}
-	<span class="block truncate {stylex.attrs(styles.detail, type.soft).class}" title={event.detail}
-		>{event.detail ?? ''}</span
+	<span
+		class="block truncate {stylex.attrs(
+			styles.detail,
+			handCommand(event.outcome, event.detail) ? type.mono : type.soft,
+		).class}"
+		title={event.detail}>{event.detail ?? ''}</span
 	>
 {/snippet}
 

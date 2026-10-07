@@ -8,7 +8,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { border, radius } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { nodeLabel } from '../map/places.ts';
-	import { STAGES, depth, said, type NodeMark } from './state.ts';
+	import { said, share, type NodeMark } from './state.ts';
 
 	let { marks }: { marks: NodeMark[] } = $props();
 
@@ -49,7 +49,7 @@
 			{#if one.mark === 'running'}
 				<span
 					class="w-full {stylex.attrs(styles.fill).class}"
-					style:height="{(depth(one.stage) / STAGES.length) * 100}%"
+					style:height="{share(one.stage) * 100}%"
 				></span>
 			{/if}
 		</span>

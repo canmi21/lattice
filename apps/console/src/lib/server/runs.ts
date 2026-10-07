@@ -16,7 +16,7 @@ export interface Placement {
 	action: string;
 	/** `running`, `succeeded`, `failed` or `skipped`. */
 	outcome: string;
-	/** Where it failed, or where it is; `downloading`, `admitting`, `loading` or `starting`. */
+	/** Where it failed, where it is, or the last it reached; ../deployments/state.ts orders them. */
 	stage?: string;
 	detail?: string;
 	started_at: string;

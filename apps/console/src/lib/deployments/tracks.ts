@@ -12,7 +12,7 @@ import type { Node } from '../server/nodes.ts';
 import type { Placement, Run } from '../server/runs.ts';
 import { STAGES, markOf, said } from './state.ts';
 
-/** The four stages, each its series color in the fixed order. */
+/** The stages, each its series color in the fixed order. */
 export const STAGE_KEYS: Key[] = STAGES.map((stage, index) => ({
 	key: stage,
 	label: said('running', stage),
@@ -24,7 +24,10 @@ export const FEW = 12;
 
 const seconds = (stamp: string) => Date.parse(stamp) / 1000;
 
-/** A placement as a segment; a success reached the last stage, a deploy with none the first. */
+/**
+ * A placement as a segment, in the last stage it reached: a success naming none `starting`, the
+ * last every deploy passes, and a deploy still going that names none the first.
+ */
 export function segment(placement: Placement): Stage | undefined {
 	const mark = markOf(placement.outcome);
 	if (mark === 'skipped') return undefined;

@@ -11,6 +11,7 @@
 	import type { Column } from '../table/table.ts';
 	import Badge from '../ui/badge.svelte';
 	import { timeZone } from '../ui/time-zone.ts';
+	import { handCommand } from '../deployments/state.ts';
 	import type { NodeEvent } from './apps.ts';
 
 	let { events }: { events: NodeEvent[] } = $props();
@@ -20,6 +21,9 @@
 	const zone = timeZone();
 	const TONES = { running: 'busy', succeeded: 'good', failed: 'bad', skipped: 'quiet' } as const;
 	const tone = (outcome: string) => TONES[outcome as keyof typeof TONES] ?? 'quiet';
+	/** A skip left for the operator says so; see ../deployments/state.ts. */
+	const word = (event: NodeEvent) =>
+		handCommand(event.outcome, event.detail) ? 'by hand' : event.outcome;
 
 	const runOf = (event: NodeEvent) =>
 		event.source.run === undefined ? undefined : to(`/deployments/${event.source.run}`);
@@ -34,7 +38,7 @@
 		{ key: 'node', label: 'Node', value: (event) => nodeLabel(event.node), cell: node },
 		{ key: 'action', label: 'Action', value: (event) => event.action },
 		{ key: 'stage', label: 'Stage', value: (event) => event.stage ?? '', cell: stage },
-		{ key: 'outcome', label: 'Outcome', value: (event) => event.outcome, cell: outcome },
+		{ key: 'outcome', label: 'Outcome', value: word, cell: outcome },
 		{
 			key: 'image',
 			label: 'Image',
@@ -42,12 +46,18 @@
 			text: (event) => (event.image ? shortImage(event.image) : ''),
 			cell: image,
 		},
-		{ key: 'detail', label: 'Detail', value: (event) => event.detail ?? '' },
+		{ key: 'detail', label: 'Detail', value: (event) => event.detail ?? '', cell: detail },
 	];
 </script>
 
 {#snippet outcome(event: NodeEvent)}
-	<Badge tone={tone(event.outcome)}>{event.outcome}</Badge>
+	<Badge tone={tone(event.outcome)}>{word(event)}</Badge>
+{/snippet}
+
+{#snippet detail(event: NodeEvent)}
+	{#if handCommand(event.outcome, event.detail)}{@render mono(
+			event.detail ?? '',
+		)}{:else}{event.detail ?? ''}{/if}
 {/snippet}
 
 {#snippet stage(event: NodeEvent)}

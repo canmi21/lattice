@@ -3,9 +3,19 @@ import type { FleetEvent } from '../server/fleet.ts';
 import type { Node } from '../server/nodes.ts';
 import { type Run, group } from '../server/runs.ts';
 import { daily, within } from './daily.ts';
-import { depth, markOf, matrix, nodeMark, runState, said } from './state.ts';
+import {
+	STAGES,
+	depth,
+	handCommand,
+	markOf,
+	matrix,
+	nodeMark,
+	runState,
+	said,
+	share,
+} from './state.ts';
 import { stirring } from './stir.ts';
-import { FEW, segment, tracks } from './tracks.ts';
+import { FEW, STAGE_KEYS, segment, tracks } from './tracks.ts';
 
 let ids = 0;
 function at(node: Node, app: string, over: Partial<FleetEvent> = {}): FleetEvent {
@@ -91,6 +101,45 @@ describe('words', () => {
 		expect(markOf('vanished')).toBe('unknown');
 		expect([depth('downloading'), depth('starting'), depth(undefined)]).toEqual([1, 4, 0]);
 	});
+
+	it('orders the stages a deploy beside its predecessor goes on to after the four every one passes', () => {
+		expect(STAGES).toEqual([
+			'downloading',
+			'admitting',
+			'loading',
+			'starting',
+			'checking',
+			'switching',
+			'draining',
+		]);
+		expect([depth('checking'), depth('switching'), depth('draining'), depth('later')]).toEqual([
+			5, 6, 7, 0,
+		]);
+		expect([share('downloading'), share('draining'), share(undefined)]).toEqual([1 / 7, 1, 0]);
+		expect(share('switching')).toBeGreaterThan(share('starting'));
+		expect(said('running', 'switching')).toBe('Switching');
+		expect(said('failed', 'checking')).toBe('Failed checking');
+		expect(STAGE_KEYS.map((key) => key.label)).toEqual([
+			'Downloading',
+			'Admitting',
+			'Loading',
+			'Starting',
+			'Checking',
+			'Switching',
+			'Draining',
+		]);
+		expect(new Set(STAGE_KEYS.map((key) => key.color)).size).toBe(STAGES.length);
+	});
+
+	it('says a skip left for the operator is waiting for them, and keeps the command', () => {
+		const command = 'mise run node deploy tyo --run 41 --repository platform --app database';
+		expect(handCommand('skipped', command)).toBe(command);
+		expect(handCommand('skipped', 'architecture not built')).toBeUndefined();
+		expect(handCommand('failed', command)).toBeUndefined();
+		expect(said('skipped', undefined, command)).toBe('By hand');
+		expect(said('skipped', undefined, 'placements exclude this node')).toBe('Skipped');
+		expect(said('skipped')).toBe('Skipped');
+	});
 });
 
 describe('the timeline', () => {
@@ -106,6 +155,11 @@ describe('the timeline', () => {
 			{ stage: 'admitting', start, end: start + 60, failed: true },
 		]);
 		expect(drawn[2]?.stages[0]).toMatchObject({ stage: 'loading', end: undefined });
+	});
+
+	it('draws a deploy beside its predecessor in the stage it ended at, draining', () => {
+		const beside = { ...run().placements[0]!, outcome: 'succeeded', stage: 'draining' };
+		expect(segment(beside)).toMatchObject({ stage: 'draining', failed: false });
 	});
 
 	it('gives a success with no stage the last one, and a track per node when many', () => {
