@@ -1,0 +1,58 @@
+{
+	"name": "@canmi/console",
+	"private": true,
+	"description": "Every node at once, and where each is with what CI built.",
+	"keywords": [
+		"cloudflare-workers",
+		"dashboard",
+		"sveltekit",
+		"websocket"
+	],
+	"type": "module",
+	"imports": {
+		"#lib/*": "./src/lib/*"
+	},
+	"scripts": {
+		"prepare": "svelte-kit sync",
+		"dev": "vite dev",
+		"vars": "umask 077 && sops -d --output-type dotenv ../../../infra/secrets.json | grep '^HOST_READ_TOKEN=' > .dev.vars",
+		"build": "vite build",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"map": "node scripts/land.ts",
+		"deploy": "vite build && wrangler deploy"
+	},
+	"devDependencies": {
+		"@canmi/kit": "^2026.1006.0",
+		"@canmi/response": "^2.0.0",
+		"@cloudflare/workers-types": "^5.20261004.1",
+		"@lucide/svelte": "^1.51.0",
+		"@monoflake/sdk": "^2026.1007.1",
+		"@stylexjs/stylex": "^0.19.1",
+		"@stylexjs/unplugin": "^0.19.1",
+		"@sveltejs/adapter-cloudflare": "^8.0.0",
+		"@sveltejs/kit": "^3.0.0",
+		"@sveltejs/vite-plugin-svelte": "^7.3.1",
+		"@tailwindcss/vite": "^4.3.3",
+		"@types/d3-array": "^3.2.2",
+		"@types/d3-geo": "^3.1.1",
+		"@types/d3-scale": "^4.0.9",
+		"@types/d3-shape": "^3.2.0",
+		"@types/geojson": "^7946.0.16",
+		"@types/topojson-client": "^3.1.5",
+		"@types/ws": "^8.18.2",
+		"cobe": "^2.0.1",
+		"d3-array": "^3.2.4",
+		"d3-geo": "^3.1.1",
+		"d3-scale": "^4.0.2",
+		"d3-shape": "^3.2.0",
+		"svelte": "^5.57.1",
+		"svelte-check": "^4.7.6",
+		"tailwindcss": "^4.3.3",
+		"topojson-client": "^3.1.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.3.2",
+		"world-atlas": "^2.0.2",
+		"wrangler": "^4.147.0",
+		"ws": "^8.22.0"
+	}
+}

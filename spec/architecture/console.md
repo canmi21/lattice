@@ -1,0 +1,108 @@
+# Console: every node at once, served at the edge
+
+The platform's view of itself: every node, and what CI is building. When the edge is down, a node is
+reached over the tailnet instead, by SSH and a task that speaks host's API.
+
+## The UI is at the edge, the data is the nodes'
+
+**The console is a SvelteKit app rendered on Cloudflare, at the edge**, behind Access, so it is as
+near the reader as Cloudflare is, and it holds no data. A page's first paint is rendered by the
+Worker from what the nodes answer: the cluster from the nearest relay's `/state`, and a node's own
+readings from its host's API, reached through that node's VPC binding at Caddy's door to host,
+`infra.<suffix>`, with the read token. The Worker reads its bindings from `cloudflare:workers`, since SvelteKit's
+`event.platform` is empty under its Cloudflare adapter, and runs with `nodejs_compat`, which
+SvelteKit's server needs.
+
+**The page and its live socket are one Worker on one host, `console.canmi.app`.** `/live`, `/state`
+and `/nearest` are answered in the server hook before any page: the Worker picks the nearest node
+from where Cloudflare says the reader is and hands the request to that node's relay by its VPC
+binding, the next node when it fails. A response the hook returns itself leaves SvelteKit as it
+was made, which a WebSocket's 101 must, and does: a browser saw the 101 on 2026-10-06. One host because Access sets its cookie per concrete
+hostname and cannot set one ahead for a wildcard application's subdomains, and a WebSocket cannot
+follow Access's redirect to get one: a page on one name could not open a socket on another --
+https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
+
+**It is dark, drawn with semantic names** -- ground, surface, line, text, good, warn, danger and
+the series -- that a palette fills: the kit's Nord defines them, and for now the console points the
+surfaces, lines and states at the kit's black and white `mono.css`, Nord keeping the series, so the
+layout is tuned without color before color comes back. Its charts
+are drawn as SVG by the app itself with d3's scales and shapes, so the server renders them whole:
+a chart library drawing on a canvas would paint nothing until the browser ran it.
+
+**The shell is three fixed regions, and only the page scrolls.** The sidebar runs down the whole
+left edge with its rule, the top bar sits right of it alone, and the page between them is the one
+scrolling element; the document itself never scrolls or bounces. Their sizes are in `rem`, so the
+three keep their proportions as the reader's text size changes. The top bar carries the scope on its left, the page's
+name at its center and the page's actions on its right -- creating something, and whatever comes
+later -- and nothing else; whether the console is live sits at the foot of the sidebar.
+
+**The console is read whole, or in one of three scopes, the layers the workspace's
+`spec/architecture/layers.md` draws.** `All` is the default and has no segment of its own -- `/`,
+`/nodes`, `/apps` -- and shows everything together; the scopes narrow it: `Infra` -- host, keeper, Caddy and what else bootstraps
+a node, and the nodes themselves -- then `Platform`, the services every layer above leans on, and
+`Services`, what the author deploys on top. A scope is the address's first segment, so a link
+keeps it, and every page shows what belongs to the scope it is read in; the nodes are infra's, and
+shown under `Infra` and `All`. An app's scope is the layer whose repository built it. Rules come in two levels: the
+shell's own a step fainter (`--color-line-faint`), the page's cards and tables at `--color-line`. A page says what it is in its
+title and the facts beside it -- never a sentence about the page, under it or under a card. Its
+`<title>` is the one name the page is about and nothing around it -- `Nodes`, `tyo`, `#123`, an
+app's name -- with no product name and no separator: the console is behind Access and indexed by
+nobody, so a title is for a reader picking out a tab, and the shortest name does that best. Its
+icons are the `console` scope's marks, the API's own, followed for the browser as every page's are.
+
+**Moving between pages never waits for a node.** A page's `load` returns at once: what it reads
+from the nodes it returns as promises SvelteKit streams, and the page awaits each where it is
+drawn, so a click shows the new page's layout, headings and cards in the same frame and each card
+fills as its read lands. The server renders that layout whole -- the first response is the page,
+never an empty shell -- and a chart that cannot be drawn on the server is drawn by the browser
+inside a card the server already placed. A tab is a link like any other and obeys the same rule.
+
+**Every time is written in the reader's zone**, which Cloudflare names on the request, set once in
+the layout and read by every chart, so the server and the browser write the same text and the
+page does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is
+projected when the console is built**, flat and as a grid of dots, so neither the Worker nor the
+browser carries a projection or a world's topology -- only the dots it drew. A globe is offered
+beside it and loaded only when asked for, being WebGL the server cannot draw. On both, a node's mark
+says how much it runs and how busy it is: its size says how much machine stands at its place -- the
+memory of every node there together, up to 2 GiB, under 8, or 8 and more, so one large machine and many
+small ones read alike -- its depth steps with the apps running on it from faint to solid, and a halo breathes around it faster as its CPU
+climbs -- still when the reader asks for reduced motion. A node has two states on the map, and its whole mark takes the state's color: blue when it
+is heard, red when it is gone. Late is not a state but a node between two snapshots, and is drawn
+as heard. The
+smallest step is two of the land's dots across, so a mark reads as part of the same grid. No line is drawn between nodes,
+and no name: a node's code and figures appear in a card on hover. **A mark is a place, not a machine**: nodes in one
+place -- Tokyo's three -- are one mark, its depth from the apps they run together, its breath from
+the busiest of them, red if any is gone, and its card listing each node.
+
+**Developing it reads the real nodes.** Each node's binding is declared `remote`, so `vite dev`
+reaches the same VPC services the deployed Worker does, with the read token in a `.dev.vars` written
+from infra's sops file and never printed -- `mise run //repos/web:dev-console` writes it when
+missing. Vite keeps every WebSocket upgrade for its own reload, so in development alone a plugin
+takes `/live`, admits only the dev server's own `localhost` origin, and joins the browser to the
+nearest relay's socket; none of it is in the build.
+
+**It reads, and does not write, at first.** Each node's host gains a read-only token, good for its
+`GET` routes alone, and that is the token the console's path carries; a host token is root on its
+machine, and seven of them in one Worker would make the Worker root on all seven. Restarting,
+deploying and rolling back are `mise run node` over the tailnet until writes have a path of their
+own.
+
+**It depends on the platform and a node does not**, which is the arrangement the workspace's
+`spec/architecture/layers.md` allows: a node is reached over the tailnet when the console is not.
+
+## Live, through the nearest node
+
+**A reader's browser holds one WebSocket, to the node nearest it, and the nodes hold connections to
+each other**, so whichever node a reader reached has everything as it happens. That is the relay's
+mesh carrying live state beside its log -- platform's `spec/architecture/relay.md` -- and it needs what the relay's
+first step needs, a port on the tailnet. **Workers VPC carries the WebSocket**: the console's Worker
+hands the upgrade to the nearest node's binding and gets the relay's 101 back, seen from a browser
+on 2026-10-06. While the socket is down the page polls `/state`.
+
+## The pipeline
+
+**What CI is building, what it built, and where each node is with it** are one view: a run queued,
+building, built or failed on GitHub; then on each node, the artifact downloaded, loaded, started,
+checked healthy, or failed at one of those, or skipped for its architecture or its placements. The
+GitHub half comes from `hook`, which receives every run's events and today drops all but a
+successful completion; the node half from host, which records each stage as it happens.

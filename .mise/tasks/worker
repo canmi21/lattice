@@ -1,0 +1,82 @@
+#!/usr/bin/env bash
+#MISE description="Package an app's Worker as the directory the deployer deploys: `worker <name> [dir] [--no-build] [--dry-run]`"
+set -euo pipefail
+
+# The one way a Worker is packaged, by CI on GitHub and here, so the two cannot package different
+# things: wrangler's bundle, the static assets, service.toml, and wrangler.json resolved to point
+# into them with nothing left to build. The twin of platform's, whose deployer deploys what this
+# writes; see platform's spec/architecture/deployer.md, "What a Worker artifact is".
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+name="" out="" dry="" build=1
+for argument in "$@"; do
+	case "$argument" in
+	-n | --dry-run) dry=1 ;;
+	--no-build) build="" ;;
+	-*) echo "worker: unknown flag $argument" >&2; exit 1 ;;
+	*) if [ -z "$name" ]; then name="$argument"; else out="$argument"; fi ;;
+	esac
+done
+[ -n "$name" ] || { echo "usage: worker <name> [dir] [--no-build] [--dry-run]" >&2; exit 1; }
+
+app="$ROOT/apps/$name"
+[ -d "$app" ] || { echo "worker: no app named $name" >&2; exit 1; }
+for file in service.toml wrangler.jsonc; do
+	[ -f "$app/$file" ] || { echo "worker: $name has no $file, so it is not a Worker" >&2; exit 1; }
+done
+
+# A directory given is the caller's, and has to be empty; the default is this task's to replace.
+default="$app/dist/worker-$name"
+out="${out:-$default}"
+if [ "$out" != "$default" ] && [ -n "$(ls -A "$out" 2>/dev/null)" ]; then
+	echo "worker: $out is not empty" >&2
+	exit 1
+fi
+built="$(cd "$app" && node -p "require('./package.json').scripts?.build ?? ''")"
+
+if [ -n "$dry" ]; then
+	if [ -n "$build" ] && [ -n "$built" ]; then echo "would run, in $app: pnpm run build"; fi
+	echo "would run, in $app: wrangler deploy --dry-run --env= --outdir $out/bundle"
+	echo "would write $out: bundle/, wrangler.json and service.toml, and assets/ if it names any"
+	exit 0
+fi
+
+# The app's own build first, when it has one, whose output wrangler then bundles.
+if [ -n "$build" ] && [ -n "$built" ]; then (cd "$app" && pnpm run build); fi
+if [ "$out" = "$default" ]; then rm -rf "$out"; fi
+mkdir -p "$out"
+out="$(cd "$out" && pwd)"
+# `--env=` names the top level, so an environment added later cannot change which one is packaged.
+(cd "$app" && pnpm exec wrangler deploy --dry-run --env= --outdir "$out/bundle")
+cp "$app/service.toml" "$out/"
+
+# The config as wrangler itself reads it, comments and all, resolved into the artifact.
+(cd "$app" && node --input-type=module - "$out") <<'EOF'
+import { cpSync, existsSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, join, relative, resolve } from 'node:path';
+import { experimental_readRawConfig } from 'wrangler';
+
+const out = process.argv[2];
+const { rawConfig } = experimental_readRawConfig({ config: 'wrangler.jsonc' });
+// What only a checkout reads -- the schema, the named environments, `wrangler dev`'s -- is left.
+const { $schema, env, dev, ...config } = rawConfig;
+
+const entry = basename(config.main).replace(/\.[cm]?[jt]sx?$/, '.js');
+if (!existsSync(join(out, 'bundle', entry))) throw new Error(`wrangler wrote no bundle/${entry}`);
+const resolved = { ...config, main: `bundle/${entry}`, no_bundle: true };
+// Modules wrangler split out beside the entry, the CDN's codecs among them.
+const own = new Set([entry, `${entry}.map`, 'README.md']);
+if (readdirSync(join(out, 'bundle')).some((file) => !own.has(file))) {
+	resolved.find_additional_modules = true;
+}
+
+if (config.assets?.directory) {
+	const from = resolve(config.assets.directory);
+	cpSync(from, join(out, 'assets'), { recursive: true });
+	// The source entry, when it sits among the assets as SvelteKit's does, is in the bundle already.
+	const main = relative(from, resolve(config.main));
+	if (!main.startsWith('..')) rmSync(join(out, 'assets', main), { force: true });
+	resolved.assets = { ...config.assets, directory: 'assets' };
+}
+writeFileSync(join(out, 'wrangler.json'), `${JSON.stringify(resolved, null, '\t')}\n`);
+EOF
+echo "worker: $name packaged in $out"

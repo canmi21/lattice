@@ -1,0 +1,5 @@
+# Every node at once: the pages, and their live socket handed to the nearest node's relay, as one
+# Worker on one host. See spec/architecture/console.md, "Live, through the nearest node".
+version = 1
+name = "console"
+placements = ["workers"]

@@ -1,0 +1,90 @@
+# Packages the Workers a push changed and leaves them as artifacts of this run. Nothing is
+# published and nothing here reaches Cloudflare: when the run ends, GitHub's webhook tells the
+# platform's deployer, which fetches and checks what was built. Only the Workers moved onto it are
+# packaged; the site stays on Cloudflare's Git integration. See platform's
+# spec/architecture/deployer.md.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      apps:
+        description: "Workers to package, space-separated; empty for every one"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04-arm
+    outputs:
+      workers: ${{ steps.plan.outputs.workers }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - id: plan
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          ASKED: ${{ inputs.apps }}
+        run: |
+          if [ "$EVENT" = workflow_dispatch ] && [ -n "$ASKED" ]; then
+            # The asked apps that are moved Workers; any other name asks for nothing.
+            workers="$(.mise/tasks/deployable --all | python3 -c 'import json,os,sys; asked=os.environ["ASKED"].split(); print(json.dumps([w for w in json.load(sys.stdin) if w in asked]))')"
+          elif [ "$EVENT" = workflow_dispatch ] || [ -z "${BEFORE//0/}" ]; then
+            workers="$(.mise/tasks/deployable --all)"
+          else
+            workers="$(.mise/tasks/deployable --git "$BEFORE")"
+          fi
+          echo "workers=$workers" >> "$GITHUB_OUTPUT"
+          echo "packaging: $workers"
+
+  # A Worker is one artifact for every architecture: wrangler's bundle, its assets, its declaration
+  # and its resolved config, packaged without a credential. See platform's
+  # spec/architecture/deployer.md, "What a Worker artifact is".
+  worker:
+    needs: plan
+    if: needs.plan.outputs.workers != '[]'
+    runs-on: ubuntu-24.04-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        app: ${{ fromJson(needs.plan.outputs.workers) }}
+    steps:
+      # The workspace above the project, as it is checked out at home: its mise.toml pins the Node
+      # it builds on.
+      - uses: actions/checkout@v7
+        with:
+          repository: canmi21/canmi
+      - uses: actions/checkout@v7
+        with:
+          path: repos/web
+      - id: node
+        run: echo "version=$(sed -n 's/^node = "\(.*\)"/\1/p' mise.toml)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.node.outputs.version }}
+      - working-directory: repos/web
+        env:
+          APP: ${{ matrix.app }}
+        run: |
+          npm install --global "$(node -p "require('./package.json').packageManager")"
+          pnpm install --frozen-lockfile --filter "{./apps/$APP}..."
+          .mise/tasks/worker "$APP" "$RUNNER_TEMP/worker"
+      # Hidden files included: SvelteKit's `.assetsignore` keeps its Worker out of the assets.
+      - uses: actions/upload-artifact@v7
+        with:
+          name: worker-${{ matrix.app }}
+          path: ${{ runner.temp }}/worker/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error

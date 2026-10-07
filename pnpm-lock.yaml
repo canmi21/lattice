@@ -288,6 +288,105 @@ importers:
         specifier: ^8.3.2
         version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
 
+  apps/console:
+    devDependencies:
+      '@canmi/kit':
+        specifier: ^2026.1006.0
+        version: 2026.1006.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)
+      '@canmi/response':
+        specifier: ^2.0.0
+        version: 2.0.0
+      '@cloudflare/workers-types':
+        specifier: ^5.20261004.1
+        version: 5.20261004.1
+      '@lucide/svelte':
+        specifier: ^1.51.0
+        version: 1.51.0(svelte@5.57.1)
+      '@monoflake/sdk':
+        specifier: ^2026.1007.1
+        version: 2026.1007.1(@cloudflare/workers-types@5.20261004.1)(typescript@6.0.3)
+      '@stylexjs/stylex':
+        specifier: ^0.19.1
+        version: 0.19.1
+      '@stylexjs/unplugin':
+        specifier: ^0.19.1
+        version: 0.19.1(supports-color@10.2.2)(unplugin@2.3.11)
+      '@sveltejs/adapter-cloudflare':
+        specifier: ^8.0.0
+        version: 8.0.0(@sveltejs/kit@3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4))
+      '@sveltejs/kit':
+        specifier: ^3.0.0
+        version: 3.0.0(@opentelemetry/api@1.9.1)(@sveltejs/vite-plugin-svelte@7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)))(svelte@5.57.1)(typescript@6.0.3)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^7.3.1
+        version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@tailwindcss/vite':
+        specifier: ^4.3.3
+        version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@types/d3-array':
+        specifier: ^3.2.2
+        version: 3.2.2
+      '@types/d3-geo':
+        specifier: ^3.1.1
+        version: 3.1.1
+      '@types/d3-scale':
+        specifier: ^4.0.9
+        version: 4.0.9
+      '@types/d3-shape':
+        specifier: ^3.2.0
+        version: 3.2.0
+      '@types/geojson':
+        specifier: ^7946.0.16
+        version: 7946.0.16
+      '@types/topojson-client':
+        specifier: ^3.1.5
+        version: 3.1.5
+      '@types/ws':
+        specifier: ^8.18.2
+        version: 8.18.2
+      cobe:
+        specifier: ^2.0.1
+        version: 2.0.1
+      d3-array:
+        specifier: ^3.2.4
+        version: 3.2.4
+      d3-geo:
+        specifier: ^3.1.1
+        version: 3.1.1
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
+      d3-shape:
+        specifier: ^3.2.0
+        version: 3.2.0
+      svelte:
+        specifier: ^5.57.1
+        version: 5.57.1
+      svelte-check:
+        specifier: ^4.7.6
+        version: 4.7.6(picomatch@4.0.7)(svelte@5.57.1)(typescript@6.0.3)
+      tailwindcss:
+        specifier: ^4.3.3
+        version: 4.3.3
+      topojson-client:
+        specifier: ^3.1.0
+        version: 3.1.0
+      typescript:
+        specifier: ^6.0.3
+        version: 6.0.3
+      vite:
+        specifier: ^8.3.2
+        version: 8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)
+      world-atlas:
+        specifier: ^2.0.2
+        version: 2.0.2
+      wrangler:
+        specifier: ^4.147.0
+        version: 4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4)
+      ws:
+        specifier: ^8.22.0
+        version: 8.22.0
+
   apps/landing:
     devDependencies:
       '@canmi/hints':
@@ -1148,8 +1247,22 @@ packages:
       svelte:
         optional: true
 
+  '@canmi/kit@2026.1006.0':
+    resolution: {integrity: sha512-MEYzegkO+RD7ZHEaMSj3aSiEFN8Am5NwtZ4VzAxSXNTZ34tnouqw//AuYfii7IWb7FzD5zYNWFNlcUwSc5E2NA==}
+    peerDependencies:
+      '@stylexjs/stylex': ^0.19.1
+      svelte: ^5.57.1
+    peerDependenciesMeta:
+      '@stylexjs/stylex':
+        optional: true
+      svelte:
+        optional: true
+
   '@canmi/me@2026.1005.2':
     resolution: {integrity: sha512-nV5vL+NS6goYw6hvGgAIg5DiDtntfYM9uLoUPCK50fWDco0AO++2/ToJqurrEID7+9VAhdv90onB+MZKqjwg0g==}
+
+  '@canmi/me@2026.1005.5':
+    resolution: {integrity: sha512-rDrz52Y0FZzRovNCTGcxot6qFFVXY0hi8Lo/4s0RhJvO2gRbLm6Ka6inwn1UIh9ePoCc+1KEaIvbP04t1ac5yA==}
 
   '@canmi/response@2.0.0':
     resolution: {integrity: sha512-fQh5D0dAcdvccqWLcGQKzpGNa1TbyhZ+4B5kq5/LWPOnacdq5OY8uJoCn7zgdM0MNZMsZiDVsOXSu9fIQEdC4w==}
@@ -2078,6 +2191,14 @@ packages:
 
   '@monoflake/sdk@2026.1004.6':
     resolution: {integrity: sha512-h6nqZYe3BlsE0FcxoifW7BU9oCy3BMIUIknfUxve2POudt1rLXVfq3D+mFQvAlREzTDjijZ9UfznvK18K8xRtg==}
+    peerDependencies:
+      '@cloudflare/workers-types': ^5.20261004.1
+    peerDependenciesMeta:
+      '@cloudflare/workers-types':
+        optional: true
+
+  '@monoflake/sdk@2026.1007.1':
+    resolution: {integrity: sha512-GiI9Qf7EgX/UMpQxMoXy5QlxJwNs5pSHh9zcMNqvGuNLJFRQAYTw8nfojcO5k/zRQUtOxd/m1NFjoaw3jqOWIg==}
     peerDependencies:
       '@cloudflare/workers-types': ^5.20261004.1
     peerDependenciesMeta:
@@ -3129,6 +3250,12 @@ packages:
   '@types/node@26.6.4':
     resolution: {integrity: sha512-ldVPDCzj7fsaGZrLB0NuHuTvJcsNasysBAqMolr/cgxrLd1xbqxIr3XJiPnHHJUCxj5sNF1vnRj9aWnrVh5Jcg==}
 
+  '@types/topojson-client@3.1.5':
+    resolution: {integrity: sha512-C79rySTyPxnQNNguTZNI1Ct4D7IXgvyAs3p9HPecnl6mNrJ5+UhvGNYcZfpROYV2lMHI48kJPxwR+F9C6c7nmw==}
+
+  '@types/topojson-specification@1.0.5':
+    resolution: {integrity: sha512-C7KvcQh+C2nr6Y2Ub4YfgvWvWCgP2nOQMtfhlnwsRL4pYmmwzBS7HclGiS87eQfDOU/DLQpX6GEscviaz4yLIQ==}
+
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
@@ -3137,6 +3264,9 @@ packages:
 
   '@types/unist@3.0.3':
     resolution: {integrity: sha512-ko/gIFJRv177XgZsZcBwnqJN5x/Gien8qNOn0D5bQU/zAzVf9Zt3BlcUiLqhV9y4ARk0GbT3tnUiPNgnTXzc/Q==}
+
+  '@types/ws@8.18.2':
+    resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     resolution: {integrity: sha512-MTKKkWB7p/0E9xi1d1tHtZ5PiLkGEMIq88pK2CubZjOsLtYTLqhgIgi6zepFa+9GHZ6h05NMCkQxGKiPXMxXtQ==}
@@ -3463,6 +3593,9 @@ packages:
     resolution: {integrity: sha512-qAOyG1P20aWQJlFfKqdPIQeKL2y1sHbaoy76gaEVgtBTN4Z00IDHVpzGU9bNqdXu7nZSDdyWV65llsvKah2RSg==}
     hasBin: true
 
+  cobe@2.0.1:
+    resolution: {integrity: sha512-aaa6vcIlaC8C1SF50LDH0Anybo/EAXnrxqe+bwvr4+YUtZydqjeBjTTD7ziCCkbRrRGSns3I3F6cZsf3W+L+ag==}
+
   comma-separated-tokens@2.0.3:
     resolution: {integrity: sha512-Fu4hJdvzeylCfQPp9SGWidpzrMs7tTrlu6Vb8XGaRGck8QSNZJJp538Wrb60Lax4fPwR64ViY468OIUTbRlGZg==}
 
@@ -3477,6 +3610,9 @@ packages:
   commander@13.1.0:
     resolution: {integrity: sha512-/rFeCpNJQbhSZjGVwO9RFV3xPqbnERS8MmIQzCtD/zl6gpJuV/bMLuN92oG3F7d8oDEHHRrujSXNUr8fpjntKw==}
     engines: {node: '>=18'}
+
+  commander@2.20.3:
+    resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
   commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
@@ -4987,6 +5123,10 @@ packages:
     resolution: {integrity: sha512-QwBER5KMR86IIjpIiO7H/Z3IMJPsZ1A6RKPAqzTTgOyUQUSt9FdnKcqhTaJmkY6HVrgouZHZR0ncK5QxvmnQeg==}
     hasBin: true
 
+  topojson-client@3.1.0:
+    resolution: {integrity: sha512-605uxS6bcYxGXw9qi62XyrV6Q3xwbndjachmNxu8HWTtVPxZfEJN9fd/SZS1Q54Sn2y0TMyMxFj/cJINqGHrKw==}
+    hasBin: true
+
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -5293,6 +5433,9 @@ packages:
     engines: {node: '>=16'}
     hasBin: true
 
+  world-atlas@2.0.2:
+    resolution: {integrity: sha512-IXfV0qwlKXpckz1FhwXVwKRjiIhOnWttOskm5CtxMsjgE/MXAYRHWJqgXOpM8IkcPBoXnyTU5lFHcYa5ChG0LQ==}
+
   wrangler@4.147.0:
     resolution: {integrity: sha512-pQYRoiq8PTAxphaG69z8+GC1DkSGd19EDZehQ8zxjo/Ko3mRB6Qs1mTrd8ZuKAarLklIjTqr1lUdCK9r4q2hUg==}
     engines: {node: '>=22.0.0'}
@@ -5305,6 +5448,18 @@ packages:
 
   ws@8.21.0:
     resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+
+  ws@8.22.0:
+    resolution: {integrity: sha512-Ydggc987+RO0AnWtZ/7Wq9FtNvcrL1b/RO0ud9mWjUPgDrsAAwQSF51sm2hm1XofbU/4jkpGEsLFsZZxU+1DOg==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -5652,7 +5807,20 @@ snapshots:
       - react
       - react-dom
 
+  '@canmi/kit@2026.1006.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)':
+    dependencies:
+      motion: 14.0.0(react@19.3.0)
+      thumbhash: 0.1.1
+    optionalDependencies:
+      '@stylexjs/stylex': 0.19.1
+      svelte: 5.57.1
+    transitivePeerDependencies:
+      - react
+      - react-dom
+
   '@canmi/me@2026.1005.2': {}
+
+  '@canmi/me@2026.1005.5': {}
 
   '@canmi/response@2.0.0': {}
 
@@ -6363,6 +6531,17 @@ snapshots:
       '@canmi/response': 2.0.0
       '@monoflake/urls': 2026.1004.4
       valibot: 1.5.0(typescript@7.0.2)
+    optionalDependencies:
+      '@cloudflare/workers-types': 5.20261004.1
+    transitivePeerDependencies:
+      - typescript
+
+  '@monoflake/sdk@2026.1007.1(@cloudflare/workers-types@5.20261004.1)(typescript@6.0.3)':
+    dependencies:
+      '@canmi/me': 2026.1005.5
+      '@canmi/response': 2.0.0
+      '@monoflake/urls': 2026.1004.4
+      valibot: 1.5.0(typescript@6.0.3)
     optionalDependencies:
       '@cloudflare/workers-types': 5.20261004.1
     transitivePeerDependencies:
@@ -7263,12 +7442,25 @@ snapshots:
     dependencies:
       undici-types: 8.9.0
 
+  '@types/topojson-client@3.1.5':
+    dependencies:
+      '@types/geojson': 7946.0.16
+      '@types/topojson-specification': 1.0.5
+
+  '@types/topojson-specification@1.0.5':
+    dependencies:
+      '@types/geojson': 7946.0.16
+
   '@types/trusted-types@2.0.7':
     optional: true
 
   '@types/unist@2.0.11': {}
 
   '@types/unist@3.0.3': {}
+
+  '@types/ws@8.18.2':
+    dependencies:
+      '@types/node': 26.6.4
 
   '@typescript/typescript-aix-ppc64@7.0.2':
     optional: true
@@ -7538,6 +7730,8 @@ snapshots:
       proto-to-cli: 1.2.1
       set-value: 4.1.0
 
+  cobe@2.0.1: {}
+
   comma-separated-tokens@2.0.3: {}
 
   commander@11.1.0: {}
@@ -7545,6 +7739,8 @@ snapshots:
   commander@12.1.0: {}
 
   commander@13.1.0: {}
+
+  commander@2.20.3: {}
 
   commander@7.2.0: {}
 
@@ -9351,6 +9547,10 @@ snapshots:
     dependencies:
       tldts-core: 7.4.16
 
+  topojson-client@3.1.0:
+    dependencies:
+      commander: 2.20.3
+
   totalist@3.0.1: {}
 
   tough-cookie@6.0.2:
@@ -9604,6 +9804,8 @@ snapshots:
       '@cloudflare/workerd-linux-arm64': 1.20261001.1
       '@cloudflare/workerd-windows-64': 1.20261001.1
 
+  world-atlas@2.0.2: {}
+
   wrangler@4.147.0(@cloudflare/workers-types@5.20261004.1)(@types/node@26.6.4):
     dependencies:
       '@cloudflare/kv-asset-handler': 0.5.0
@@ -9623,6 +9825,8 @@ snapshots:
       - utf-8-validate
 
   ws@8.21.0: {}
+
+  ws@8.22.0: {}
 
   xml-name-validator@5.0.0: {}
 

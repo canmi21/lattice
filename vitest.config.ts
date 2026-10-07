@@ -1,9 +1,10 @@
 import { fileURLToPath } from 'node:url';
 import stylex from '@stylexjs/unplugin/vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { defineConfig } from 'vitest/config';
 
 const SITE = fileURLToPath(new URL('./apps/site/', import.meta.url));
+const CONSOLE = fileURLToPath(new URL('./apps/console/', import.meta.url));
 const PROSE = fileURLToPath(new URL('./libs/prose/src/', import.meta.url));
 const ROOT = fileURLToPath(new URL('./', import.meta.url));
 
@@ -67,6 +68,28 @@ export default defineConfig({
 					environment: 'jsdom',
 					include: ['src/**/*.svelte.test.ts', '../../libs/prose/src/**/*.svelte.test.ts'],
 				},
+			},
+			{
+				/**
+				 * The console's components, rendered on the server as its pages are, so Svelte's server
+				 * build and no DOM. Svelte's plugin rather than SvelteKit's, which would start the
+				 * adapter's emulated Worker for every run; the StyleX options are its vite.config.ts's.
+				 */
+				extends: false,
+				root: CONSOLE,
+				plugins: [
+					svelte({ preprocess: vitePreprocess(), compilerOptions: { runes: true } }),
+					{
+						...stylex({
+							useCSSLayers: true,
+							unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
+						}),
+						enforce: undefined,
+						// A test run is not a dev server, as above: nothing the hook installs is read.
+						configureServer: undefined,
+					},
+				],
+				test: { name: 'console', include: ['src/**/*.svelte.test.ts'] },
 			},
 		],
 	},

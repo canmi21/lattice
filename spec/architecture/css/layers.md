@@ -864,7 +864,7 @@ correcting them is work this file records rather than work it does.
 
 ## Every app compiles its own StyleX
 
-**StyleX runs in each app's own build -- the site, the status page, the service domains' pages, the editor -- and never once
+**StyleX runs in each app's own build -- the site, the status page, the service domains' pages, the editor, the console -- and never once
 for the workspace.** StyleX gathers every rule an app's routes use into the one sheet it loads first;
 compiled per app, that sheet is one app's routes and no more. What the apps share lives in
 `@canmi/kit/tokens` as `defineConsts`, which a build inlines where it is read, so a library's names cost

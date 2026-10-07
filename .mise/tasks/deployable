@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+#MISE description="The Workers a change needs packaged for the deployer, as JSON: `deployable [--all] [--since REV | --git BASE] [--files ...]`"
+"""A Worker is packaged when its app is placed on `workers`, its directory holds a `wrangler.jsonc`,
+and it has moved onto the platform's deployer; it needs a new `worker-` artifact when it, a package
+it imports, or the packaging changed. CI reads the list to decide what to package. The twin of
+platform's, which lists images as well; see platform's spec/architecture/deployer.md, "Moving a
+Worker onto it"."""
+
+import json
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from graph import ROOT, app_directories, app_of, changed, dependents, node_graph, owner  # noqa: E402
+
+# How every Worker is packaged: a change here is a change to all of them.
+EVERY_WORKER = {"package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", ".mise/tasks/worker"}
+# The Workers the deployer deploys, one at a time; the site stays on Cloudflare's Git integration
+# until its D1 moves to Postgres.
+MOVED = {"console"}
+
+
+def workers():
+	"""App directory name -> its package's name, for every moved Workers app with a wrangler.jsonc."""
+	found = {}
+	for name, directory in app_directories().items():
+		declaration = directory / "service.toml"
+		if name not in MOVED or not declaration.exists():
+			continue
+		if not (directory / "wrangler.jsonc").exists():
+			continue
+		if "workers" not in tomllib.loads(declaration.read_text()).get("placements", []):
+			continue
+		found[name] = json.loads((directory / "package.json").read_text())["name"]
+	return found
+
+
+def git_changed(base):
+	"""Files changed between `base` and HEAD, for CI, where there is git and no jj."""
+	command = ["git", "diff", "--name-only", base, "HEAD"]
+	output = subprocess.run(command, cwd=ROOT, capture_output=True, text=True, check=True).stdout
+	return [line for line in output.splitlines() if line]
+
+
+def needed(files, declared):
+	if any(f in EVERY_WORKER for f in files):
+		return sorted(declared)
+	package_dirs, package_edges = node_graph()
+	packages, chosen = set(), set()
+	for f in files:
+		if app_of(f) in declared:
+			chosen.add(app_of(f))
+		package = package_dirs.get(owner(f, package_dirs) or "")
+		if package:
+			packages.add(package)
+	reached = dependents(packages, package_edges)
+	chosen |= {app for app, package in declared.items() if package in reached}
+	return sorted(chosen)
+
+
+def main():
+	arguments = sys.argv[1:]
+	declared = workers()
+	if "--all" in arguments:
+		result = sorted(declared)
+	elif "--files" in arguments:
+		result = needed(arguments[arguments.index("--files") + 1 :], declared)
+	elif "--git" in arguments:
+		result = needed(git_changed(arguments[arguments.index("--git") + 1]), declared)
+	else:
+		since = arguments[arguments.index("--since") + 1] if "--since" in arguments else None
+		result = needed(changed(since), declared)
+	print(json.dumps(result))
+	return 0
+
+
+if __name__ == "__main__":
+	sys.exit(main())

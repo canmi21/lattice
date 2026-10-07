@@ -26,7 +26,8 @@ them does not.
 
 ## Deploying is a consequence of pushing
 
-Cloudflare builds from the connected repository, so a push is what ships. Nobody runs a deploy
+Cloudflare builds from the connected repository, so a push is what ships -- and for the console, a
+push is what the platform's deployer deploys from, the same consequence by another hand. Nobody runs a deploy
 by hand as the normal path, and an agent never runs `deploy-site`: it pushes settled work as the
 workspace's `spec/commits.md` says, and what ships follows from the push.
 

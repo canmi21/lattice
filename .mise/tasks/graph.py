@@ -1,5 +1,5 @@
 """What a change reaches: the Rust crates and the TypeScript packages of this repository, and the
-edges between them. Read by `verify`, to choose gates, and by `deployable`, to choose images. A
+edges between them. Read by `verify`, to choose gates, and by `deployable`, to choose Workers. A
 library rather than a task, since it is not executable; see the workspace's architecture/repos.md.
 """
 

@@ -33,6 +33,7 @@ PACKAGE_GATES = {
 	"@canmi/fonts": ["check-fonts"],
 	"@canmi/status": ["check-status"],
 	"@canmi/landing": ["check-landing"],
+	"@canmi/console": ["check-console"],
 }
 RUST = ["lint-rust", "test-rust"]
 EVERYTHING = ALWAYS + NODE + [g for gates in PACKAGE_GATES.values() for g in gates] + RUST

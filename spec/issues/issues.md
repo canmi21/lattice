@@ -24,6 +24,7 @@ which areas exist and which entries are worth reaching for first.
 
 | area                     | entries | what it holds                                                        |
 | ------------------------ | ------- | -------------------------------------------------------------------- |
+| [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
 | [site.md](site.md)       | 17      | routing, rendering, the article page, the tests, the license surface |
 | [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach              |
@@ -52,6 +53,11 @@ of the component that found it, so they are worked when that component is opened
 reasons.
 
 ## What each area holds
+
+### [console.md](console.md)
+
+- Where the console learns a node's facts
+- Whether the console switches between palettes
 
 ### [css.md](css.md)
 

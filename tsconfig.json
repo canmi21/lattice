@@ -18,6 +18,7 @@
 		"apps/site",
 		"apps/cms",
 		"apps/status",
-		"apps/landing"
+		"apps/landing",
+		"apps/console"
 	]
 }

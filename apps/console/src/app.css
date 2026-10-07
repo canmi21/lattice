@@ -1,0 +1,100 @@
+/* The layers, declared before anything opens one, in the order the site declares them. See
+   spec/architecture/css/layers.md. */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
+@import 'tailwindcss';
+@import '@canmi/kit/theme/palettes/nord.css';
+@import '@canmi/kit/theme/palettes/mono.css';
+@import '@canmi/kit/tokens/interaction.css';
+@source '.';
+
+/* Black and white for now: mono's dark values under the names the console draws with, Nord keeping
+   the series. Which palette feeds these names is open -- see spec/issues/console.md. */
+[data-theme='dark'] {
+	--color-ground: var(--color-paper);
+	--color-sunken: var(--color-paper);
+	--color-surface: var(--color-page);
+	--color-raised: var(--color-paper-hover);
+	--color-selected: var(--color-native-selected);
+	--color-line-faint: var(--color-paper-hover);
+	--color-line: var(--color-border);
+	--color-line-strong: var(--color-border-strong);
+	--color-text-faint: var(--color-text-soft);
+	--color-primary: oklch(
+		0.576 0.219 258.6
+	); /* Geist blue-700, the deep blue mono keeps for light */
+	--color-good: var(--color-green);
+	--color-warn: var(--color-amber);
+	--color-danger: var(--color-red);
+	--color-busy: var(--color-blue);
+	--color-note: var(--color-blue-ink);
+}
+
+/* Over mono's own `html` rule: every region is fixed, so the document shows only its ground. */
+html {
+	background-color: var(--color-ground);
+}
+
+@theme {
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+/* What carries no class: the document, a selection, the scrollbars, and a table's elements, which
+   are too many to class one by one. Written to lose to anything a component says. */
+@layer base {
+	/* The page does not scroll: only the console's main region does. */
+	html,
+	body {
+		overflow: hidden;
+		overscroll-behavior: none;
+	}
+
+	body {
+		background-color: var(--color-ground);
+		color: var(--color-text);
+		font-family: var(--font-sans);
+		font-size: 0.875rem;
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	::selection {
+		background-color: var(--color-selection);
+	}
+
+	* {
+		scrollbar-color: var(--color-line-strong) transparent;
+		scrollbar-width: thin;
+	}
+
+	a {
+		color: inherit;
+		text-decoration-line: none;
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+		font-variant-numeric: tabular-nums;
+	}
+
+	th {
+		padding: 0.625rem 1.25rem;
+		border-bottom: 1px solid var(--color-line);
+		color: var(--color-text-muted);
+		font-size: 0.8125rem;
+		font-weight: 400;
+		text-align: left;
+		white-space: nowrap;
+	}
+
+	td {
+		padding: 0.75rem 1.25rem;
+		border-bottom: 1px solid var(--color-line);
+		vertical-align: middle;
+	}
+
+	tbody tr:last-child td {
+		border-bottom-width: 0;
+	}
+}
