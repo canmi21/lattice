@@ -23,22 +23,50 @@ follow Access's redirect to get one: a page on one name could not open a socket 
 https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
 
 **It is black and white, drawn with semantic names** -- ground, surface, line, text, good, warn,
-danger and the series -- that a palette fills. The kit's `mono.css` paints the interface in light
-or dark; the icon at the top bar's right edge switches the two and keeps the choice in the kit's
-`theme` cookie. Nord supplies the chart series alone, so data keeps its distinctions while the
-interface remains monochrome. **Tabler is the console's icon family**, with 18 px navigation and
-theme icons, 16 px inline controls and 14 px compact state marks. Navigation has a lighter stroke;
-small state marks have a heavier one. Its charts
-are drawn as SVG by the app itself with d3's scales and shapes, so the server renders them whole:
-a chart library drawing on a canvas would paint nothing until the browser ran it.
+danger and the series -- that a palette fills. The kit's `mono.css` paints the interface in light or
+dark; the icon at the top bar's right edge, Tabler's filled brightness mark, switches the two,
+mirrored in the dark so its filled half changes side, and keeps the choice in the kit's `theme`
+cookie. Nord supplies the chart series alone, so data keeps its distinctions while the interface
+remains monochrome. **Tabler is the console's icon family**, with 18 px navigation and theme icons,
+16 px inline controls and 14 px compact state marks. Navigation has a lighter stroke; small state
+marks have a heavier one. Its charts are drawn as SVG by the app itself with d3's scales and shapes,
+so the server renders them whole: a chart library drawing on a canvas would paint nothing until the
+browser ran it.
 
 **The shell is three fixed regions, and only the page scrolls.** The sidebar runs down the whole
 left edge with its rule, the top bar sits right of it alone, and the page between them is the one
 scrolling element; the document itself never scrolls or bounces. Their sizes are in `rem`, so the
-three keep their proportions as the reader's text size changes. The top bar carries the scope on its left, the page's
-name at its center and the page's actions on its right -- creating something, whatever comes later,
-then the light-and-dark switch at the outside edge; whether the console is live sits at the foot of
-the sidebar.
+three keep their proportions as the reader's text size changes. The top bar carries the scope on its
+left, the page's name at its center and the page's actions on its right -- creating something,
+whatever comes later, then the zone every moment on the page is written in, then the light-and-dark
+switch at the outside edge. The zone is the page's and not the account's, which is why it sits
+beside the page's actions: it decides how every time and every chart is written, and a choice of
+zone, when there is one, is what it becomes. The account sits at the foot of the sidebar, last, in a
+region of its own. Who is signed in and through where -- the avatar, the name, the relay's country
+-- is one button: the menu it opens waits on accounts, and the whole group raising on hover is what
+says it opens one, with no icon to say it. Beside it, at the region's right edge, are two icons: a
+merge, a link to the commit the console was built from -- by lib's `spec/web/build.md`, its short
+hash on the link's hover -- and a bell for notifications, which waits on a feed of them as the menu
+waits on accounts. Until the platform's accounts exist it shows the author, from `@canmi/me`'s
+identity and their GitHub avatar through the CDN, so the region has its final shape before it has
+anything to sign in to -- web's `spec/todo/milestones.md`, D3. The avatar sits on a neutral disc
+until the picture arrives; a placeholder of its own is platform's `spec/issues/services.md`, "An
+avatar has no placeholder a page can paint before it arrives".
+
+**Whether the console is live is a dot on the avatar's corner and nothing else**: green while the
+socket is up, red while it is down and the page polls, and quiet for the moment before the socket
+has tried, so no load paints a red it is about to take back. It is ringed in the sidebar's ground,
+as a presence dot is. How many nodes are heard is the pages' to say, not the shell's. Under the
+name is the country of the relay the console is reached through, in full -- `Japan`,
+`United States`. The commit is an icon rather than a line of text: the region holds two lines, and
+a third fact written out made it a column of small type. No moment is shown, the build's or the
+reader's. The relay is the node nearest the reader, worked out on the server from where Cloudflare
+says they are without asking any node -- the order the Worker itself tries them in -- until the
+socket has gone through one and names it.
+
+**The zone in the top bar is the request's**, as every moment on the page is written in, and it is
+written as its offset from UTC with a sign -- `UTC-4`, `UTC+5:30`, and UTC itself `UTC+0` -- so
+every zone reads one way, never as a city's name or Intl's `GMT`; its name is on its hover.
 
 **The console is read whole, or in one of three scopes, the layers the workspace's
 `spec/architecture/layers.md` draws.** `All` is the default and has no segment of its own -- `/`,
