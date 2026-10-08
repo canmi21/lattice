@@ -34,3 +34,18 @@ the icons by content id, which nothing here writes down.
 **`apple-touch-icon.png` stays as it is and is not in the manifest.** iOS reads its own link, and
 the app icon drawn on a white ground would show as a white border there. The two are separate
 marks on purpose, and so is the favicon: each is drawn for where it is shown.
+
+## Every favicon is framed as the sakura is
+
+**A mark's `favicon.svg` is framed on its own shape, and sized to look as large as the status
+page's sakura**, which is the reference because it was the one that read right in a tab. Its
+viewBox is square and centered on the shape's visible box, with no `width` or `height`; it is then
+tightened until the shape covers about as much of the square as the sakura does -- 55% -- unless
+that would push the shape's box past 99% of the square, where it stops. A shape with deep gaps, a
+star, stops at the cap and still reads a little smaller; that is the limit of compensating without
+cropping it. The `favicon.ico` beside it is drawn from that svg, as PNG frames at 16, 32 and 48.
+
+On 2026-10-08 the clover was drawn on a canvas with an eighth of it empty on every side -- 41% of
+the square covered against the sakura's 55% -- and its ico was converted from it, so the two were
+small together. The clover and the star were reframed this way; the cake, a picture in an svg, was
+not measured.
