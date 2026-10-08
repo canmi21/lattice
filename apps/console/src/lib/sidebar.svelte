@@ -21,6 +21,8 @@
 	import { sectionsIn, type Section } from './sections.ts';
 	import { surfaces, tone } from './style.ts';
 	import Badge from './ui/badge.svelte';
+	import Icon from './ui/icon.svelte';
+	import IconButton from './ui/icon-button.svelte';
 	import { CONTRACT } from './wire.ts';
 
 	let {
@@ -96,17 +98,6 @@
 				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
 			},
 			transitionProperty: 'background-color',
-			transitionDuration: '120ms',
-		},
-		/** As the top bar's theme switch is: quiet, and raised on hover. */
-		icon: {
-			borderRadius: radius.md,
-			backgroundColor: {
-				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
-			},
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-			transitionProperty: 'color, background-color',
 			transitionDuration: '120ms',
 		},
 		/** The dot's ring, the sidebar's ground, so it reads as cut out of the avatar's edge. */
@@ -186,28 +177,28 @@
 				{/if}
 			</span>
 		</button>
-		<span class="mr-1 flex shrink-0 items-center gap-0.5">
+		<span class="mr-1 flex shrink-0 items-center gap-1.5">
 			<!-- The commit this console was built from, opened where it was made. -->
-			<a
+			<IconButton
+				label="Built from {COMMIT}"
+				variant="framed"
+				shape="circle"
+				size="sm"
 				href={COMMIT === 'unknown' ? SOURCE : `${SOURCE}/commit/${COMMIT}`}
-				target="_blank"
-				rel="noopener"
-				aria-label="Built from {COMMIT}"
-				title="Built from {COMMIT}"
-				class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.icon).class}"
+				external
 			>
-				<GitIcon size={18} aria-hidden="true" />
-			</a>
+				<Icon icon={GitIcon} size={18} />
+			</IconButton>
 			<!-- Notifications wait on a feed of their own; see spec/architecture/console.md. -->
-			<button
-				type="button"
-				aria-label="Notifications"
+			<IconButton
+				label="Notifications"
+				variant="framed"
+				shape="circle"
+				size="sm"
 				aria-haspopup="menu"
-				aria-expanded="false"
-				class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.icon).class}"
 			>
-				<BellIcon size={18} aria-hidden="true" />
-			</button>
+				<Icon icon={BellIcon} size={18} />
+			</IconButton>
 		</span>
 	</div>
 </aside>

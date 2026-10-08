@@ -9,6 +9,7 @@
 	import BrightnessIcon from '@tabler/icons-svelte-runes/icons/brightness-filled';
 	import type { Snippet } from 'svelte';
 	import Switcher from './scope/switcher.svelte';
+	import IconButton from './ui/icon-button.svelte';
 	import { type View, within } from './scope/scope.ts';
 	import type { Section } from './sections.ts';
 	import { surfaces, type } from './style.ts';
@@ -54,18 +55,6 @@
 			color: 'var(--color-text-muted)',
 			fontSize: text.px13,
 			fontVariantNumeric: 'tabular-nums',
-		},
-		theme: {
-			backgroundColor: {
-				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
-			},
-			borderWidth: 0,
-			borderRadius: 6,
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-			cursor: 'pointer',
-			transitionProperty: 'color, background-color',
-			transitionDuration: duration.base,
 		},
 	});
 
@@ -123,15 +112,9 @@
 		{@render actions?.()}
 		<!-- The request's zone, as the charts write it; see spec/architecture/console.md. -->
 		<span class={stylex.attrs(styles.zone).class} title={zone}>{offsetOf(zone)}</span>
-		<button
-			type="button"
-			onclick={toggleTheme}
-			aria-label="Switch between light and dark"
-			title="Switch between light and dark"
-			class="inline-flex size-8 items-center justify-center {stylex.attrs(styles.theme).class}"
-		>
+		<IconButton label="Switch between light and dark" onclick={toggleTheme}>
 			<!-- One mark for both, mirrored in the dark so its filled half changes side. -->
 			<BrightnessIcon size={18} aria-hidden="true" class="dark:-scale-x-100" />
-		</button>
+		</IconButton>
 	</div>
 </header>
