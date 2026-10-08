@@ -13,8 +13,8 @@
 	},
 	"devDependencies": {
 		"@canmi/hints": "workspace:*",
-		"@canmi/kit": "^2026.1005.0",
-		"@canmi/me": "^2026.1005.2",
+		"@canmi/kit": "^2026.1008.1",
+		"@canmi/me": "^2026.1008.0",
 		"@canmi/robots": "workspace:*",
 		"@canmi/social": "workspace:*",
 		"@canmi/web": "^2026.1008.0",
