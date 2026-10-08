@@ -125,7 +125,7 @@
 		<div class="px-5 py-3">
 			<label class="relative block w-full max-w-xs">
 				<MagnifyingGlassIcon
-					size={14}
+					size={16}
 					class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 {stylex.attrs(
 						styles.icon,
 					).class}"
@@ -167,13 +167,13 @@
 								>
 									{column.label}
 									{#if sorted === 'ascending'}<CaretUpIcon
-											size={12}
+											size={14}
 											stroke={2.5}
 										/>{:else if sorted === 'descending'}<CaretDownIcon
-											size={12}
+											size={14}
 											stroke={2.5}
 										/>{:else}<CaretUpDownIcon
-											size={12}
+											size={14}
 											stroke={2.5}
 											class="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 										/>{/if}
@@ -244,7 +244,7 @@
 					class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.control)
 						.class}"
 					disabled={shown.page <= 1}
-					onclick={() => (page = shown.page - 1)}><CaretLeftIcon size={16} /></button
+					onclick={() => (page = shown.page - 1)}><CaretLeftIcon size={18} /></button
 				>
 				<button
 					type="button"
@@ -252,7 +252,7 @@
 					class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.control)
 						.class}"
 					disabled={shown.page >= shown.pages}
-					onclick={() => (page = shown.page + 1)}><CaretRightIcon size={16} /></button
+					onclick={() => (page = shown.page + 1)}><CaretRightIcon size={18} /></button
 				>
 			</div>
 		</footer>

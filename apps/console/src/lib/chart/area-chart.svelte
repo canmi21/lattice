@@ -360,7 +360,7 @@
 					style:top="{y(limit.value)}px"
 				>
 					{#if limit.tone}<span class="inline-flex {stylex.attrs(tones[limit.tone]).class}"
-							><WarningIcon size={11} stroke={2.5} /></span
+							><WarningIcon size={14} stroke={2.5} /></span
 						>{/if}{limit.label}
 					{format(limit.value)}
 				</span>

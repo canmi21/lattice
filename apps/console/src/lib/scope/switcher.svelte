@@ -121,7 +121,7 @@
 		class="inline-flex items-center {stylex.attrs(styles.trigger).class}"
 	>
 		{labelOf(view)}
-		<CaretUpDownIcon size={14} aria-hidden="true" class={stylex.attrs(styles.chevron).class} />
+		<CaretUpDownIcon size={16} aria-hidden="true" class={stylex.attrs(styles.chevron).class} />
 	</button>
 	{#if open}
 		<div
@@ -145,7 +145,7 @@
 					).class}"
 				>
 					{one.label}
-					{#if here}<CheckIcon size={14} stroke={2.5} aria-hidden="true" />{/if}
+					{#if here}<CheckIcon size={16} stroke={2.5} aria-hidden="true" />{/if}
 				</a>
 			{/each}
 		</div>

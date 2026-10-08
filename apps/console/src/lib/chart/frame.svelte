@@ -69,7 +69,7 @@
 				).class}"
 				onclick={() => (tabular = !tabular)}
 			>
-				{#if tabular}<ChartLineIcon size={14} />Chart{:else}<TableIcon size={14} />Table{/if}
+				{#if tabular}<ChartLineIcon size={16} />Chart{:else}<TableIcon size={16} />Table{/if}
 			</button>
 		{/if}
 	</div>
@@ -83,7 +83,7 @@
 			>
 				<span class="inline-flex items-center gap-1.5 {stylex.attrs(type.name).class}">
 					<span class="inline-flex {stylex.attrs(tone.bad).class}"
-						><WarningIcon size={14} stroke={2.5} /></span
+						><WarningIcon size={16} stroke={2.5} /></span
 					>Could not be read
 				</span>
 				<span class={stylex.attrs(type.soft).class}>{error}</span>

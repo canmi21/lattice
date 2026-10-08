@@ -9,7 +9,7 @@ import Sparkline from './sparkline.svelte';
 import StatTile from './stat-tile.svelte';
 
 const stateIcon = (icon: typeof ArrowUpIcon) =>
-	/<svg[\s\S]*<\/svg>/.exec(render(icon, { props: { size: 12, stroke: 2.5 } }).body)![0];
+	/<svg[\s\S]*<\/svg>/.exec(render(icon, { props: { size: 14, stroke: 2.5 } }).body)![0];
 
 describe('stat tile on the server', () => {
 	it('writes the figure compact, the delta signed against its period, and the trend', () => {

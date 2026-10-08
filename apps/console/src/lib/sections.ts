@@ -3,8 +3,8 @@
  * called, and the one scope it belongs to, if any, shown besides under All. See
  * spec/architecture/console.md.
  */
+import ActivityIcon from '@tabler/icons-svelte-runes/icons/activity';
 import LayoutDashboardIcon from '@tabler/icons-svelte-runes/icons/layout-dashboard';
-import LogsIcon from '@tabler/icons-svelte-runes/icons/logs';
 import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
 import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 import ServerIcon from '@tabler/icons-svelte-runes/icons/server-2';
@@ -15,7 +15,7 @@ export const SECTIONS = [
 	{ path: '/nodes', label: 'Nodes', icon: ServerIcon, only: 'infra' },
 	{ path: '/deployments', label: 'Deployments', icon: RocketIcon },
 	{ path: '/apps', label: 'Apps', icon: PackagesIcon },
-	{ path: '/events', label: 'Events', icon: LogsIcon },
+	{ path: '/events', label: 'Events', icon: ActivityIcon },
 ] as const;
 
 export type Section = (typeof SECTIONS)[number];

@@ -177,7 +177,7 @@
 							).class}"
 							style:left="{at(one.end ?? end)}%"
 							style:top="{row * PITCH + PITCH / 2}px"
-							><XCircleIcon size={14} stroke={2.5} aria-label="Failed" /></span
+							><XCircleIcon size={16} stroke={2.5} aria-label="Failed" /></span
 						>
 					{/if}
 					<button

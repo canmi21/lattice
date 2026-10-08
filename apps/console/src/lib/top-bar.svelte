@@ -120,8 +120,8 @@
 			title="Switch between light and dark"
 			class="inline-flex size-8 items-center justify-center {stylex.attrs(styles.theme).class}"
 		>
-			<MoonIcon size={16} aria-hidden="true" class="dark:hidden" />
-			<SunIcon size={16} aria-hidden="true" class="hidden dark:block" />
+			<MoonIcon size={18} aria-hidden="true" class="dark:hidden" />
+			<SunIcon size={18} aria-hidden="true" class="hidden dark:block" />
 		</button>
 	</div>
 </header>

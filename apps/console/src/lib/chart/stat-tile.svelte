@@ -92,10 +92,10 @@
 		<span class="inline-flex items-center gap-1 {stylex.attrs(type.soft).class}">
 			<span class="inline-flex items-center gap-0.5 {stylex.attrs(tone[verdict]).class}">
 				{#if direction === 'up'}<ArrowUpIcon
-						size={12}
+						size={14}
 						stroke={2.5}
-					/>{:else if direction === 'down'}<ArrowDownIcon size={12} stroke={2.5} />{:else}<MinusIcon
-						size={12}
+					/>{:else if direction === 'down'}<ArrowDownIcon size={14} stroke={2.5} />{:else}<MinusIcon
+						size={14}
 						stroke={2.5}
 					/>{/if}
 				{signed(delta.value, delta.format)}

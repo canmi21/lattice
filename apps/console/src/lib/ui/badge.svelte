@@ -33,6 +33,6 @@
 		wash[tone],
 	).class}"
 >
-	<Icon size={12} stroke={2.5} aria-hidden="true" />
+	<Icon size={14} stroke={2.5} aria-hidden="true" />
 	{@render children()}
 </span>

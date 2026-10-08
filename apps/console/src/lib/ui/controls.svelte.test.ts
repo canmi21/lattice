@@ -11,7 +11,7 @@ import Tabs from './tabs.svelte';
 const words = (html: string) => createRawSnippet(() => ({ render: () => `<span>${html}</span>` }));
 const stateIcon = (icon: typeof CheckCircleIcon) =>
 	/<svg[\s\S]*<\/svg>/.exec(
-		render(icon, { props: { size: 12, stroke: 2.5, 'aria-hidden': 'true' } }).body,
+		render(icon, { props: { size: 14, stroke: 2.5, 'aria-hidden': 'true' } }).body,
 	)![0];
 
 describe('badge on the server', () => {

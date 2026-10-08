@@ -26,8 +26,9 @@ https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
 danger and the series -- that a palette fills. The kit's `mono.css` paints the interface in light
 or dark; the icon at the top bar's right edge switches the two and keeps the choice in the kit's
 `theme` cookie. Nord supplies the chart series alone, so data keeps its distinctions while the
-interface remains monochrome. **Tabler is the console's icon family**, with a lighter stroke for
-navigation and a heavier one where a small state mark needs the weight. Its charts
+interface remains monochrome. **Tabler is the console's icon family**, with 18 px navigation and
+theme icons, 16 px inline controls and 14 px compact state marks. Navigation has a lighter stroke;
+small state marks have a heavier one. Its charts
 are drawn as SVG by the app itself with d3's scales and shapes, so the server renders them whole:
 a chart library drawing on a canvas would paint nothing until the browser ran it.
 

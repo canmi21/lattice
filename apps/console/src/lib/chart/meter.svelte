@@ -58,8 +58,8 @@
 		<span class="inline-flex items-center gap-2 whitespace-nowrap {stylex.attrs(type.soft).class}">
 			{#if level !== 'calm'}
 				<span class="inline-flex items-center gap-1 {stylex.attrs(tone[level]).class}">
-					{#if level === 'bad'}<XCircleIcon size={12} stroke={2.5} />{:else}<WarningIcon
-							size={12}
+					{#if level === 'bad'}<XCircleIcon size={14} stroke={2.5} />{:else}<WarningIcon
+							size={14}
 							stroke={2.5}
 						/>{/if}{word}
 				</span>
