@@ -1,9 +1,13 @@
 /// <reference types="@cloudflare/workers-types" />
 
+import type { BuildEnv } from '@canmi/web/build';
 import type { Read } from '#lib/server/read.ts';
 import type { Cluster } from '#lib/wire.ts';
 
 declare global {
+	/** The build's commit, moment and disclosure; see vite.config.ts. */
+	interface ImportMetaEnv extends BuildEnv {}
+
 	namespace App {
 		interface PageData {
 			/** What every page's server load streams of the cluster; see src/routes/+layout.svelte. */

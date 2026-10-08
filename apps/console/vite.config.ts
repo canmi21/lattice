@@ -5,6 +5,7 @@ import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
+import { buildDefine } from '@canmi/web/build';
 
 // The repository root, as the site and the status page set it: StyleX hashes a class from the
 // file's path relative to this.
@@ -16,6 +17,8 @@ const stylexPlugin = stylex({
 });
 
 export default defineConfig({
+	// The commit, the build moment and the disclosure; see lib's spec/web/build.md.
+	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 	plugins: [
 		tailwindcss(),
 		sveltekit({

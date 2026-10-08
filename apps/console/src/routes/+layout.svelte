@@ -90,7 +90,7 @@
 </svelte:head>
 
 <!-- Three fixed regions, and only the page scrolls. See spec/architecture/console.md. -->
-<Sidebar {view} current={section} {live} />
+<Sidebar {view} current={section} {live} nearest={data.nearest} />
 <TopBar
 	{view}
 	{section}

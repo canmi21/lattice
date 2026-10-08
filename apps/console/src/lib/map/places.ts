@@ -104,6 +104,11 @@ export function nameOf(code: string): Name {
 	return place ? displayName(place.city, place.country) : { full: code, lead: code };
 }
 
+/** The country a node is in, in full -- `Japan`, `United States` -- or the code where unplaced. */
+export function countryOf(code: string): string {
+	return PLACES[code as Node]?.country ?? code;
+}
+
 /**
  * The display name and the code in one string, where only text can be written -- an option, a
  * title, a chart's names: `Tokyo, Japan (tyo)`, or `Tokyo (tyo)` with `lead` where room is short.

@@ -6,13 +6,13 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { applyTheme, currentTheme, themeCookie } from '@canmi/kit/theme';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
-	import MoonIcon from '@tabler/icons-svelte-runes/icons/moon';
-	import SunIcon from '@tabler/icons-svelte-runes/icons/sun';
+	import BrightnessIcon from '@tabler/icons-svelte-runes/icons/brightness-filled';
 	import type { Snippet } from 'svelte';
 	import Switcher from './scope/switcher.svelte';
 	import { type View, within } from './scope/scope.ts';
 	import type { Section } from './sections.ts';
 	import { surfaces, type } from './style.ts';
+	import { offsetOf, timeZone } from './ui/time-zone.ts';
 
 	let {
 		view,
@@ -28,6 +28,8 @@
 		code?: string;
 		actions?: Snippet;
 	} = $props();
+
+	const zone = timeZone();
 
 	const styles = stylex.create({
 		crumb: {
@@ -46,6 +48,12 @@
 		code: {
 			color: 'var(--color-text-muted)',
 			fontSize: text.px12,
+		},
+		/** The zone every moment on the page is written in, quiet beside the page's own actions. */
+		zone: {
+			color: 'var(--color-text-muted)',
+			fontSize: text.px13,
+			fontVariantNumeric: 'tabular-nums',
 		},
 		theme: {
 			backgroundColor: {
@@ -113,6 +121,8 @@
 	</nav>
 	<div class="flex min-w-0 items-center gap-2 justify-self-end">
 		{@render actions?.()}
+		<!-- The request's zone, as the charts write it; see spec/architecture/console.md. -->
+		<span class={stylex.attrs(styles.zone).class} title={zone}>{offsetOf(zone)}</span>
 		<button
 			type="button"
 			onclick={toggleTheme}
@@ -120,8 +130,8 @@
 			title="Switch between light and dark"
 			class="inline-flex size-8 items-center justify-center {stylex.attrs(styles.theme).class}"
 		>
-			<MoonIcon size={18} aria-hidden="true" class="dark:hidden" />
-			<SunIcon size={18} aria-hidden="true" class="hidden dark:block" />
+			<!-- One mark for both, mirrored in the dark so its filled half changes side. -->
+			<BrightnessIcon size={18} aria-hidden="true" class="dark:-scale-x-100" />
 		</button>
 	</div>
 </header>

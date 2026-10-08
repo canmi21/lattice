@@ -1,33 +1,52 @@
 <script lang="ts">
 	/**
-	 * The account, then where the console goes: the sections the view shows, the one being read
-	 * held in a raised row; and at the foot whether the console is live, how many nodes it hears
-	 * and through which one. Fixed down the whole left edge; see spec/architecture/console.md.
+	 * Where the console goes: the sections the view shows, the one being read held raised; and at the
+	 * foot the account -- one button for the menu that waits on accounts, holding the avatar with a
+	 * dot for whether the socket is up, the name, and the relay's country -- beside a link to the
+	 * commit and the button notifications will open. Fixed down the left edge; see
+	 * spec/architecture/console.md.
 	 */
+	import { dev } from '$app/env';
+	import { author } from '@canmi/me/identity';
+	import { SOURCE } from '@canmi/me/urls';
+	import BellIcon from '@tabler/icons-svelte-runes/icons/bell';
+	import GitIcon from '@tabler/icons-svelte-runes/icons/git-merge';
 	import * as stylex from '@stylexjs/stylex';
-	import { radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { border, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { pickUrls } from '@monoflake/sdk';
+	import { imgsrc } from '@monoflake/sdk/imgsrc';
 	import type { Live } from './live.svelte.ts';
-	import { PLACES } from './map/places.ts';
-	import { liveness } from './node.ts';
+	import { countryOf } from './map/places.ts';
 	import { type View, within } from './scope/scope.ts';
 	import { sectionsIn, type Section } from './sections.ts';
-	import { surfaces, tone, type } from './style.ts';
+	import { surfaces, tone } from './style.ts';
 	import Badge from './ui/badge.svelte';
 	import { CONTRACT } from './wire.ts';
 
-	let { view, current, live }: { view: View; current: Section | undefined; live: Live } = $props();
+	let {
+		view,
+		current,
+		live,
+		nearest,
+	}: { view: View; current: Section | undefined; live: Live; nearest: string | undefined } =
+		$props();
 
-	const WORD = { connecting: 'Connecting', live: 'Live', polling: 'Polling' } as const;
-	const TONE = { connecting: 'quiet', live: 'good', polling: 'warn' } as const;
-	const TOTAL = Object.keys(PLACES).length;
-	const heard = $derived(
-		Object.values(live.view.nodes).filter((held) => liveness(held.heard_at, live.now) === 'live')
-			.length,
-	);
+	const COMMIT = import.meta.env.VITE_COMMIT_HASH;
+	// Three times the 2rem it is drawn at, for the densest screen and no more.
+	const avatar = imgsrc(`github:avatar:${author.githubId}@96`, { cdnUrl: pickUrls(dev).cdn });
+	// Up or down, and nothing between but the moment before the socket has tried; see
+	// spec/architecture/console.md.
+	const TONE = { connecting: 'quiet', live: 'good', polling: 'bad' } as const;
+	const WORD = { connecting: 'Connecting', live: 'Live', polling: 'Polling every 5 s' } as const;
+
+	// The relay the socket went through once one has answered; until then the node the server
+	// worked out as nearest, which is where the socket goes first.
+	const relayed = $derived(live.view.via ?? nearest);
+	const relay = $derived(relayed === undefined ? undefined : countryOf(relayed));
 	const through = $derived(
 		[
-			live.view.via && `Through ${live.view.via}`,
-			live.mode === 'polling' && 'every 5 s',
+			WORD[live.mode],
+			relayed && `through ${relayed}`,
 			live.failure && `last poll failed: ${live.failure}`,
 		]
 			.filter(Boolean)
@@ -35,6 +54,7 @@
 	);
 
 	const styles = stylex.create({
+		disc: { backgroundColor: 'var(--color-raised)' },
 		link: {
 			borderRadius: radius.md,
 			backgroundColor: {
@@ -59,23 +79,56 @@
 			fontSize: text.px14,
 			fontWeight: weight.semibold,
 		},
+		rule: {
+			borderTopWidth: border.hairlinePx,
+			borderTopStyle: 'solid',
+			borderTopColor: 'var(--color-line-faint)',
+		},
 		status: {
 			fontSize: text.px12,
 			color: 'var(--color-text-muted)',
 		},
+		/** The whole account is the menu's button, raised on hover as a section's link is. */
+		menu: {
+			borderRadius: radius.md,
+			backgroundColor: {
+				default: 'transparent',
+				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+			},
+			transitionProperty: 'background-color',
+			transitionDuration: '120ms',
+		},
+		/** As the top bar's theme switch is: quiet, and raised on hover. */
+		icon: {
+			borderRadius: radius.md,
+			backgroundColor: {
+				default: 'transparent',
+				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+			},
+			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			transitionProperty: 'color, background-color',
+			transitionDuration: '120ms',
+		},
+		/** The dot's ring, the sidebar's ground, so it reads as cut out of the avatar's edge. */
+		presence: {
+			borderWidth: '2px',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-ground)',
+		},
 	});
 </script>
+
+<svelte:head>
+	<!-- Asked for before the page's modules, so the first frame paints it. -->
+	<link rel="preload" as="image" href={avatar} fetchpriority="high" />
+</svelte:head>
 
 <aside
 	class="fixed inset-y-0 left-0 z-30 flex w-60 flex-col {stylex.attrs(surfaces.sidebar).class}"
 >
-	<a
-		href={within(view)}
-		class="flex h-14 shrink-0 items-center px-6 {stylex.attrs(styles.account).class}">canmi</a
-	>
 	<!-- A section's load starts on hover; see spec/architecture/console.md. -->
 	<nav
-		class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3"
+		class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 pt-4"
 		data-sveltekit-preload-data="hover"
 	>
 		{#each sectionsIn(view) as section (section.path)}
@@ -91,18 +144,70 @@
 			</a>
 		{/each}
 	</nav>
-	<footer class="flex shrink-0 flex-col items-start gap-2 px-6 py-4">
-		{#if live.view.refused !== undefined}
+	{#if live.view.refused !== undefined}
+		<footer class="flex shrink-0 px-6 pb-3">
 			<Badge tone="warn">Relay contract {live.view.refused}, console {CONTRACT}</Badge>
-		{/if}
-		<span
-			class="inline-flex items-center gap-2 {stylex.attrs(styles.status).class}"
-			title={through}
+		</footer>
+	{/if}
+	<div class="flex shrink-0 items-center gap-2 px-2 py-2 {stylex.attrs(styles.rule).class}">
+		<!-- The menu waits on accounts; see spec/architecture/console.md. -->
+		<button
+			type="button"
+			aria-label="Account menu"
+			aria-haspopup="menu"
+			aria-expanded="false"
+			class="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-left {stylex.attrs(
+				styles.menu,
+			).class}"
 		>
-			<span class="size-1.5 rounded-full bg-current {stylex.attrs(tone[TONE[live.mode]]).class}"
-			></span>
-			{WORD[live.mode]}
-			<span class={stylex.attrs(type.figure, styles.status).class}>{heard}/{TOTAL}</span>
+			<span class="relative shrink-0" title={through}>
+				<img
+					src={avatar}
+					alt=""
+					width="32"
+					height="32"
+					fetchpriority="high"
+					class="size-8 rounded-full object-cover {stylex.attrs(styles.disc).class}"
+				/>
+				<!-- Whether the socket is up, as a presence dot ringed in the sidebar's own ground. -->
+				<span
+					role="img"
+					aria-label={WORD[live.mode]}
+					class="absolute -right-0.5 -bottom-0.5 size-3 rounded-full bg-current {stylex.attrs(
+						tone[TONE[live.mode]],
+						styles.presence,
+					).class}"
+				></span>
+			</span>
+			<span class="flex min-w-0 flex-col leading-4">
+				<span class="truncate {stylex.attrs(styles.account).class}">{author.name}</span>
+				{#if relay !== undefined}
+					<span class="truncate {stylex.attrs(styles.status).class}">{relay}</span>
+				{/if}
+			</span>
+		</button>
+		<span class="mr-1 flex shrink-0 items-center gap-0.5">
+			<!-- The commit this console was built from, opened where it was made. -->
+			<a
+				href={COMMIT === 'unknown' ? SOURCE : `${SOURCE}/commit/${COMMIT}`}
+				target="_blank"
+				rel="noopener"
+				aria-label="Built from {COMMIT}"
+				title="Built from {COMMIT}"
+				class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.icon).class}"
+			>
+				<GitIcon size={18} aria-hidden="true" />
+			</a>
+			<!-- Notifications wait on a feed of their own; see spec/architecture/console.md. -->
+			<button
+				type="button"
+				aria-label="Notifications"
+				aria-haspopup="menu"
+				aria-expanded="false"
+				class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.icon).class}"
+			>
+				<BellIcon size={18} aria-hidden="true" />
+			</button>
 		</span>
-	</footer>
+	</div>
 </aside>
