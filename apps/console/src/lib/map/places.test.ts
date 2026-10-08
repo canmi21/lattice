@@ -109,15 +109,16 @@ describe('what a node is called', () => {
 			'Tokyo, Japan',
 			'Tokyo, Japan',
 		]);
-		expect(['gvx', 'bru', 'buf', 'rdu'].map((code) => nameOf(code).full)).toEqual([
+		expect(['gvx', 'bru', 'buf', 'rdu', 'sha'].map((code) => nameOf(code).full)).toEqual([
 			'Sweden, EU',
 			'Belgium, EU',
 			'Buffalo, US',
 			'Raleigh, US',
+			'Shanghai, China',
 		]);
 		expect(nodeLabel('hnd')).toBe('Tokyo, Japan (hnd)');
 		expect(nodeLabel('gvx', 'lead')).toBe('Sweden (gvx)');
 		expect(nodeLabel('xyz')).toBe('xyz');
-		expect(Object.keys(PLACES).length).toBe(7);
+		expect(Object.keys(PLACES).length).toBe(8);
 	});
 });

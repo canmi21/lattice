@@ -5,7 +5,7 @@ import WorldMap from './world-map.svelte';
 import type { Held } from '../wire.ts';
 
 const NOW = Date.parse('2026-10-06T12:00:00Z');
-const PLACES = ['tokyo', 'gvx', 'buf', 'bru', 'rdu'];
+const PLACES = ['tokyo', 'gvx', 'buf', 'bru', 'rdu', 'sha'];
 
 function held(secondsAgo: number, cpu?: number, gib?: number): Held {
 	return {

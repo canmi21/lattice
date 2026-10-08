@@ -11,6 +11,7 @@ describe('failure domains', () => {
 			'az',
 			'rkn',
 			'int',
+			'int',
 		]);
 		for (const { domain } of Object.values(FACTS)) expect(PROVIDERS[domain]).toBeDefined();
 		expect(Object.keys(PROVIDERS)).toEqual(['oci', 'az', 'rkn', 'int', 'cf', 'vcl']);

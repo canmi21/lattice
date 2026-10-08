@@ -172,6 +172,6 @@ describe('runs', () => {
 		const found = await runs({ env });
 		expect(found.runs.map((r) => r.run)).toEqual([42]);
 		expect(found.apart).toHaveLength(1);
-		expect(Object.keys(found.failures)).toHaveLength(5);
+		expect(Object.keys(found.failures)).toHaveLength(6);
 	});
 });

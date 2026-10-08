@@ -25,6 +25,7 @@ declare global {
 			GVX: Fetcher;
 			BRU: Fetcher;
 			BUF: Fetcher;
+			SHA: Fetcher;
 			/** A Worker secret. */
 			HOST_READ_TOKEN: string;
 			/** The adapter's own: the client files and the prerendered pages. */

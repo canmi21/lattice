@@ -2,7 +2,7 @@
  * What the console says of each node beyond where it is: its place, the name it is shown by, its
  * role in the relay, and how nodes in one place gather into one mark. A `Record<Node, ...>`, so a
  * node added to `server/nodes.ts` fails the type check here until it is placed. A role is one of
- * the relay's three core nodes, a relay, or the relay at home, which may go offline -- see
+ * the relay's three core nodes, a relay, or a relay at home, which may go offline -- see
  * platform's spec/architecture/relay.md.
  */
 import type { Node } from '../server/nodes.ts';
@@ -41,6 +41,7 @@ export const PLACES: Record<Node, Place> = {
 	bru: { place: 'Brussels', city: 'Brussels', country: 'Belgium', role: 'relay' },
 	buf: { place: 'Buffalo', city: 'Buffalo', country: 'United States', role: 'core' },
 	rdu: { place: 'Raleigh', city: 'Raleigh', country: 'United States', role: 'home' },
+	sha: { place: 'Shanghai', city: 'Shanghai', country: 'China', role: 'home' },
 };
 
 /** The European Union's members, by the names `Place.country` spells them. */

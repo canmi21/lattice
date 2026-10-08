@@ -5,7 +5,7 @@
 
 /**
  * Each node at the airport or city its IATA code names, as latitude and longitude in degrees. With
- * nothing to go by, a reader tries them in this order: the three core nodes first, the one at home
+ * nothing to go by, a reader tries them in this order: the three core nodes first, the ones at home
  * last. See platform's spec/architecture/relay.md.
  */
 export const NODES = {
@@ -16,6 +16,7 @@ export const NODES = {
 	hnd: [35.5494, 139.7798],
 	bru: [50.9014, 4.4844],
 	rdu: [35.8776, -78.7875],
+	sha: [31.2304, 121.4737],
 } as const satisfies Record<string, readonly [number, number]>;
 
 export type Node = keyof typeof NODES;
@@ -24,7 +25,7 @@ const FIXED = Object.keys(NODES) as Node[];
 
 /** Who goes first when Cloudflare knows the reader's continent and not where on it. */
 const BY_CONTINENT: Readonly<Record<string, readonly Node[]>> = {
-	AS: ['tyo', 'nrt', 'hnd'],
+	AS: ['tyo', 'nrt', 'hnd', 'sha'],
 	EU: ['gvx', 'bru'],
 	NA: ['buf', 'rdu'],
 };

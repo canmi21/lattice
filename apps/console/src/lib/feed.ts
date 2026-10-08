@@ -22,7 +22,7 @@ const FIRST_RETRY_MS = 1_000;
 const LAST_RETRY_MS = 60_000;
 /**
  * A browser answers the relay's pings on its own and cannot send any, so the page watches instead:
- * seven nodes move every few seconds, and this long with no message means the socket is dead.
+ * every node moves every few seconds, and this long with no message means the socket is dead.
  */
 const SILENCE_MS = 30_000;
 

@@ -29,6 +29,7 @@
 		{ "binding": "GVX", "service_id": "01a10f29-7d17-7b80-90d1-800d9c078a39", "remote": true },
 		{ "binding": "BRU", "service_id": "01a10f29-9169-7210-be9d-ad0a4de36833", "remote": true },
 		{ "binding": "BUF", "service_id": "01a10f29-a4d0-78f2-b6da-cade48268370", "remote": true },
+		{ "binding": "SHA", "service_id": "01a118fb-6f57-7973-a88e-db4ca4191206", "remote": true },
 	],
 
 	"observability": { "logs": { "enabled": true } },

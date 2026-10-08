@@ -8,7 +8,8 @@ export interface Facts {
 	tier: 'datacenter' | 'home' | 'transient';
 	/**
 	 * The account it is held under, as its provider's code -- `oci`, or `oci-2` for a second account
-	 * there: nodes in one fail together. A person reads it by `providerName`.
+	 * there: nodes in one fail together, save `int`, where each node is a domain of its own --
+	 * infra's spec/architecture/nodes.md. A person reads it by `providerName`.
 	 */
 	domain: string;
 	/** Until when it is expected to be held, a year; none for a node at home. */
@@ -24,6 +25,7 @@ export const FACTS: Record<Node, Facts> = {
 	bru: { tier: 'datacenter', domain: 'az', expiry: 2030, system: 'debian' },
 	buf: { tier: 'datacenter', domain: 'rkn', expiry: 2027, system: 'debian' },
 	rdu: { tier: 'home', domain: 'int', system: 'debian' },
+	sha: { tier: 'home', domain: 'int', system: 'debian' },
 };
 
 /** Every node, in the order the table declares them: by failure domain, home last. */

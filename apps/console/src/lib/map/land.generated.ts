@@ -27,6 +27,7 @@ export const LOCATIONS: Record<Node, readonly [number, number]> = {
 	hnd: [35.5494, 139.7798],
 	bru: [50.9014, 4.4844],
 	rdu: [35.8776, -78.7875],
+	sha: [31.2304, 121.4737],
 };
 
 /** Each node's place on the plot. */
@@ -38,4 +39,5 @@ export const POINTS: Record<Node, readonly [number, number]> = {
 	hnd: [888.27, 363.53],
 	bru: [512.46, 304.52],
 	rdu: [281.15, 362.41],
+	sha: [837.42, 377.91],
 };

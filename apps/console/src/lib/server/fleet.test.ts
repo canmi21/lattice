@@ -23,8 +23,8 @@ describe('fleet', () => {
 		answers.gvx = down;
 		const { sent, env } = bound(answers);
 		const now = await fleetNow({ env });
-		expect(sent).toHaveLength(7);
-		expect(new Set(sent.map(({ node }) => node)).size).toBe(7);
+		expect(sent).toHaveLength(8);
+		expect(new Set(sent.map(({ node }) => node)).size).toBe(8);
 		expect(now.gvx).toMatchObject({ ok: false, failure: { status: 502 } });
 		expect(now.tyo).toMatchObject({ ok: true, node: 'tyo' });
 		expect(Object.keys(now).sort()).toEqual([...ALL].sort());
@@ -55,7 +55,7 @@ describe('fleetEvents', () => {
 			['gvx', 4],
 			['tyo', 8],
 		]);
-		expect(Object.keys(merged.failures)).toEqual(['buf', 'nrt', 'hnd', 'bru', 'rdu']);
+		expect(Object.keys(merged.failures)).toEqual(['buf', 'nrt', 'hnd', 'bru', 'rdu', 'sha']);
 		expect(sent).toHaveLength(3);
 		expect(new Set(paths(sent))).toEqual(new Set(['/events?limit=3']));
 		expect(merged.next).toEqual({ tyo: 8, gvx: 4 });
