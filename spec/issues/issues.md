@@ -27,7 +27,7 @@ which areas exist and which entries are worth reaching for first.
 | [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
 | [site.md](site.md)       | 17      | routing, rendering, the article page, the tests, the license surface |
-| [cms.md](cms.md)         | 3       | what the CMS cannot yet offer, and what it cannot reach              |
+| [cms.md](cms.md)         | 4       | what the CMS cannot yet offer, and what it cannot reach              |
 | [plan.md](plan.md)       | 3       | what the milestones leave open                                       |
 | [video.md](video.md)     | 4       | what the video pipeline has not settled                              |
 | [tooling.md](tooling.md) | 4       | the files that describe the repository rather than run it            |
@@ -135,6 +135,7 @@ reasons.
 - Publishing is a mise task and cannot become a CMS button
 - A clip is the one resource reference the compiler still resolves into bytes
 - The segment layer waits for its redesign
+- A new mark waits for a root the corpus cannot be published under yet
 
 ### [plan.md](plan.md)
 
