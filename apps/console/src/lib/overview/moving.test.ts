@@ -46,6 +46,20 @@ const apartEvent = (over: Partial<FleetEvent>): FleetEvent => ({
 	...over,
 });
 
+/** keeper's row for an act on host: one finished row, never running. */
+const keeper = (outcome: string, detail: string, id: number) => ({
+	id,
+	app: 'host',
+	action: 'redeploy',
+	source: { kind: 'keeper' },
+	outcome,
+	stage: 'starting',
+	image: outcome === 'failed' ? (null as unknown as undefined) : 'sha256:a',
+	detail,
+	started_at: '2026-10-08T03:00:00Z',
+	finished_at: '2026-10-08T03:00:09Z',
+});
+
 describe('what is deploying now', () => {
 	it('seeds from the runs: every running placement and the latest failures', () => {
 		const runs = [
@@ -141,6 +155,20 @@ describe('what is deploying now', () => {
 			[step({ run: undefined, source: 'panel', action: 'redeploy', id: 2 })],
 		);
 		expect(now.running.map((group) => group.key).toSorted()).toEqual(['node tyo', 'run 3']);
+	});
+
+	it("lists keeper's finished acts on host among the failures, never as deploying", () => {
+		const live = fromLive({
+			rdu: held([
+				keeper('succeeded', "recreated from the image it runs, on the node's .env as it now is", 1),
+			]),
+			nrt: held([keeper('failed', 'the new host did not answer its health check', 1)]),
+		});
+		const now = current([], live);
+		expect(now.running).toEqual([]);
+		expect(now.failed.map((one) => [one.node, one.app, one.source, what(one)])).toEqual([
+			['nrt', 'host', 'keeper', 'Redeploy by keeper'],
+		]);
 	});
 
 	it('says what a step no run started is', () => {

@@ -8,7 +8,7 @@
 export const CONTRACT = 1;
 
 export interface Source {
-	/** `run`, `upload` or `panel`. */
+	/** `run`, `upload`, `panel`, or `keeper` for keeper's acts on host; host may add more. */
 	kind: string;
 	run?: number;
 	commit?: string;
