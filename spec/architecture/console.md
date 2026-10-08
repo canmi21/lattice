@@ -33,6 +33,15 @@ marks have a heavier one. Its charts are drawn as SVG by the app itself with d3'
 so the server renders them whole: a chart library drawing on a canvas would paint nothing until the
 browser ran it.
 
+**A button that is only an icon is one component, `src/lib/ui/icon-button.svelte`, in one of two
+kinds, square or round.** `ghost` has no ground of its own and rises on hover -- a bar's own
+controls, the top bar's light-and-dark switch. `framed` is filled with the surface and ruled by a
+one-pixel shadow rather than a border, as Geist's secondary button is, so the rule takes no room and
+the button is exactly its size; its hover lifts the fill and leaves the rule -- a control set apart
+from what is around it, the sidebar foot's commit and notifications, round at 1.75rem around an 18
+px icon. A kind is added to it rather than drawn again where it is wanted, so every icon on the
+console answers a hover the same way; its name is its label and its hover both.
+
 **The shell is three fixed regions, and only the page scrolls.** The sidebar runs down the whole
 left edge with its rule, the top bar sits right of it alone, and the page between them is the one
 scrolling element; the document itself never scrolls or bounces. Their sizes are in `rem`, so the
@@ -150,6 +159,24 @@ for -- platform's `spec/architecture/databases.md`, "The container is Postgres a
 Each app's `rollout` is shown beside it, as what a reader sees during one: a restart, no gap, or a
 deploy by hand -- infra's `spec/architecture/host.md`, "An app chooses how it is rolled out, and
 keeping nothing earns a gapless one".
+
+### An icon is drawn in three layers
+
+**An icon's box, its drawing's offset, and its drawing's scale are three things, and only the first
+is layout's.** The box is a square of the size asked for, and its center is the one point everything
+around it aligns to. The drawing is then moved off that center, and scaled about it, by the icon's
+row in `src/lib/ui/optics.ts` -- in the units of its own 24-unit grid, so one correction holds at
+every size it is drawn at. Both are done through the drawing's `viewBox`, as the player's cog is --
+web's `spec/styling/player.md` -- so the box, and any focus ring or frame around it, never moves;
+and a scaled drawing is given its stroke back, so it keeps the weight of the icons beside it.
+`src/lib/ui/icon.svelte` draws every icon that way.
+
+**A correction is measured, and then judged.** An outline icon's ink is weighed by rendering it and
+taking its centroid against the grid's center: `git-merge` centers at x 9.97, two units left,
+because two circles and the stem sit on the left and one on the right. Its correction is three
+quarters of that, 1.5 units right, since a drawing moved all the way to its centroid reads as having
+overshot. The table holds one row per icon, so an icon is corrected once and is the same wherever it
+appears.
 
 ## Live, through the nearest node
 
