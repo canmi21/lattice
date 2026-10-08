@@ -1,13 +1,20 @@
 /**
- * What is deploying now and what failed last, kept live: seeded from the runs a load read, then
- * overtaken by the events each node's snapshot carries as the relay passes them on. A step is
- * one app on one node in one run, at its latest event.
+ * What is deploying now and what failed last, kept live: seeded from the events a load read, then
+ * overtaken by the events each node's snapshot carries as the relay passes them on. A step is one
+ * app on one node at its latest event, within its CI run, or apart from any run where it was done
+ * by hand, from an upload or by keeper. Steps are grouped by run, and the rest by node.
  */
+import type { FleetEvent } from '../server/fleet.ts';
 import type { Run } from '../server/runs.ts';
-import type { Held } from '../wire.ts';
+import type { Event, Held } from '../wire.ts';
 
 export interface Step {
-	run: number;
+	/** The CI run it belongs to; none for a step no run started. */
+	run?: number;
+	/** Who started it: `run`, `panel`, `upload`, or a word host adds since. */
+	source: string;
+	/** `deploy`, `redeploy`, `rollback`, `start`, `stop` and the rest host names. */
+	action: string;
 	node: string;
 	app: string;
 	/** `running`, `succeeded`, `failed` or `skipped`. */
@@ -16,43 +23,91 @@ export interface Step {
 	detail?: string;
 	started_at: string;
 	finished_at?: string;
-	/** The event's id on its node, where the step came from a snapshot. */
+	/** The event's id on its node, where the step came from an event rather than a run's summary. */
 	id?: number;
 }
 
-/** The runs' running placements, and their `failures` most recent failed ones. */
-export function fromRuns(of: Run[], failures = 5): Step[] {
-	const steps: Step[] = of.flatMap((run) =>
-		run.placements.map(({ node, app, outcome, stage, detail, started_at, finished_at }) => ({
-			run: run.run,
-			node,
-			app,
-			outcome,
-			stage,
-			detail,
-			started_at,
-			finished_at,
-		})),
+/** An event as a step: a run's within it, anything else apart. */
+function stepOf(node: string, event: Event): Step {
+	const { kind, run } = event.source;
+	const { app, action, outcome, stage, detail, started_at, finished_at, id } = event;
+	return {
+		run: kind === 'run' ? run : undefined,
+		source: kind,
+		action,
+		node,
+		app,
+		outcome,
+		stage,
+		detail,
+		started_at,
+		finished_at,
+		id,
+	};
+}
+
+/**
+ * The runs' running placements and the running events no run owns, `apart`, then the
+ * `failures` most recent failed of either.
+ */
+export function fromHistory(runs: Run[], apart: FleetEvent[] = [], failures = 5): Step[] {
+	const steps: Step[] = runs.flatMap((run) =>
+		run.placements.map(
+			({ node, app, action, outcome, stage, detail, started_at, finished_at }) => ({
+				run: run.run,
+				source: 'run',
+				action,
+				node,
+				app,
+				outcome,
+				stage,
+				detail,
+				started_at,
+				finished_at,
+			}),
+		),
 	);
-	const failed = steps.filter((step) => step.outcome === 'failed').sort(latest);
+	steps.push(...latestApart(apart.map((event) => stepOf(event.node, event))));
+	const failed = steps.filter((step) => step.outcome === 'failed').toSorted(latest);
 	return [...steps.filter((step) => step.outcome === 'running'), ...failed.slice(0, failures)];
 }
 
-/** Every run's event each node's snapshot holds. */
+/** Every event each node's snapshot holds. */
 export function fromLive(nodes: Readonly<Record<string, Held>>): Step[] {
 	return Object.entries(nodes).flatMap(([node, held]) =>
-		held.snapshot.events.flatMap((event) => {
-			const { kind, run } = event.source;
-			if (kind !== 'run' || run === undefined) return [];
-			const { app, outcome, stage, detail, started_at, finished_at, id } = event;
-			return [{ run, node, app, outcome, stage, detail, started_at, finished_at, id }];
-		}),
+		held.snapshot.events.map((event) => stepOf(node, event)),
 	);
 }
 
+/** One step's place: within its run, or, apart from any, its source's on its node. */
+const keyOf = (step: Step): string =>
+	step.run === undefined
+		? `${step.source}/${step.node}/${step.app}`
+		: `run ${step.run}/${step.node}/${step.app}`;
+
+/** Each place's newest event, by id where both have one. */
+function latestApart(steps: Step[]): Step[] {
+	const held = new Map<string, Step>();
+	for (const step of steps) {
+		const kept = held.get(keyOf(step));
+		if (!kept || (step.id ?? 0) > (kept.id ?? 0)) held.set(keyOf(step), step);
+	}
+	return [...held.values()];
+}
+
+/** What is deploying under one heading: a run, or a node's steps no run started. */
+export interface Group {
+	key: string;
+	/** The run's number; none for a node's group. */
+	run?: number;
+	/** The node every step stands on, for a node's group. */
+	node?: string;
+	steps: Step[];
+}
+
 export interface Now {
-	/** Runs with a step still going, newest first, each step by app then node. */
-	running: { run: number; steps: Step[] }[];
+	/** Groups with a step still going, newest first, each step by app then node. */
+	running: Group[];
 	/** The most recent failed steps, newest first. */
 	failed: Step[];
 }
@@ -65,25 +120,45 @@ function latest(a: Step, b: Step): number {
 /** `seed` overtaken by `live` wherever both hold a step: a snapshot's event is the newer. */
 export function current(seed: Step[], live: Step[], failures = 5): Now {
 	const held = new Map<string, Step>();
-	const key = (step: Step) => `${step.run}/${step.node}/${step.app}`;
-	for (const step of seed) held.set(key(step), step);
+	for (const step of seed) held.set(keyOf(step), step);
 	for (const step of live) {
-		const kept = held.get(key(step));
-		if (!kept || kept.id === undefined || (step.id ?? 0) > kept.id) held.set(key(step), step);
+		const kept = held.get(keyOf(step));
+		if (!kept || kept.id === undefined || (step.id ?? 0) > kept.id) held.set(keyOf(step), step);
 	}
 	const steps = [...held.values()];
-	const runs = new Map<number, Step[]>();
+	const groups = new Map<string, Group>();
 	for (const step of steps.filter((one) => one.outcome === 'running')) {
-		runs.set(step.run, [...(runs.get(step.run) ?? []), step]);
+		const key = step.run === undefined ? `node ${step.node}` : `run ${step.run}`;
+		const group = groups.get(key) ?? {
+			key,
+			...(step.run === undefined ? { node: step.node } : { run: step.run }),
+			steps: [],
+		};
+		group.steps.push(step);
+		groups.set(key, group);
 	}
-	const running = [...runs]
-		.map(([run, of]) => ({
-			run,
-			steps: of.sort((a, b) => a.app.localeCompare(b.app) || a.node.localeCompare(b.node)),
-		}))
-		.sort((a, b) => first(b.steps) - first(a.steps) || b.run - a.run);
-	const failed = steps.filter((one) => one.outcome === 'failed').sort(latest);
+	for (const group of groups.values()) {
+		group.steps = group.steps.toSorted(
+			(a, b) => a.app.localeCompare(b.app) || a.node.localeCompare(b.node),
+		);
+	}
+	const running = [...groups.values()].toSorted(
+		(a, b) => first(b.steps) - first(a.steps) || (b.run ?? 0) - (a.run ?? 0),
+	);
+	const failed = steps.filter((one) => one.outcome === 'failed').toSorted(latest);
 	return { running, failed: failed.slice(0, failures) };
 }
 
 const first = (steps: Step[]) => Math.min(...steps.map((step) => Date.parse(step.started_at)));
+
+/**
+ * What a step no run started is, in a few words: `Redeploy`, `Rollback with data`, `Deploy of an
+ * upload`, and for a source the console does not know, its word beside the action's.
+ */
+export function what(step: Pick<Step, 'action' | 'source'>): string {
+	const action = step.action.replaceAll('_', ' ');
+	const said = action.charAt(0).toUpperCase() + action.slice(1);
+	if (step.source === 'panel' || step.source === 'run') return said;
+	if (step.source === 'upload') return `${said} of an upload`;
+	return `${said} by ${step.source}`;
+}

@@ -130,6 +130,12 @@ on 2026-10-06. While the socket is down the page polls `/state`.
 
 ## The pipeline
 
+**What is deploying now is every act in progress, not only CI's**: the Now card groups a run's
+steps under the run, and an act by hand -- a redeploy, a rollback, a start or stop, an upload, or
+keeper's recreate of host -- under its node, each saying what it is; the latest failures take both
+alike. A run is one way a node changes, and the operator watching a rollout by hand saw nothing
+until 2026-10-08.
+
 **What CI is building, what it built, and where each node is with it** are one view: a run queued,
 building, built or failed on GitHub; then on each node, the artifact downloaded, loaded, started,
 checked healthy, or failed at one of those, or skipped for its architecture or its placements. The

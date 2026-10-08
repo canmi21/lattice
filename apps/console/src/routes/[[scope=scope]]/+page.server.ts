@@ -1,6 +1,6 @@
 import { byNode, daily, figures, marks } from '#lib/overview/deploys.js';
 import { heat, missing, perNode } from '#lib/overview/fleet.js';
-import { fromRuns } from '#lib/overview/moving.js';
+import { fromHistory } from '#lib/overview/moving.js';
 import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { ALL, fleetSeries } from '#lib/server/fleet.js';
@@ -65,6 +65,6 @@ export const load: PageServerLoad = async (event) => {
 				message: failure.message,
 			})),
 		})),
-		moving: history.then(({ runs }) => fromRuns(runs)),
+		moving: history.then(({ runs, apart }) => fromHistory(runs, apart)),
 	};
 };
