@@ -3,7 +3,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PORTS, DEVELOPMENT_PROXY_PATHS, pageUrls, URLS } from '@monoflake/sdk';
-import { discloseDefine } from '@canmi/web/disclose/build';
+import { buildDefine } from '@canmi/web/build';
 import { esbuildTarget } from '@canmi/web/compat/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -12,7 +12,6 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { paraglideVitePlugin } from '@inlang/paraglide-js';
 import Icons from 'unplugin-icons/vite';
-import { execFileSync } from 'node:child_process';
 import { defineConfig, type UserConfig } from 'vite';
 import { addresses } from '@canmi/site-api/contracts';
 import { author } from '@canmi/me/identity';
@@ -36,23 +35,6 @@ function builtinRedirects(cdnUrl: string): Record<string, string> {
 		'/favicon.ico': `${cdnUrl}/favicon.ico`,
 	};
 }
-
-// TODO: nothing reads this yet. It is kept, not deleted, because the footer that shows the
-// deployed commit is planned rather than abandoned -- and the value has to be captured at build
-// time, which is a thing this file can do and a component cannot.
-//
-// execFileSync takes no shell, so there is no injection surface. jj is colocated with git, which
-// is why asking git still works.
-const commitHash = (() => {
-	try {
-		return execFileSync('git', ['rev-parse', '--short', 'HEAD']).toString().trim();
-	} catch {
-		return 'unknown';
-	}
-})();
-
-// Sitemap <lastmod> for routes like "/" that have no article of their own to date from.
-const buildTime = new Date().toISOString();
 
 // `browserslist` in package.json is the syntax floor; see spec/compat.md, "The syntax floor is
 // set to the same line, deliberately".
@@ -268,13 +250,10 @@ export default defineConfig(({ mode }) => {
 			},
 		},
 		// URLs are imported from @monoflake/sdk at their use sites rather than injected here, so
-		// there is one spelling of each. What is left is the pair of values that genuinely
-		// only exist at build time.
+		// there is one spelling of each. What is left is build information, through lib's
+		// spec/web/build.md, and the stated API addresses.
 		define: {
-			'import.meta.env.VITE_COMMIT_HASH': JSON.stringify(commitHash),
-			'import.meta.env.VITE_BUILD_TIME': JSON.stringify(buildTime),
-			// What the app is made of, for the Wappalyzer patches; see lib's spec/web/disclose.md.
-			...discloseDefine(fileURLToPath(new URL('.', import.meta.url))),
+			...buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 			// The addresses of the API's routes, stated to the pages and the Worker by one build, so
 			// the two agree by construction. Production only: development asks by name. See
 			// spec/architecture/site-api.md, "The pages ask by contract, not by name".

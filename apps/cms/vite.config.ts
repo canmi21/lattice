@@ -2,7 +2,7 @@ import adapter from '@sveltejs/adapter-static';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { fileURLToPath } from 'node:url';
 import { DEVELOPMENT_PROXY_PATHS, developmentUrl, pageUrls } from '@monoflake/sdk';
-import { discloseDefine } from '@canmi/web/disclose/build';
+import { buildDefine } from '@canmi/web/build';
 import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
@@ -78,6 +78,6 @@ export default defineConfig({
 		},
 	},
 	build: { target: 'es2023' },
-	// What the app is made of, for the Wappalyzer patches; see lib's spec/web/disclose.md.
-	define: discloseDefine(fileURLToPath(new URL('.', import.meta.url))),
+	// The commit, the build's moment and what the app is made of; see lib's spec/web/build.md.
+	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 });

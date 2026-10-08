@@ -3,7 +3,7 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { esbuildTarget } from '@canmi/web/compat/build';
-import { discloseDefine } from '@canmi/web/disclose/build';
+import { buildDefine } from '@canmi/web/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { URLS } from '@monoflake/sdk';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -79,8 +79,8 @@ export default defineConfig({
 	// Pinned. See spec/toolchain.md, "Dev ports are pinned".
 	server: { host: '::', port: 26522, strictPort: true },
 	// Hashed file names in hex, as the site's are.
-	// What the app is made of, for the Wappalyzer patches; see lib's spec/web/disclose.md.
-	define: discloseDefine(fileURLToPath(new URL('.', import.meta.url))),
+	// The commit, the build's moment and what the app is made of; see lib's spec/web/build.md.
+	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 	build: {
 		target: esbuildTarget(BROWSERSLIST),
 		sourcemap: sourcemapSetting(upload),

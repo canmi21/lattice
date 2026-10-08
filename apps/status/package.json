@@ -17,7 +17,7 @@
 		"@canmi/me": "^2026.1005.2",
 		"@canmi/robots": "workspace:*",
 		"@canmi/social": "workspace:*",
-		"@canmi/web": "^2026.1005.8",
+		"@canmi/web": "^2026.1008.0",
 		"@lucide/svelte": "^1.51.0",
 		"@monoflake/probe": "^2026.1004.2",
 		"@monoflake/sdk": "^2026.1004.6",

@@ -1,7 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { Theme } from '@canmi/kit/theme';
-import type { Disclosure } from '@canmi/web/disclose';
+import type { BuildEnv } from '@canmi/web/build';
 import type { LocaleCode } from '#lib/locale/index.js';
 
 declare global {
@@ -28,14 +28,10 @@ declare global {
 		// interface PageState {}
 	}
 
-	interface ImportMetaEnv {
+	interface ImportMetaEnv extends BuildEnv {
 		// URLs are imported from @monoflake/sdk rather than injected, so there is one place to
-		// read them from and no second spelling to keep in step. What remains here are values
-		// that only exist at build time and have no other source.
-		/** TODO: captured for a footer that is not built yet; see vite.config.ts. */
-		readonly VITE_COMMIT_HASH: string;
-		readonly VITE_BUILD_TIME: string;
-		readonly VITE_DISCLOSURE: Disclosure;
+		// read them from and no second spelling to keep in step. What a build states is
+		// `BuildEnv`, lib's spec/web/build.md; what remains here is the app's own.
 		/** Another Turnstile test key for development; see lib/trust/trust.svelte.ts. */
 		readonly VITE_TURNSTILE_SITE_KEY?: string;
 	}
