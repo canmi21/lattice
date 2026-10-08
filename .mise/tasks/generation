@@ -11,9 +11,11 @@ set -euo pipefail
 # See platform's spec/architecture/artifacts.md, "A build says how far the live corpus is from it".
 
 BASE="$(cd "$(dirname "$0")/../.." && pwd)"
-INDEX="$BASE/libs/artifacts/src/index.ts"
+# The platform's sdk as installed, which is what publish.ts imports the version from. A missing
+# file is a check that could not run, like every other failure here.
+INDEX="$BASE/apps/site/node_modules/@monoflake/sdk/dist/artifacts/src/index.js"
 
-WANTED="$(sed -n 's/^export const ARTIFACT_VERSION = \([0-9]*\);$/\1/p' "$INDEX")"
+WANTED="$(sed -n 's/^\(export \)\{0,1\}const ARTIFACT_VERSION = \([0-9]*\);$/\2/p' "$INDEX" 2>/dev/null || true)"
 if [ -z "$WANTED" ]; then
 	echo "generation: no ARTIFACT_VERSION in ${INDEX#"$BASE"/}, skipping the check" >&2
 	exit 0
