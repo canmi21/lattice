@@ -1,20 +1,26 @@
 import { createRawSnippet } from 'svelte';
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import CheckCircleIcon from '@tabler/icons-svelte-runes/icons/circle-check';
+import XCircleIcon from '@tabler/icons-svelte-runes/icons/circle-x';
 import Badge from './badge.svelte';
 import PageHeader from './page-header.svelte';
 import Segmented, { RANGES } from './segmented.svelte';
 import Tabs from './tabs.svelte';
 
 const words = (html: string) => createRawSnippet(() => ({ render: () => `<span>${html}</span>` }));
+const stateIcon = (icon: typeof CheckCircleIcon) =>
+	/<svg[\s\S]*<\/svg>/.exec(
+		render(icon, { props: { size: 12, stroke: 2.5, 'aria-hidden': 'true' } }).body,
+	)![0];
 
 describe('badge on the server', () => {
 	it('says a state with an icon and a word, never the tone alone', () => {
 		const good = render(Badge, { props: { tone: 'good', children: words('Healthy') } }).body;
-		expect(good).toContain('lucide-circle-check');
+		expect(good).toContain(stateIcon(CheckCircleIcon));
 		expect(good).toContain('Healthy');
 		const bad = render(Badge, { props: { tone: 'bad', children: words('Failed') } }).body;
-		expect(bad).toContain('lucide-circle-x');
+		expect(bad).toContain(stateIcon(XCircleIcon));
 	});
 });
 

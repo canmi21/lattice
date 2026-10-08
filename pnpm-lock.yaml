@@ -299,9 +299,6 @@ importers:
       '@cloudflare/workers-types':
         specifier: ^5.20261004.1
         version: 5.20261004.1
-      '@lucide/svelte':
-        specifier: ^1.51.0
-        version: 1.51.0(svelte@5.57.1)
       '@monoflake/sdk':
         specifier: ^2026.1007.1
         version: 2026.1007.1(@cloudflare/workers-types@5.20261004.1)(typescript@6.0.3)
@@ -320,6 +317,9 @@ importers:
       '@sveltejs/vite-plugin-svelte':
         specifier: ^7.3.1
         version: 7.3.1(svelte@5.57.1)(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
+      '@tabler/icons-svelte-runes':
+        specifier: ^3.49.0
+        version: 3.49.0(svelte@5.57.1)
       '@tailwindcss/vite':
         specifier: ^4.3.3
         version: 4.3.3(vite@8.3.2(@types/node@26.6.4)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1))
@@ -2980,6 +2980,14 @@ packages:
 
   '@swc/helpers@0.5.23':
     resolution: {integrity: sha512-5lSsMOTXURePglDfvuAQUqkGek9Hg2kksOYay2m0+XR++b2NWYL/4sWyuvVBIs8oKnJaxkdi9whaL/sqN13afw==}
+
+  '@tabler/icons-svelte-runes@3.49.0':
+    resolution: {integrity: sha512-dZx7LH0chL7Dad1G9NX5xFXwp8XNa0u2IAaozraQHlEWfi4GzuyxMVbtNRv3RmpPnvV/QTfDWa4miSemLwETgg==}
+    peerDependencies:
+      svelte: ^5.0.0
+
+  '@tabler/icons@3.49.0':
+    resolution: {integrity: sha512-l+GnSkFETx0U26icxv1VUFnxxiTqXfCcVRiRAnyMwibupM2S2L/hSaZ9gmSgz01rkrsH/93NvLsxykqdanc6lw==}
 
   '@tailwindcss/node@4.3.3':
     resolution: {integrity: sha512-/T8IKEsf9VTU6tLjgC7+sv2mOPtQxzE2jMw7u4Tt40Tx+QSZxpzh95/H6cMKoja9XuW7iMdLJYBB0o9G1CaAgg==}
@@ -7168,6 +7176,13 @@ snapshots:
   '@swc/helpers@0.5.23':
     dependencies:
       tslib: 2.8.1
+
+  '@tabler/icons-svelte-runes@3.49.0(svelte@5.57.1)':
+    dependencies:
+      '@tabler/icons': 3.49.0
+      svelte: 5.57.1
+
+  '@tabler/icons@3.49.0': {}
 
   '@tailwindcss/node@4.3.3':
     dependencies:

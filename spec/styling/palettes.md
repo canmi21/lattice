@@ -7,10 +7,10 @@ for one app reads right in another. **What differs between apps is the values, a
 is a palette.** `@canmi/kit/theme` holds them, each a stylesheet defining every name for light, and
 again under `.dark`; an app imports the one it wears.
 
-| Palette    | Look                                                                         | Worn by         |
-| ---------- | ---------------------------------------------------------------------------- | --------------- |
-| `concrete` | the site's: a black that is not quite black, a white that is not quite clean | site, cms       |
-| `mono`     | black and white, Vercel's restraint, with the site's gray ramp step for step | status, landing |
+| Palette    | Look                                                                         | Worn by                  |
+| ---------- | ---------------------------------------------------------------------------- | ------------------------ |
+| `concrete` | the site's: a black that is not quite black, a white that is not quite clean | site, cms                |
+| `mono`     | black and white, Vercel's restraint, with the site's gray ramp step for step | status, landing, console |
 
 - **`mono` keeps the ramp, not just the ends.** Vercel's own grays are few; here every name above
   gets a value of its own, so a page built on `concrete`'s tiers -- a heading over a row over a
@@ -19,8 +19,8 @@ again under `.dark`; an app imports the one it wears.
 - **A palette is chosen by the app, not by the reader.** There is no control and no cookie for it
   yet; the `palette` cookie the theme script still reads is a leftover and paints nothing. Light
   and dark are the reader's, by the `theme` cookie, as below.
-- **Nord is the kit's `nord` palette**, on these names, which the console can choose --
-  [../architecture/console.md](../architecture/console.md).
+- **Nord is the kit's `nord` palette**, on these names. The console takes only its chart series;
+  its interface stays on `mono` -- [../architecture/console.md](../architecture/console.md).
 
 ## Light and dark are one cookie, read the same way everywhere
 

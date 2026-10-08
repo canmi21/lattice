@@ -57,7 +57,7 @@ reasons.
 ### [console.md](console.md)
 
 - Where the console learns a node's facts
-- Whether the console switches between palettes
+- Where display names come from once others deploy apps
 
 ### [css.md](css.md)
 

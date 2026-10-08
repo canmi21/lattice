@@ -1,9 +1,15 @@
 import { render } from 'svelte/server';
 import { describe, expect, it } from 'vitest';
+import ArrowUpIcon from '@tabler/icons-svelte-runes/icons/arrow-up';
+import XCircleIcon from '@tabler/icons-svelte-runes/icons/circle-x';
+import MinusIcon from '@tabler/icons-svelte-runes/icons/minus';
 import Donut from './donut.svelte';
 import Meter from './meter.svelte';
 import Sparkline from './sparkline.svelte';
 import StatTile from './stat-tile.svelte';
+
+const stateIcon = (icon: typeof ArrowUpIcon) =>
+	/<svg[\s\S]*<\/svg>/.exec(render(icon, { props: { size: 12, stroke: 2.5 } }).body)![0];
 
 describe('stat tile on the server', () => {
 	it('writes the figure compact, the delta signed against its period, and the trend', () => {
@@ -19,7 +25,7 @@ describe('stat tile on the server', () => {
 		expect(body).toContain('+420');
 		expect(body).toContain('vs last week');
 		expect(body).toContain('aria-label="Requests, recent trend"');
-		expect(body).toContain('lucide-arrow-up');
+		expect(body).toContain(stateIcon(ArrowUpIcon));
 	});
 
 	it('carries a direction as an icon as well as a tone, never the tone alone', () => {
@@ -37,8 +43,8 @@ describe('stat tile on the server', () => {
 				delta: { value: 0, period: 'yesterday', good: 'down' },
 			},
 		});
-		expect(worse.body).toContain('lucide-arrow-up');
-		expect(same.body).toContain('lucide-minus');
+		expect(worse.body).toContain(stateIcon(ArrowUpIcon));
+		expect(same.body).toContain(stateIcon(MinusIcon));
 	});
 });
 
@@ -63,7 +69,7 @@ describe('meter on the server', () => {
 		expect(body).toContain('role="meter"');
 		expect(body).toContain('width: 40%');
 		expect(body).toContain('color-mix(in oklab, var(--color-accent) 22%, var(--color-surface))');
-		expect(body).not.toContain('lucide');
+		expect(body).not.toContain('<svg');
 	});
 
 	it('warns and then alarms with an icon and a word, and never overfills', () => {
@@ -73,7 +79,7 @@ describe('meter on the server', () => {
 		const over = render(Meter, { props: { label: 'Disk', value: 130, limit: 100 } }).body;
 		expect(over).toContain('background-color: var(--color-danger)');
 		expect(over).toContain('Over limit');
-		expect(over).toContain('lucide-circle-x');
+		expect(over).toContain(stateIcon(XCircleIcon));
 		expect(over).toContain('width: 100%');
 	});
 });
@@ -90,7 +96,7 @@ describe('donut on the server', () => {
 		const parts = [part('web', 3, 1), part('api', 1, 2)];
 		const { body } = render(Donut, { props: { parts, size: 120 } });
 		expect(body).toContain('viewBox="-60 -60 120 120"');
-		expect(body.match(/<path d="M[-\d.]+,/g)).toHaveLength(2);
+		expect(body.match(/<path[^>]+style="fill:/g)).toHaveLength(2);
 		expect(body).toContain('>75%</span>');
 		expect(body).toContain('>4</span>');
 	});
@@ -99,6 +105,6 @@ describe('donut on the server', () => {
 		const parts = Array.from({ length: 8 }, (_, index) => part(`p${index}`, index + 1, index + 1));
 		const { body } = render(Donut, { props: { parts } });
 		expect(body).toContain('>Other</span>');
-		expect(body.match(/<path d="M[-\d.]+,/g)).toHaveLength(6);
+		expect(body.match(/<path[^>]+style="fill:/g)).toHaveLength(6);
 	});
 });

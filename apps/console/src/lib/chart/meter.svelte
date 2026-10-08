@@ -5,9 +5,9 @@
 	 * state reads across the whole bar and not only its filled part.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import CircleX from '@lucide/svelte/icons/circle-x';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
 	import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
+	import WarningIcon from '@tabler/icons-svelte-runes/icons/alert-triangle';
+	import XCircleIcon from '@tabler/icons-svelte-runes/icons/circle-x';
 	import { tone, type } from '../style.ts';
 	import { compact, percent } from './numbers.ts';
 
@@ -58,9 +58,9 @@
 		<span class="inline-flex items-center gap-2 whitespace-nowrap {stylex.attrs(type.soft).class}">
 			{#if level !== 'calm'}
 				<span class="inline-flex items-center gap-1 {stylex.attrs(tone[level]).class}">
-					{#if level === 'bad'}<CircleX size={12} strokeWidth={2.25} />{:else}<TriangleAlert
+					{#if level === 'bad'}<XCircleIcon size={12} stroke={2.5} />{:else}<WarningIcon
 							size={12}
-							strokeWidth={2.25}
+							stroke={2.5}
 						/>{/if}{word}
 				</span>
 			{/if}

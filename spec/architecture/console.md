@@ -22,10 +22,12 @@ hostname and cannot set one ahead for a wildcard application's subdomains, and a
 follow Access's redirect to get one: a page on one name could not open a socket on another --
 https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
 
-**It is dark, drawn with semantic names** -- ground, surface, line, text, good, warn, danger and
-the series -- that a palette fills: the kit's Nord defines them, and for now the console points the
-surfaces, lines and states at the kit's black and white `mono.css`, Nord keeping the series, so the
-layout is tuned without color before color comes back. Its charts
+**It is black and white, drawn with semantic names** -- ground, surface, line, text, good, warn,
+danger and the series -- that a palette fills. The kit's `mono.css` paints the interface in light
+or dark; the icon at the top bar's right edge switches the two and keeps the choice in the kit's
+`theme` cookie. Nord supplies the chart series alone, so data keeps its distinctions while the
+interface remains monochrome. **Tabler is the console's icon family**, with a lighter stroke for
+navigation and a heavier one where a small state mark needs the weight. Its charts
 are drawn as SVG by the app itself with d3's scales and shapes, so the server renders them whole:
 a chart library drawing on a canvas would paint nothing until the browser ran it.
 
@@ -33,8 +35,9 @@ a chart library drawing on a canvas would paint nothing until the browser ran it
 left edge with its rule, the top bar sits right of it alone, and the page between them is the one
 scrolling element; the document itself never scrolls or bounces. Their sizes are in `rem`, so the
 three keep their proportions as the reader's text size changes. The top bar carries the scope on its left, the page's
-name at its center and the page's actions on its right -- creating something, and whatever comes
-later -- and nothing else; whether the console is live sits at the foot of the sidebar.
+name at its center and the page's actions on its right -- creating something, whatever comes later,
+then the light-and-dark switch at the outside edge; whether the console is live sits at the foot of
+the sidebar.
 
 **The console is read whole, or in one of three scopes, the layers the workspace's
 `spec/architecture/layers.md` draws.** `All` is the default and has no segment of its own -- `/`,

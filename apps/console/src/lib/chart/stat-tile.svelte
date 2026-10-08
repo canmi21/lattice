@@ -5,10 +5,10 @@
 	 * figure that is a share has its ring beside it.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import ArrowDown from '@lucide/svelte/icons/arrow-down';
-	import ArrowUp from '@lucide/svelte/icons/arrow-up';
-	import Minus from '@lucide/svelte/icons/minus';
 	import { line, radius, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import ArrowDownIcon from '@tabler/icons-svelte-runes/icons/arrow-down';
+	import ArrowUpIcon from '@tabler/icons-svelte-runes/icons/arrow-up';
+	import MinusIcon from '@tabler/icons-svelte-runes/icons/minus';
 	import { surfaces, tone, type } from '../style.ts';
 	import Gauge from './gauge.svelte';
 	import { compact, signed } from './numbers.ts';
@@ -91,12 +91,12 @@
 	{#if delta && !pending}
 		<span class="inline-flex items-center gap-1 {stylex.attrs(type.soft).class}">
 			<span class="inline-flex items-center gap-0.5 {stylex.attrs(tone[verdict]).class}">
-				{#if direction === 'up'}<ArrowUp
+				{#if direction === 'up'}<ArrowUpIcon
 						size={12}
-						strokeWidth={2.25}
-					/>{:else if direction === 'down'}<ArrowDown size={12} strokeWidth={2.25} />{:else}<Minus
+						stroke={2.5}
+					/>{:else if direction === 'down'}<ArrowDownIcon size={12} stroke={2.5} />{:else}<MinusIcon
 						size={12}
-						strokeWidth={2.25}
+						stroke={2.5}
 					/>{/if}
 				{signed(delta.value, delta.format)}
 			</span>

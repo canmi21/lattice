@@ -4,7 +4,10 @@
 	 * actions on the right. Fixed right of the sidebar; see spec/architecture/console.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import { applyTheme, currentTheme, themeCookie } from '@canmi/kit/theme';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import MoonIcon from '@tabler/icons-svelte-runes/icons/moon';
+	import SunIcon from '@tabler/icons-svelte-runes/icons/sun';
 	import type { Snippet } from 'svelte';
 	import Switcher from './scope/switcher.svelte';
 	import { type View, within } from './scope/scope.ts';
@@ -44,7 +47,25 @@
 			color: 'var(--color-text-muted)',
 			fontSize: text.px12,
 		},
+		theme: {
+			backgroundColor: {
+				default: 'transparent',
+				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+			},
+			borderWidth: 0,
+			borderRadius: 6,
+			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			cursor: 'pointer',
+			transitionProperty: 'color, background-color',
+			transitionDuration: duration.base,
+		},
 	});
+
+	function toggleTheme() {
+		const next = currentTheme() === 'dark' ? 'light' : 'dark';
+		applyTheme(next);
+		document.cookie = themeCookie(next);
+	}
 </script>
 
 {#snippet slash()}
@@ -92,5 +113,15 @@
 	</nav>
 	<div class="flex min-w-0 items-center gap-2 justify-self-end">
 		{@render actions?.()}
+		<button
+			type="button"
+			onclick={toggleTheme}
+			aria-label="Switch between light and dark"
+			title="Switch between light and dark"
+			class="inline-flex size-8 items-center justify-center {stylex.attrs(styles.theme).class}"
+		>
+			<MoonIcon size={16} aria-hidden="true" class="dark:hidden" />
+			<SunIcon size={16} aria-hidden="true" class="hidden dark:block" />
+		</button>
 	</div>
 </header>

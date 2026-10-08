@@ -7,13 +7,13 @@
 	 * itself too and its header sticks.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import ChevronLeft from '@lucide/svelte/icons/chevron-left';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
-	import ChevronUp from '@lucide/svelte/icons/chevron-up';
-	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
-	import Search from '@lucide/svelte/icons/search';
 	import { border, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import CaretDownIcon from '@tabler/icons-svelte-runes/icons/chevron-down';
+	import CaretLeftIcon from '@tabler/icons-svelte-runes/icons/chevron-left';
+	import CaretRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
+	import CaretUpIcon from '@tabler/icons-svelte-runes/icons/chevron-up';
+	import CaretUpDownIcon from '@tabler/icons-svelte-runes/icons/selector';
+	import MagnifyingGlassIcon from '@tabler/icons-svelte-runes/icons/search';
 	import { untrack } from 'svelte';
 	import { surfaces, type } from '../style.ts';
 	import { filterRows, pageOf, sortRows, written, type Column, type Sort } from './table.ts';
@@ -124,7 +124,7 @@
 	{#if filterable}
 		<div class="px-5 py-3">
 			<label class="relative block w-full max-w-xs">
-				<Search
+				<MagnifyingGlassIcon
 					size={14}
 					class="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 {stylex.attrs(
 						styles.icon,
@@ -166,15 +166,15 @@
 									onclick={() => order(column)}
 								>
 									{column.label}
-									{#if sorted === 'ascending'}<ChevronUp
+									{#if sorted === 'ascending'}<CaretUpIcon
 											size={12}
-											strokeWidth={2.25}
-										/>{:else if sorted === 'descending'}<ChevronDown
+											stroke={2.5}
+										/>{:else if sorted === 'descending'}<CaretDownIcon
 											size={12}
-											strokeWidth={2.25}
-										/>{:else}<ChevronsUpDown
+											stroke={2.5}
+										/>{:else}<CaretUpDownIcon
 											size={12}
-											strokeWidth={2}
+											stroke={2.5}
 											class="opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"
 										/>{/if}
 								</button>
@@ -244,7 +244,7 @@
 					class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.control)
 						.class}"
 					disabled={shown.page <= 1}
-					onclick={() => (page = shown.page - 1)}><ChevronLeft size={16} /></button
+					onclick={() => (page = shown.page - 1)}><CaretLeftIcon size={16} /></button
 				>
 				<button
 					type="button"
@@ -252,7 +252,7 @@
 					class="inline-flex size-7 items-center justify-center {stylex.attrs(styles.control)
 						.class}"
 					disabled={shown.page >= shown.pages}
-					onclick={() => (page = shown.page + 1)}><ChevronRight size={16} /></button
+					onclick={() => (page = shown.page + 1)}><CaretRightIcon size={16} /></button
 				>
 			</div>
 		</footer>

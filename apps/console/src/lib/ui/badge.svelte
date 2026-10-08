@@ -4,22 +4,22 @@
 	 * reader who cannot tell the tones apart.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import CircleCheck from '@lucide/svelte/icons/circle-check';
-	import CircleMinus from '@lucide/svelte/icons/circle-minus';
-	import CircleX from '@lucide/svelte/icons/circle-x';
-	import LoaderCircle from '@lucide/svelte/icons/loader-circle';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import WarningIcon from '@tabler/icons-svelte-runes/icons/alert-triangle';
+	import CheckCircleIcon from '@tabler/icons-svelte-runes/icons/circle-check';
+	import MinusCircleIcon from '@tabler/icons-svelte-runes/icons/circle-minus';
+	import XCircleIcon from '@tabler/icons-svelte-runes/icons/circle-x';
+	import CircleNotchIcon from '@tabler/icons-svelte-runes/icons/loader-2';
 	import type { Snippet } from 'svelte';
 	import { surfaces, tone as tones, wash, type, type Tone } from '../style.ts';
 
 	let { tone, title, children }: { tone: Tone; title?: string; children: Snippet } = $props();
 
 	const ICONS = {
-		good: CircleCheck,
-		busy: LoaderCircle,
-		warn: TriangleAlert,
-		bad: CircleX,
-		quiet: CircleMinus,
+		good: CheckCircleIcon,
+		busy: CircleNotchIcon,
+		warn: WarningIcon,
+		bad: XCircleIcon,
+		quiet: MinusCircleIcon,
 	};
 	const Icon = $derived(ICONS[tone]);
 </script>
@@ -33,6 +33,6 @@
 		wash[tone],
 	).class}"
 >
-	<Icon size={12} strokeWidth={2.25} aria-hidden="true" />
+	<Icon size={12} stroke={2.5} aria-hidden="true" />
 	{@render children()}
 </span>

@@ -1,4 +1,5 @@
 import { env } from 'cloudflare:workers';
+import { fillTheme } from '@canmi/kit/theme';
 import type { Handle } from '@sveltejs/kit/hooks';
 import { handle as edge, isRoute } from '#lib/server/edge.js';
 
@@ -7,4 +8,6 @@ import { handle as edge, isRoute } from '#lib/server/edge.js';
  * SvelteKit as it was made, which the socket's 101 must. See src/lib/server/edge.ts.
  */
 export const handle: Handle = ({ event, resolve }) =>
-	isRoute(event.url.pathname) ? edge(event.request, env) : resolve(event);
+	isRoute(event.url.pathname)
+		? edge(event.request, env)
+		: resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) });

@@ -7,7 +7,7 @@
 	 * percent. Ported from infra's apps/deploy/panel/src/lib/chart/area-chart.svelte.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import WarningIcon from '@tabler/icons-svelte-runes/icons/alert-triangle';
 	import { untrack } from 'svelte';
 	import { pressMotion, prefersReducedMotion } from '@canmi/kit/motion';
 	import { scaleLinear, scaleUtc } from 'd3-scale';
@@ -360,7 +360,7 @@
 					style:top="{y(limit.value)}px"
 				>
 					{#if limit.tone}<span class="inline-flex {stylex.attrs(tones[limit.tone]).class}"
-							><TriangleAlert size={11} strokeWidth={2} /></span
+							><WarningIcon size={11} stroke={2.5} /></span
 						>{/if}{limit.label}
 					{format(limit.value)}
 				</span>

@@ -22,8 +22,8 @@
 	 * moment shared under `sync.svelte` is drawn across every row.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import CircleX from '@lucide/svelte/icons/circle-x';
 	import { radius } from '@canmi/kit/tokens/vocabulary.stylex';
+	import XCircleIcon from '@tabler/icons-svelte-runes/icons/circle-x';
 	import { scaleUtc } from 'd3-scale';
 	import { tone } from '../style.ts';
 	import { timeZone } from '../ui/time-zone.ts';
@@ -177,7 +177,7 @@
 							).class}"
 							style:left="{at(one.end ?? end)}%"
 							style:top="{row * PITCH + PITCH / 2}px"
-							><CircleX size={14} strokeWidth={2.25} aria-label="Failed" /></span
+							><XCircleIcon size={14} stroke={2.5} aria-label="Failed" /></span
 						>
 					{/if}
 					<button

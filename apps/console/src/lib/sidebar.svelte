@@ -86,7 +86,7 @@
 				class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, here && styles.here)
 					.class}"
 			>
-				<section.icon size={16} strokeWidth={1.75} />
+				<section.icon size={16} stroke={1.75} />
 				{section.label}
 			</a>
 		{/each}

@@ -3,19 +3,19 @@
  * called, and the one scope it belongs to, if any, shown besides under All. See
  * spec/architecture/console.md.
  */
-import Boxes from '@lucide/svelte/icons/boxes';
-import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
-import Rocket from '@lucide/svelte/icons/rocket';
-import ScrollText from '@lucide/svelte/icons/scroll-text';
-import Server from '@lucide/svelte/icons/server';
+import LayoutDashboardIcon from '@tabler/icons-svelte-runes/icons/layout-dashboard';
+import LogsIcon from '@tabler/icons-svelte-runes/icons/logs';
+import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
+import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
+import ServerIcon from '@tabler/icons-svelte-runes/icons/server-2';
 import { type View, isScope, within } from './scope/scope.ts';
 
 export const SECTIONS = [
-	{ path: '/', label: 'Overview', icon: LayoutDashboard },
-	{ path: '/nodes', label: 'Nodes', icon: Server, only: 'infra' },
-	{ path: '/deployments', label: 'Deployments', icon: Rocket },
-	{ path: '/apps', label: 'Apps', icon: Boxes },
-	{ path: '/events', label: 'Events', icon: ScrollText },
+	{ path: '/', label: 'Overview', icon: LayoutDashboardIcon },
+	{ path: '/nodes', label: 'Nodes', icon: ServerIcon, only: 'infra' },
+	{ path: '/deployments', label: 'Deployments', icon: RocketIcon },
+	{ path: '/apps', label: 'Apps', icon: PackagesIcon },
+	{ path: '/events', label: 'Events', icon: LogsIcon },
 ] as const;
 
 export type Section = (typeof SECTIONS)[number];

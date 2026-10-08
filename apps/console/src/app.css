@@ -7,9 +7,10 @@
 @import '@canmi/kit/tokens/interaction.css';
 @source '.';
 
-/* Black and white for now: mono's dark values under the names the console draws with, Nord keeping
-   the series. Which palette feeds these names is open -- see spec/issues/console.md. */
-[data-theme='dark'] {
+@custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+
+/* Mono's light and dark values under the names the console draws with; Nord keeps the series. */
+:root {
 	--color-ground: var(--color-paper);
 	--color-sunken: var(--color-paper);
 	--color-surface: var(--color-page);
@@ -19,9 +20,7 @@
 	--color-line: var(--color-border);
 	--color-line-strong: var(--color-border-strong);
 	--color-text-faint: var(--color-text-soft);
-	--color-primary: oklch(
-		0.576 0.219 258.6
-	); /* Geist blue-700, the deep blue mono keeps for light */
+	--color-primary: var(--color-accent);
 	--color-good: var(--color-green);
 	--color-warn: var(--color-amber);
 	--color-danger: var(--color-red);

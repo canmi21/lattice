@@ -22,8 +22,8 @@ describe('area chart on the server', () => {
 			props: { lines: [cpu], since: START, until: START + 3600, ceiling: 100, format: percent },
 		});
 		expect(body).toMatch(/<svg[^>]*viewBox="0 0 1000 164"/);
-		// The band, the wash and the line, each a drawn path.
-		expect(body.match(/<path d="M[\d.]+,/g)).toHaveLength(3);
+		// The band, the wash and the line, each a drawn path; controls may have paths of their own.
+		expect(body.match(/<path[^>]+(?:fill-opacity|stroke-width="2")/g)).toHaveLength(3);
 		expect(body).toContain('stroke-width="2"');
 		// The grid, and a label per tick on the value axis and the time axis.
 		expect(body.match(/<line /g)?.length).toBeGreaterThanOrEqual(4);

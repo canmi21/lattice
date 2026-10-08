@@ -9,6 +9,11 @@ import { defineConfig } from 'vite';
 // The repository root, as the site and the status page set it: StyleX hashes a class from the
 // file's path relative to this.
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+const stylexPlugin = stylex({
+	useCSSLayers: true,
+	unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
+	lightningcssOptions: { minify: true },
+});
 
 export default defineConfig({
 	plugins: [
@@ -23,12 +28,10 @@ export default defineConfig({
 		{
 			// After the Svelte compiler, not before it; see spec/architecture/css/layers.md, "The build
 			// order is the opposite of what StyleX documents".
-			...stylex({
-				useCSSLayers: true,
-				unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
-				lightningcssOptions: { minify: true },
-			}),
+			...stylexPlugin,
 			enforce: undefined,
+			// SvelteKit owns the HTML shell; +layout.svelte injects these two dev assets itself.
+			transformIndexHtml: undefined,
 		},
 
 		{

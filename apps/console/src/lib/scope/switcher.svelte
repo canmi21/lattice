@@ -5,9 +5,9 @@
 	 * by Escape, a pick or a click anywhere else.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import Check from '@lucide/svelte/icons/check';
-	import ChevronsUpDown from '@lucide/svelte/icons/chevrons-up-down';
 	import { duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import CheckIcon from '@tabler/icons-svelte-runes/icons/check';
+	import CaretUpDownIcon from '@tabler/icons-svelte-runes/icons/selector';
 	import { tick } from 'svelte';
 	import { hrefIn, type Section } from '../sections.ts';
 	import { VIEWS, type View, labelOf } from './scope.ts';
@@ -121,12 +121,7 @@
 		class="inline-flex items-center {stylex.attrs(styles.trigger).class}"
 	>
 		{labelOf(view)}
-		<ChevronsUpDown
-			size={14}
-			strokeWidth={1.75}
-			aria-hidden="true"
-			class={stylex.attrs(styles.chevron).class}
-		/>
+		<CaretUpDownIcon size={14} aria-hidden="true" class={stylex.attrs(styles.chevron).class} />
 	</button>
 	{#if open}
 		<div
@@ -150,7 +145,7 @@
 					).class}"
 				>
 					{one.label}
-					{#if here}<Check size={14} strokeWidth={2} aria-hidden="true" />{/if}
+					{#if here}<CheckIcon size={14} stroke={2.5} aria-hidden="true" />{/if}
 				</a>
 			{/each}
 		</div>

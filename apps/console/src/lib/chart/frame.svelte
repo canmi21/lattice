@@ -6,9 +6,9 @@
 	 * below it moves.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import ChartLine from '@lucide/svelte/icons/chart-line';
-	import Table from '@lucide/svelte/icons/table-2';
-	import TriangleAlert from '@lucide/svelte/icons/triangle-alert';
+	import WarningIcon from '@tabler/icons-svelte-runes/icons/alert-triangle';
+	import ChartLineIcon from '@tabler/icons-svelte-runes/icons/chart-line';
+	import TableIcon from '@tabler/icons-svelte-runes/icons/table';
 	import type { Snippet } from 'svelte';
 	import { surfaces, tone, type } from '../style.ts';
 	import Legend from './legend.svelte';
@@ -69,10 +69,7 @@
 				).class}"
 				onclick={() => (tabular = !tabular)}
 			>
-				{#if tabular}<ChartLine size={14} strokeWidth={1.75} />Chart{:else}<Table
-						size={14}
-						strokeWidth={1.75}
-					/>Table{/if}
+				{#if tabular}<ChartLineIcon size={14} />Chart{:else}<TableIcon size={14} />Table{/if}
 			</button>
 		{/if}
 	</div>
@@ -86,7 +83,7 @@
 			>
 				<span class="inline-flex items-center gap-1.5 {stylex.attrs(type.name).class}">
 					<span class="inline-flex {stylex.attrs(tone.bad).class}"
-						><TriangleAlert size={14} strokeWidth={2} /></span
+						><WarningIcon size={14} stroke={2.5} /></span
 					>Could not be read
 				</span>
 				<span class={stylex.attrs(type.soft).class}>{error}</span>
