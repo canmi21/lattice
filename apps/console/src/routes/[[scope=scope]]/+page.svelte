@@ -103,7 +103,7 @@
 	<Verdict {live} {now} {keep} />
 	<section class="flex min-w-0 flex-col {stylex.attrs(surfaces.card).class}">
 		<h2 class="sr-only">Nodes</h2>
-		<div class="grid gap-6 p-5 xl:grid-cols-[15rem_minmax(0,1fr)]">
+		<div class="grid gap-6 p-5 xl:grid-cols-[20rem_minmax(0,1fr)]">
 			<Heard {live} cluster={data.cluster}>
 				<NodeList {live} bind:pointed />
 				{#snippet pending()}<Skeleton height={LIST} />{/snippet}

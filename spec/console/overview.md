@@ -23,12 +23,13 @@ region, so a reader who cannot see the color is told the line as it changes.
 ## The map is the page's whole picture
 
 **The nodes are one card: a list of them on the left, the map on the right, and the view's figures
-along its foot.** The list is a line a place under two quiet headings, `Location` and `CPU`, in
+along its foot.** The list is a line a place under quiet headings, `Location`, `CPU` and `RAM`, in
 place of any switch: a dot in the map's blue, or red when a node there is not heard, the place's
 name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3 nodes`, one line
-and never a fold -- and how busy its processors are, their mean to one decimal always so the column
-lines up. Dense: 28 pixels a line, the type a step under the page's. Everything else about a place
--- its memory, its apps, each of its nodes by code -- is the map's card, which pointing at a line
+and never a fold -- how busy its processors are, their mean as a percent, and the memory its nodes
+use together, in GiB written `G` -- `2.6G` -- each to one decimal always, in a column of its own
+right-aligned, so the figures line up. Dense: 28 pixels a line, the type a step under the page's.
+Everything else about a place -- its apps, each of its nodes by code -- is the map's card, which pointing at a line
 opens; a node's line links to the node, and a shared place's to the nodes. A switch of figures
 above the list, and a shared place that folded open to a line a node, were each tried on 2026-10-09
 and taken out as more machinery than a glance needs. The figures -- nodes heard, apps running, deploys in the last day and how
@@ -38,8 +39,8 @@ is drawn -- [../architecture/console.md](../architecture/console.md), "A figure 
 written" and the paragraphs after -- **never taller than 26.25rem**, 420 pixels as Vercel's stands,
 its width following from its shape and the room either side of it left empty, so a wide screen
 widens the margin and not the map; its switch between flat and round is two icons in a frame at
-the top right of its column, where it stays however narrow the map. The list's column is 15rem, so
-a figure sits near its name. A view without the nodes, Platform's or Services', has the figures alone.
+the top right of its column, where it stays however narrow the map. The list's column is 20rem, wide
+enough for a whole name and both figures. A view without the nodes, Platform's or Services', has the figures alone.
 Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its arrangement and
 its switch, not its look.
 

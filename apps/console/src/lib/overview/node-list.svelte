@@ -1,9 +1,9 @@
 <script lang="ts">
 	/**
 	 * Every place beside the map, a line each under two quiet headings: a dot for whether its nodes
-	 * are heard, its name whole, how many nodes stand there where it is more than one, and how busy
-	 * its processors are. The rest of a place -- its memory, its apps, each node by code -- is the
-	 * map's card, which pointing at a line opens. A node's line links to it, a shared place's to the
+	 * are heard, its name whole, how many nodes stand there where it is more than one, how busy its
+	 * processors are and how much memory is in use. The rest of a place -- its apps, each node by
+	 * code -- is the map's card, which pointing at a line opens. A node's line links to it, a shared place's to the
 	 * nodes. See spec/console/overview.md, "The map is the page's whole picture".
 	 */
 	import * as stylex from '@stylexjs/stylex';
@@ -26,6 +26,10 @@
 
 	const { to, node: toNode } = scoped();
 
+	const GIB = 1024 ** 3;
+	/** The dot, the name, then the two figures, each column as wide as its widest. */
+	const COLUMNS = 'grid grid-cols-[auto_minmax(0,1fr)_3rem_3rem] items-center gap-x-2.5';
+
 	/** The nodes grouped by the name they are shown by, in the order the first of each comes. */
 	const places = $derived(
 		[
@@ -36,18 +40,22 @@
 						code,
 						heard: held ? liveness(held.heard_at, live.now) !== 'gone' : false,
 						cpu: readings(held?.snapshot.machine)?.cpu,
+						memory: readings(held?.snapshot.machine)?.memory?.used,
 					};
 				}),
 				(one) => nameOf(one.code).full,
 			),
 		].map(([name, members]) => {
 			const read = members.flatMap((one) => (one.cpu === undefined ? [] : [one.cpu]));
+			const used = members.flatMap((one) => (one.memory === undefined ? [] : [one.memory]));
 			return {
 				name,
 				members,
 				heard: members.every((one) => one.heard),
 				// The mean of its processors, to one decimal always, so the column lines up.
 				cpu: read.length ? `${(read.reduce((a, b) => a + b, 0) / read.length).toFixed(1)}%` : '–',
+				// Its nodes' memory in use together, in GiB written `G`, to one decimal always.
+				memory: used.length ? `${(used.reduce((a, b) => a + b, 0) / GIB).toFixed(1)}G` : '–',
 			};
 		}),
 	);
@@ -76,23 +84,22 @@
 
 <div class="flex flex-col gap-1">
 	<!-- What the columns are, said once and quietly, in place of a switch. -->
-	<div
-		aria-hidden="true"
-		class="flex h-7 items-center justify-between {stylex.attrs(type.label).class}"
-	>
-		<span>Location</span>
-		<span>CPU</span>
+	<div aria-hidden="true" class="h-7 {COLUMNS} {stylex.attrs(type.label).class}">
+		<span class="col-span-2">Location</span>
+		<span class="text-right">CPU</span>
+		<span class="text-right">RAM</span>
 	</div>
-	<ul class="-mx-2 flex flex-col" aria-label="Places, with how busy each one's processors are">
+	<ul
+		class="-mx-2 flex flex-col"
+		aria-label="Places, with how busy each one's processors are and the memory in use"
+	>
 		{#each places as place (place.name)}
 			{@const lead = place.members[0]?.code ?? ''}
 			{@const shared = place.members.length > 1}
 			<li>
 				<a
 					href={shared ? to('/nodes') : toNode(lead)}
-					class="grid h-7 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2.5 rounded-md px-2 {stylex.attrs(
-						styles.row,
-					).class}"
+					class="h-7 rounded-md px-2 {COLUMNS} {stylex.attrs(styles.row).class}"
 					onpointerenter={() => (pointed = lead)}
 					onpointerleave={() => (pointed = undefined)}
 					onfocus={() => (pointed = lead)}
@@ -112,7 +119,8 @@
 							>
 						{/if}
 					</span>
-					<span class={stylex.attrs(styles.value).class}>{place.cpu}</span>
+					<span class="text-right {stylex.attrs(styles.value).class}">{place.cpu}</span>
+					<span class="text-right {stylex.attrs(styles.value).class}">{place.memory}</span>
 				</a>
 			</li>
 		{/each}
