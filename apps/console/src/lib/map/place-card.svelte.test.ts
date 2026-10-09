@@ -52,7 +52,7 @@ describe('a place card on the server', () => {
 	it('keeps the figures of a node alone', () => {
 		const lone = member('gvx', { cluster: undefined, role: 'core' });
 		const { body } = render(PlaceCard, { props: { site: site([lone]), now: NOW } });
-		expect(body).toContain('Sweden, EU<');
+		expect(body).toContain('Sweden, European Union<');
 		expect(body).toContain('>gvx<');
 		expect(body).toContain('>Gävle<');
 		for (const label of ['Status', 'Heard', 'Role', 'Apps running', 'CPU now', 'Memory used']) {

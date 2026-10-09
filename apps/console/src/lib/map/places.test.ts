@@ -80,27 +80,39 @@ describe('who leads a place', () => {
 
 describe('what a node is called', () => {
 	it('is its city and its country', () => {
-		expect(displayName('Tokyo', 'Japan')).toEqual({ full: 'Tokyo, Japan', lead: 'Tokyo' });
+		expect(displayName('Tokyo', 'Japan')).toEqual({
+			full: 'Tokyo, Japan',
+			short: 'Tokyo, Japan',
+			lead: 'Tokyo',
+		});
 	});
 
-	it('writes the United States and the United Kingdom short', () => {
+	it('writes the United States and the United Kingdom whole, and short beside', () => {
 		expect(displayName('Raleigh', 'United States')).toEqual({
-			full: 'Raleigh, US',
+			full: 'Raleigh, United States',
+			short: 'Raleigh, US',
 			lead: 'Raleigh',
 		});
-		expect(displayName('London', 'United Kingdom')).toEqual({ full: 'London, UK', lead: 'London' });
+		expect(displayName('London', 'United Kingdom')).toMatchObject({
+			full: 'London, United Kingdom',
+			short: 'London, UK',
+		});
 	});
 
 	it('names a member of the European Union by its country and the union', () => {
-		expect(displayName('Gävle', 'Sweden')).toEqual({ full: 'Sweden, EU', lead: 'Sweden' });
-		expect(displayName('Luxembourg', 'Luxembourg')).toEqual({
-			full: 'Luxembourg, EU',
+		expect(displayName('Gävle', 'Sweden')).toEqual({
+			full: 'Sweden, European Union',
+			short: 'Sweden, EU',
+			lead: 'Sweden',
+		});
+		expect(displayName('Luxembourg', 'Luxembourg')).toMatchObject({
+			full: 'Luxembourg, European Union',
 			lead: 'Luxembourg',
 		});
 	});
 
 	it('writes the country alone where the city has its name', () => {
-		expect(displayName('Singapore', 'Singapore')).toEqual({ full: 'Singapore', lead: 'Singapore' });
+		expect(displayName('Singapore', 'Singapore')).toMatchObject({ full: 'Singapore' });
 	});
 
 	it('names every node, shared names and all, and a code it does not place by itself', () => {
@@ -110,10 +122,10 @@ describe('what a node is called', () => {
 			'Tokyo, Japan',
 		]);
 		expect(['gvx', 'bru', 'buf', 'rdu', 'sha'].map((code) => nameOf(code).full)).toEqual([
-			'Sweden, EU',
-			'Belgium, EU',
-			'Buffalo, US',
-			'Raleigh, US',
+			'Sweden, European Union',
+			'Belgium, European Union',
+			'Buffalo, United States',
+			'Raleigh, United States',
 			'Shanghai, China',
 		]);
 		expect(nodeLabel('hnd')).toBe('Tokyo, Japan (hnd)');

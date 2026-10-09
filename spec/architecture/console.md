@@ -47,11 +47,14 @@ inside a card the server already placed. A level's page in the sidebar is a link
 obeys the same rule -- [../console/navigation.md](../console/navigation.md).
 
 **A node is shown by its city, and its code is the key.** What the console writes for a node is a
-display name, its city and its country -- `Tokyo, Japan`, `Raleigh, US`, the United States and the
-United Kingdom written `US` and `UK`, and the country alone where the two are one name,
-`Singapore`. A node in the European Union is its country and the union instead -- `Sweden, EU`,
-`Belgium, EU` -- since its countries are too small for a city to say more. Several nodes may share
-one; the
+display name, its city and its country, written whole -- `Tokyo, Japan`, `Raleigh, United States`,
+and the country alone where the two are one name, `Singapore`. A node in the European Union is its
+country and the union instead -- `Sweden, European Union`, `Belgium, European Union` -- since its
+countries are too small for a city to say more. **Each name has a short form beside it** --
+`Raleigh, US`, `Sweden, EU`, the United States, the United Kingdom and the union written `US`, `UK`
+and `EU` -- kept for a place too narrow for the whole, and used only where the author has said one
+is; none has yet, as of 2026-10-09, when the short form stopped being what the console writes.
+Several nodes may share one; the
 three-letter code is the one unique name, written small beside the city where two must be told
 apart, in a link, and in the address. A service is shown by its display name the same way, its
 code name small beside it, in a link and in the address; the display name is `display_name` in the

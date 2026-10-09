@@ -16,7 +16,7 @@ describe('the progress strip', () => {
 		const { body } = render(Progress, { props: { marks } });
 		expect(body).toContain('height: 100%');
 		expect(body).toContain(
-			'aria-label="Tokyo, Japan (tyo) Draining, Tokyo, Japan (nrt) Succeeded, Belgium, EU (bru) Not placed, Raleigh, US (rdu) Unknown"',
+			'aria-label="Tokyo, Japan (tyo) Draining, Tokyo, Japan (nrt) Succeeded, Belgium, European Union (bru) Not placed, Raleigh, United States (rdu) Unknown"',
 		);
 		expect(body.match(/title="/g)).toHaveLength(4);
 	});

@@ -20,7 +20,7 @@
 	const GIB = 2 ** 30;
 
 	const lone = $derived(site.members.length === 1 ? site.members[0] : undefined);
-	/** Where a node alone is, where its name does not say it already: Gävle, of `Sweden, EU`. */
+	/** Where a node alone is, where its name does not say it: Gävle, of `Sweden, European Union`. */
 	const where = $derived.by(() => {
 		const place = lone && PLACES[lone.code as keyof typeof PLACES]?.place;
 		return place === nameOf(lone?.code ?? '').lead ? undefined : place;

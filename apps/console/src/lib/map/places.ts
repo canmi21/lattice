@@ -75,33 +75,44 @@ export const EU: ReadonlySet<string> = new Set([
 	'Sweden',
 ]);
 
-/** The countries written short. */
+/** The countries and the union written short, where a name must be. */
 const SHORT: Readonly<Record<string, string>> = {
 	'United States': 'US',
 	'United Kingdom': 'UK',
+	'European Union': 'EU',
 };
 
-/** A display name whole, and its first part, which a tight cell writes alone. */
+/**
+ * A display name whole, the same written short, and its first part, which a tight cell writes
+ * alone. `full` is what the console writes; `short` waits for a place too narrow for it. See
+ * spec/architecture/console.md, "A node is shown by its city, and its code is the key".
+ */
 export interface Name {
 	full: string;
+	short: string;
 	lead: string;
 }
 
 /**
- * A node's display name from its city and country: `Tokyo, Japan`; `Raleigh, US` and `London, UK`;
- * `Sweden, EU` for a member of the union, whatever the city; and the country alone where it is the
- * city's name too, `Singapore`. See spec/architecture/console.md, "A node is shown by its city".
+ * A node's display name from its city and country: `Tokyo, Japan`, `Raleigh, United States`;
+ * `Sweden, European Union` for a member of the union, whatever the city; and the country alone
+ * where it is the city's name too, `Singapore`. Each has its short form beside it -- `Raleigh, US`,
+ * `Sweden, EU`.
  */
 export function displayName(city: string, country: string): Name {
-	if (EU.has(country)) return { full: `${country}, EU`, lead: country };
-	if (city === country) return { full: country, lead: country };
-	return { full: `${city}, ${SHORT[country] ?? country}`, lead: city };
+	const short = (name: string) => SHORT[name] ?? name;
+	if (EU.has(country)) {
+		const union = 'European Union';
+		return { full: `${country}, ${union}`, short: `${country}, ${short(union)}`, lead: country };
+	}
+	if (city === country) return { full: country, short: country, lead: country };
+	return { full: `${city}, ${country}`, short: `${city}, ${short(country)}`, lead: city };
 }
 
 /** A node's display name; a code the console does not place is named by itself. */
 export function nameOf(code: string): Name {
 	const place = PLACES[code as Node];
-	return place ? displayName(place.city, place.country) : { full: code, lead: code };
+	return place ? displayName(place.city, place.country) : { full: code, short: code, lead: code };
 }
 
 /** The country a node is in, in full -- `Japan`, `United States` -- or the code where unplaced. */
