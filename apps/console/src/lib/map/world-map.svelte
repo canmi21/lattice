@@ -210,6 +210,8 @@
 		WIDTH;
 	function grab(event: PointerEvent) {
 		if (shape.t < 0.5) return;
+		// A press on the switch or a mark is theirs: captured, its click would land on the map.
+		if ((event.target as Element).closest('a, button, [role="tooltip"]')) return;
 		(event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
 		const x = plotX(event);
 		held = { x, facing, last: x, at: performance.now() };
