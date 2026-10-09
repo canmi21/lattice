@@ -44,10 +44,6 @@ the system, and it is this layer's":
 data; it only draws", has the console's server read only what the platform's backend holds. These
 still fan out across the nodes from the Worker, each to become one read of the nearest relay:
 
-- **The runs**: `fleetEvents`, every node's last 500 events, grouped in the Worker -- the
-  overview's deploy figures, activity and failures, Deployments and a run's page -- become the
-  relay's `/runs`, platform's `spec/architecture/relay.md`, "The runs, mirrored on every relay's
-  disk".
 - **The fleet's readings**: `fleetNow` and `fleetSeries` on Nodes.
 - **The database's primary**: `primaryOf`, which asks each node's proxy in turn.
 
@@ -62,8 +58,6 @@ What the console's pages draw around today, each waiting on the service that hol
   the commit message, branch and actor, so the queue shows a run before any node sees it.
 - **Host stamps each stage of a deploy**, not only the last one reached, so a run's timeline has a
   bar per stage.
-- **Host answers events by run**, so a run older than a node's last 500 events stays in the queue
-  and in the 30-day figures.
 - **Host records the repository an app was built from**, on the app and on each deploy event, so
   the console's scope of an app is a fact it reads rather than a list of names it keeps beside
   infra's and the platform's apps.

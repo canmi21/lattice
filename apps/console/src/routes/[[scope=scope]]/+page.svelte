@@ -52,16 +52,16 @@
 		now ? lines(now.failed).filter((line) => live.now - Date.parse(line.at) < WEEK) : [],
 	);
 
-	/** Whether the view holds anything yet: a run, or an app on a node; unknown counts as yes. */
+	/** Whether the view holds anything: a run, or an app on a node; unknown counts as yes. */
+	const holds = (read: Awaited<typeof data.cluster>, deploys: Awaited<typeof data.deploys>) =>
+		deploys.seen > 0 ||
+		!read.ok ||
+		Object.values(read.data.nodes).some((one) => one.snapshot.apps.some((app) => keep(app.name)));
+	/** As soon as both are read: at once where the load held them, as it does for the first. */
 	const held = $derived(
-		Promise.all([data.cluster, data.deploys]).then(
-			([read, deploys]) =>
-				deploys.seen > 0 ||
-				!read.ok ||
-				Object.values(read.data.nodes).some((one) =>
-					one.snapshot.apps.some((app) => keep(app.name)),
-				),
-		),
+		data.cluster instanceof Promise || data.deploys instanceof Promise
+			? Promise.all([data.cluster, data.deploys]).then(([read, deploys]) => holds(read, deploys))
+			: holds(data.cluster, data.deploys),
 	);
 	/** A step's row and the list's own padding, before the runs land. */
 	const LIST = 10 * 28;

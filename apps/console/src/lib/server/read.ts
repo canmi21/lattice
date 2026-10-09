@@ -7,6 +7,7 @@
 import type { Code } from '@canmi/response';
 import { URLS } from '@monoflake/sdk';
 import type { Cluster } from '../wire.ts';
+import type { FleetEvent } from './fleet.ts';
 import { type Env, TIMEOUT, bindingOf, first, reach } from './edge.ts';
 import { NODES, type Node, type Whereabouts, order } from './nodes.ts';
 
@@ -45,6 +46,30 @@ export async function cluster(edge: Edge, timeout = TIMEOUT): Promise<Read<Clust
 	);
 	if (reached === undefined) return failed(502, 'upstream_unavailable', 'No relay answered.');
 	return opened<Cluster>(reached.node, reached.answer);
+}
+
+/** Every node's rows of the last 30 days, newest first, as one relay mirrors them. */
+export interface Mirrored {
+	version: number;
+	/** The node whose relay answered. */
+	node: Node;
+	runs: FleetEvent[];
+}
+
+/**
+ * Every node's runs as the nearest relay that answers mirrors them, `/runs` -- one read, answered
+ * from the relay's own disk. See platform's spec/architecture/relay.md, "The runs, mirrored on
+ * every relay's disk".
+ */
+export async function mirrored(edge: Edge, timeout = TIMEOUT): Promise<Read<Mirrored>> {
+	const reached = await first(
+		order(edge.where),
+		(node) =>
+			reach(edge.env, node, '/runs', { method: 'GET', signal: AbortSignal.timeout(timeout) }),
+		(answer) => answer.ok,
+	);
+	if (reached === undefined) return failed(502, 'upstream_unavailable', 'No relay answered.');
+	return opened<Mirrored>(reached.node, reached.answer);
 }
 
 /**

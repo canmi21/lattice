@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Event } from '../wire.ts';
-import { bound, success } from './bound.ts';
+import { bound, down, success } from './bound.ts';
 import type { FleetEvent } from './fleet.ts';
 import { aggregates, group, percentile, runs } from './runs.ts';
 
@@ -159,19 +159,32 @@ describe('aggregates', () => {
 });
 
 describe('runs', () => {
-	const bare = (at: number) => {
-		const { node: _, ...event } = FIXTURE[at] as FleetEvent;
-		return event;
-	};
+	const mirror = { version: 1, node: 'tyo', runs: [FIXTURE[4], FIXTURE[5], FIXTURE[6]] };
+	const relays = (answer: (path: string) => Response) => ({
+		tyo: answer,
+		rdu: answer,
+		nrt: answer,
+		hnd: answer,
+		buf: answer,
+		gvx: answer,
+		bru: answer,
+		sha: answer,
+	});
 
-	it('groups what the fleet answers and keeps the nodes that did not', async () => {
-		const { env } = bound({
-			tyo: () => success([bare(4), bare(6)]),
-			nrt: () => success([bare(5)]),
-		});
+	it('groups what the nearest relay mirrors, with no node unread', async () => {
+		const { env, sent } = bound(relays(() => success(mirror)));
 		const found = await runs({ env });
+		expect(sent).toHaveLength(1);
+		expect(sent[0]?.url).toMatch(/\/runs$/);
 		expect(found.runs.map((r) => r.run)).toEqual([42]);
 		expect(found.apart).toHaveLength(1);
-		expect(Object.keys(found.failures)).toHaveLength(6);
+		expect(found.failures).toEqual({});
+	});
+
+	it('says every node is unread where no relay answers', async () => {
+		const { env } = bound(relays(down));
+		const found = await runs({ env });
+		expect(found.runs).toEqual([]);
+		expect(Object.keys(found.failures)).toHaveLength(8);
 	});
 });

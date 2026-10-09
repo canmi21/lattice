@@ -82,8 +82,8 @@
 	<Card title="Events" flush><div class="px-5 pb-5"><Skeleton height={TABLE} /></div></Card>
 {:else if !run}
 	<p class="p-4 {stylex.attrs(surfaces.empty, type.soft).class}">
-		No node that answered holds an event from run #{data.run}. Each node answers with its last 500
-		events, so an older run is no longer seen.
+		No node holds an event from run #{data.run}. The relays keep each node's last 30 days, so an
+		older run is no longer seen.
 	</p>
 {:else}
 	<Card title="Where each app got to" flush>

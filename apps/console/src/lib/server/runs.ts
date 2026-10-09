@@ -2,12 +2,9 @@
  * Fleet events grouped by the CI run that caused them, and the numbers the Overview draws from
  * them. See spec/architecture/console.md, "The pipeline".
  */
-import { ALL, type FleetEvent, fleetEvents } from './fleet.ts';
-import type { Edge, Failure } from './read.ts';
+import { ALL, type FleetEvent } from './fleet.ts';
+import { type Edge, type Failure, mirrored } from './read.ts';
 import type { Node } from './nodes.ts';
-
-/** The most events one node answers for, which host clamps to. */
-const MOST = 500;
 
 /** Where one app on one node got to in a run: its latest event. */
 export interface Placement {
@@ -118,11 +115,20 @@ function summarize(run: number, events: FleetEvent[]): Run {
 export type Runs = Grouped & { failures: Partial<Record<Node, Failure>> };
 
 /**
- * The runs the fleet's latest events belong to: one request per node, each node's last 500
- * events, so a run older than that is not seen whole.
+ * Every node's rows of the last 30 days, one read of the nearest relay's mirror. Where no relay
+ * answers, no node's rows were read, and each is said to be unread.
  */
+export async function rows(
+	edge: Edge,
+): Promise<{ events: FleetEvent[]; failures: Runs['failures'] }> {
+	const read = await mirrored(edge);
+	if (read.ok) return { events: read.data.runs, failures: {} };
+	return { events: [], failures: Object.fromEntries(ALL.map((node) => [node, read.failure])) };
+}
+
+/** The runs every node's rows of the last 30 days belong to. */
 export async function runs(edge: Edge): Promise<Runs> {
-	const { events, failures } = await fleetEvents(edge, { limit: MOST * ALL.length });
+	const { events, failures } = await rows(edge);
 	return { ...group(events), failures };
 }
 

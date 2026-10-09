@@ -26,7 +26,8 @@
 		nodes = true,
 	}: {
 		live: Live;
-		deploys: Promise<{ figures: Figures }>;
+		/** The view's runs counted, read already or on their way. */
+		deploys: { figures: Figures } | Promise<{ figures: Figures }>;
 		keep?: (app: string) => boolean;
 		nodes?: boolean;
 	} = $props();
