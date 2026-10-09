@@ -3,11 +3,13 @@
 	 * A card's title that is its own choice: the chosen option's words, a chevron after them, and a
 	 * menu of the others under it -- in place of a framed switch inside the card's head, which is
 	 * a box set in a box. A framed switch stays where it floats over a drawing, as the map's does.
+	 * After the options, under a rule, the places the card leads, each with an arrow off its edge.
 	 * The menu's keys, focus and dismissal are Bits UI's, its arrival GSAP's. See
 	 * spec/console/design.md, "A choice in a card's head is its title".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import ArrowUpRightIcon from '@tabler/icons-svelte-runes/icons/arrow-up-right';
 	import CheckIcon from '@tabler/icons-svelte-runes/icons/check';
 	import ChevronDownIcon from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import { DropdownMenu } from 'bits-ui';
@@ -19,12 +21,15 @@
 		options,
 		value = $bindable(),
 		label,
+		links = [],
 	}: {
 		/** Each option's key, and the title it gives the card. */
 		options: readonly { key: Key; title: string }[];
 		value: Key;
 		/** What the choice is of, for assistive technology: `How far back`. */
 		label: string;
+		/** Pages the card leads to, after the options: `View all`. */
+		links?: readonly { title: string; href: string }[];
 	} = $props();
 
 	const chosen = $derived(options.find((one) => one.key === value) ?? options[0]);
@@ -56,6 +61,8 @@
 			},
 		},
 		checked: { color: 'var(--color-text-strong)' },
+		rule: { backgroundColor: 'var(--color-line)' },
+		away: { color: 'var(--color-text-muted)' },
 	});
 </script>
 
@@ -93,6 +100,24 @@
 					{#if here}<Icon icon={CheckIcon} size={16} stroke={2.5} />{/if}
 				</DropdownMenu.Item>
 			{/each}
+			{#if links.length}
+				<DropdownMenu.Separator class="mx-1 my-1 h-px {stylex.attrs(styles.rule).class}" />
+				{#each links as one (one.href)}
+					<DropdownMenu.Item>
+						{#snippet child({ props })}
+							<a
+								{...props}
+								href={one.href}
+								class="flex h-8 items-center justify-between gap-3 px-2 {stylex.attrs(styles.item)
+									.class}"
+							>
+								{one.title}
+								<Icon icon={ArrowUpRightIcon} size={16} class={stylex.attrs(styles.away).class} />
+							</a>
+						{/snippet}
+					</DropdownMenu.Item>
+				{/each}
+			{/if}
 		</DropdownMenu.Content>
 	</DropdownMenu.Portal>
 </DropdownMenu.Root>

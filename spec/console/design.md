@@ -131,11 +131,12 @@ needs nothing else to load. Decided with the author on 2026-10-09.
 corner, over the land, where a box reads as a control laid on a picture. Inside a card's head the
 same frame is a box set in a box, crowding the title it sits beside, so **a choice there is the
 title itself** -- the chosen option's words, a chevron after them, and a menu of the others under
-it, `Last 7 days ⌄` -- in `ui/title-choice.svelte`, and the head keeps only the title, a legend and
-`View all`. A page's own range, the deployments page's `1h` to `30d`, stands in the page's head,
-where there is room for a framed switch. The overview's `All` and `Failed` beside a card's title,
-and its `24h` and `7d`, were framed switches inside a card's head until 2026-10-09. Decided with the
-author on 2026-10-09.
+it, `Last 7 days ⌄` -- in `ui/title-choice.svelte`; the pages the card leads to end the same menu,
+under a rule, each with an arrow off its edge, `View all deployments`, so the head keeps only the
+title and a legend. A page's own range, the deployments page's `1h` to `30d`, stands in the page's
+head, where there is room for a framed switch. The overview's `All` and `Failed` beside a card's
+title, and its `24h` and `7d`, were framed switches inside a card's head until 2026-10-09. Decided
+with the author on 2026-10-09.
 
 ## Words in the sans, figures in the shell's face
 

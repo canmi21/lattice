@@ -140,29 +140,28 @@ the body and what it is out of a step under, so one line reads as one figure.
 
 ## The week is a line a node
 
-**Under the map, the last seven days are one card, a line a node, time running left to right**, the
-way the map above lays the nodes out in space; its title is the choice of span, `Last 7 days` or
-`Last 24 hours` -- [design.md](design.md), "A choice in a card's head is its title". Each line is
-headed by the node's flag, its dot saying how the node is -- "A flag's dot is how its node is" --
-and the part of its place that tells it from the others there, `Tokyo`, `Narita`, `Haneda`. **Over a
-day a mark is a run on that node**, however many of its apps it placed there: a quiet tick done, as
-wide as it took where that shows, a blue one running on to now while it goes, and a red dot where
-any of it failed; one run's marks stand one above another across the lines, so a rollout reads down
-the card -- the canary first, the rest after -- and pointing at a mark dims every other run's.
-**Over a week an hour is a cell**, as dark as the runs that started in it -- one, two or three, more
--- blue while one goes and red where one failed, since a week of ticks ran together into bars where
-the deploys were dense. A skip draws nothing. A mark's or a cell's hover names the apps, what became
-of them in the reader's words -- `Done`, `In progress`, `Failed`, never host's `succeeded` or
-`running` -- when, how long it took and why where it failed, and it links to its run, or to the
-deployments where a cell holds more than one. The axis under the lines is ticked a day apart, `7d`
-to `now`, or six hours apart over a day, and never ruled through the lines, where a rule read as one
-more mark. The legend, in the same words, and `View all` sit on the title's right. In a view without
-nodes the lines are its eight busiest apps instead. It took the place on 2026-10-09 of two cards,
-the latest runs as lines beside the apps not running, which repeated one app's runs down the card
-and left the other mostly empty: the history is the deployments page's, and the overview's is the
-shape of the week. A count of each node's apps down stood at each line's end until it moved onto the
-flag's dot. The load carries every step of the last week for it beside the verdict's; see
-`fromHistory`'s `since`. Decided with the author on 2026-10-09.
+**Under the map, the last seven days are one card, a line a node, drawn as a status page draws
+one**: a row of slots left to right, an hour each over a week and a quarter over a day, grey where
+nothing ran and in the run's color where one did -- green done, blue while one goes, red where one
+failed -- with no line through them and no tick between, the way the map above lays the nodes out in
+space. Its title is the choice of span, `Last 7 days` or `Last 24 hours`, and the same menu ends,
+under a rule, with `View all deployments` and an arrow off its edge -- [design.md](design.md), "A
+choice in a card's head is its title" -- so the head's right holds the legend alone, a square of
+each color in the reader's words: `Done`, `In progress`, `Failed`, never host's `succeeded` or
+`running`. Each line is headed by the node's flag, its dot saying how the node is -- "A flag's dot
+is how its node is" -- and the part of its place that tells it from the others there, `Tokyo`,
+`Narita`, `Haneda`. A run is one mark a node however many of its apps it placed there, in the slot
+it started in, and a slot takes the worst of its runs; one run's slots stand one above another, so a
+rollout reads down the card. A skip draws nothing. A slot's hover names the apps of each run in it,
+what became of them, when, how long it took and why where it failed, and it links to its run, or to
+the deployments where it holds more than one. Under the rows, at their two ends, where the span
+starts, `7 days ago`, and `Now`. In a view without nodes the lines are its eight busiest apps
+instead. It took the place on 2026-10-09 of two cards, the latest runs as lines beside the apps not
+running, which repeated one app's runs down the card and left the other mostly empty: the history is
+the deployments page's, and the overview's is the shape of the week. It was ticks on a hairline
+first, then hourly cells shaded by how busy they were, before the slots. The load carries every step
+of the last week for it beside the verdict's; see `fromHistory`'s `since`. Decided with the author
+on 2026-10-09.
 
 ## Charts are their pages'
 

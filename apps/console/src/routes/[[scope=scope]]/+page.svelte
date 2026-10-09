@@ -62,27 +62,17 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
-	/** The legend, in the words a reader is told and the shape each mark is drawn in. */
-	const LEGEND = [
-		['succeeded', 'tick'],
-		['running', 'tick'],
-		['failed', 'dot'],
-	] as const;
+	/** The legend, in the words a reader is told, each beside its slot's color. */
+	const LEGEND = ['succeeded', 'running', 'failed'] as const;
 	/** How far back the timeline reaches; a week until the author settles it. */
 	let back: '24h' | '7d' = $state('7d');
 	const span = $derived(back === '7d' ? WEEK : DAY);
 	const styles = stylex.create({
 		/** The legend's words, beside the marks they name. */
 		legend: { color: 'var(--color-text-muted)', fontSize: text.px12 },
-		succeeded: { backgroundColor: 'color-mix(in srgb, var(--color-text) 55%, transparent)' },
+		succeeded: { backgroundColor: 'var(--color-good)' },
 		running: { backgroundColor: 'var(--color-busy)' },
 		failed: { backgroundColor: 'var(--color-danger)' },
-		more: {
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-			fontSize: text.px13,
-			transitionProperty: 'color',
-			transitionDuration: duration.base,
-		},
 	});
 
 	/** The place list's and the timeline's height before their reads land. */
@@ -102,6 +92,7 @@
 			<TitleChoice
 				label="How far back"
 				bind:value={back}
+				links={[{ title: 'View all deployments', href: to('/deployments') }]}
 				options={[
 					{ key: '7d', title: 'Last 7 days' },
 					{ key: '24h', title: 'Last 24 hours' },
@@ -110,16 +101,12 @@
 		{/snippet}
 		{#snippet aside()}
 			<div class="flex h-8 items-center gap-4">
-				{#each LEGEND as [outcome, shape] (outcome)}
+				{#each LEGEND as outcome (outcome)}
 					<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
-						<span
-							class="{shape === 'dot'
-								? 'size-2 rounded-full'
-								: 'h-3 w-0.5 rounded-[1px]'} {stylex.attrs(styles[outcome]).class}"
+						<span class="size-2.5 rounded-[2px] {stylex.attrs(styles[outcome]).class}"
 						></span>{OUTCOME[outcome]}
 					</span>
 				{/each}
-				<a href={to('/deployments')} class={stylex.attrs(styles.more).class}>View all</a>
 			</div>
 		{/snippet}
 		<div class="px-5 pb-4">

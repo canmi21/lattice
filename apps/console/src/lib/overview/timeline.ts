@@ -1,14 +1,20 @@
 /**
- * The overview's week as marks on a line a node: each run that did something on a node in the
- * span, one mark however many of its apps it placed there, from its first start to its last finish
- * or to now while it goes, as shares of the span; and over a week, those marks gathered an hour a
- * cell. A skip draws nothing. See spec/console/overview.md, "The week is a line a node".
+ * The overview's week as a row of slots a node, a status page's: each run that did something on a
+ * node in the span is one mark however many of its apps it placed there, and the marks are
+ * gathered into the slot each started in, an hour over a week and a quarter over a day; a slot
+ * with none is empty. A skip draws nothing. See spec/console/overview.md, "The week is a line a
+ * node".
  */
 import type { Step } from './moving.ts';
 
 export const DAY = 86_400_000;
 export const WEEK = 7 * DAY;
 export const HOUR = 3_600_000;
+/** How long a slot is over a span of a day or less, and over a longer one. */
+export const QUARTER = HOUR / 4;
+
+/** How many slots `span` is drawn in. */
+export const slotsIn = (span: number): number => Math.round(span / (span > DAY ? HOUR : QUARTER));
 
 export type Outcome = 'running' | 'failed' | 'succeeded';
 
@@ -107,4 +113,10 @@ export function cells(marks: readonly Mark[], of: number): Cell[] {
 		outcome: worst(its.map((one) => one.outcome)),
 		marks: its,
 	}));
+}
+
+/** Every one of the `of` slots of a line drawn from `marks`, oldest first, one with none empty. */
+export function slots(marks: readonly Mark[], of: number): (Cell | undefined)[] {
+	const filled = new Map(cells(marks, of).map((cell) => [cell.index, cell]));
+	return Array.from({ length: of }, (_, index) => filled.get(index));
 }

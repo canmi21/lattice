@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Step } from './moving.ts';
-import { DAY, WEEK, cells, marks } from './timeline.ts';
+import { DAY, WEEK, cells, marks, slots, slotsIn } from './timeline.ts';
 
 const NOW = Date.parse('2026-10-09T12:00:00Z');
 const at = (hoursAgo: number) => new Date(NOW - hoursAgo * 3_600_000).toISOString();
@@ -83,5 +83,15 @@ describe('timeline', () => {
 		expect(gathered).toHaveLength(1);
 		expect(gathered[0]).toMatchObject({ outcome: 'failed', index: 158 });
 		expect(gathered[0]?.marks).toHaveLength(2);
+	});
+
+	it('lays a line out as every slot of its span, a quarter over a day and an hour over a week', () => {
+		expect(slotsIn(DAY)).toBe(96);
+		expect(slotsIn(WEEK)).toBe(168);
+		const drawn = marks([step({ started_at: at(1), finished_at: at(0.99) })], NOW, DAY);
+		const line = slots(drawn, 96);
+		expect(line).toHaveLength(96);
+		expect(line.filter(Boolean)).toHaveLength(1);
+		expect(line[92]?.outcome).toBe('succeeded');
 	});
 });
