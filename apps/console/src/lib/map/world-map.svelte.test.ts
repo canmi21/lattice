@@ -55,7 +55,8 @@ describe('world map on the server', () => {
 		expect(body).toContain(`d="${DOTS}"`);
 		expect(body).toContain('stroke-dasharray="4 6"');
 		expect(Object.keys(marks(body))).toEqual(PLACES);
-		expect(body.match(/<path/g)).toHaveLength(1);
+		const land = /<svg[^>]*viewBox="0 0 1000 670"[\s\S]*?<\/svg>/.exec(body)?.[0] ?? '';
+		expect(land.match(/<path/g)).toHaveLength(1);
 		expect(body).not.toContain('<line');
 		expect(body).not.toMatch(/>(tyo|gvx|Tokyo)<\/span>/);
 	});
@@ -117,8 +118,12 @@ describe('world map on the server', () => {
 	it('starts flat, the globe offered and not drawn', () => {
 		const { body } = render(WorldMap, { props: { states, now: NOW } });
 		expect(body).toContain('aria-label="Map view"');
-		expect(body).toMatch(/aria-checked="true"[^>]*>Flat</);
-		expect(body).toMatch(/aria-checked="false"[^>]*>Globe</);
+		// Each option is an icon, its name said to assistive technology alone.
+		const [flat = '', globe = ''] = body.split('role="radio"').slice(1);
+		expect(flat).toMatch(/^[^>]*aria-checked="true"/);
+		expect(flat).toContain('sr-only">Map<');
+		expect(globe).toMatch(/^[^>]*aria-checked="false"/);
+		expect(globe).toContain('sr-only">Globe<');
 		expect(body).not.toContain('<canvas');
 		expect(body).not.toContain('The nodes on a globe');
 	});

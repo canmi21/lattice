@@ -19,13 +19,16 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import Icon from '../design/icon.svelte';
+	import type { IconComponent } from '../design/optics.ts';
 
 	let {
 		options,
 		value = $bindable(),
 		label,
 	}: {
-		options: readonly { key: Key; label: string; href?: string }[];
+		/** An option with an `icon` shows it alone, its label said to assistive technology. */
+		options: readonly { key: Key; label: string; href?: string; icon?: IconComponent }[];
 		value: Key;
 		label: string;
 	} = $props();
@@ -69,6 +72,14 @@
 	});
 </script>
 
+{#snippet named(option: (typeof options)[number])}
+	{#if option.icon}
+		<Icon icon={option.icon} size={16} /><span class="sr-only">{option.label}</span>
+	{:else}
+		{option.label}
+	{/if}
+{/snippet}
+
 <div
 	class="inline-flex gap-0.5 p-0.5 {stylex.attrs(styles.frame).class}"
 	role="radiogroup"
@@ -76,7 +87,7 @@
 >
 	{#each options as option, index (option.key)}
 		{@const chosen = option.key === value}
-		{@const shape = `inline-flex h-7 items-center px-3 whitespace-nowrap ${
+		{@const shape = `inline-flex h-7 items-center ${option.icon ? 'w-7 justify-center' : 'px-3'} whitespace-nowrap ${
 			stylex.attrs(styles.option, chosen && styles.chosen).class
 		}`}
 		{#if option.href}
@@ -87,7 +98,7 @@
 				aria-checked={chosen}
 				tabindex={chosen ? 0 : -1}
 				class={shape}
-				onkeydown={(event) => key(event, index)}>{option.label}</a
+				onkeydown={(event) => key(event, index)}>{@render named(option)}</a
 			>
 		{:else}
 			<button
@@ -98,7 +109,7 @@
 				tabindex={chosen ? 0 : -1}
 				class={shape}
 				onclick={() => (value = option.key)}
-				onkeydown={(event) => key(event, index)}>{option.label}</button
+				onkeydown={(event) => key(event, index)}>{@render named(option)}</button
 			>
 		{/if}
 	{/each}

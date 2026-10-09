@@ -1,209 +1,134 @@
 /**
- * The nodes on a globe, drawn by cobe in WebGL: a mark per node as the flat map draws it, turning
- * slowly unless the reader asked for less motion, and turned by dragging. The map imports this
- * module only when the globe is picked, so a page left flat ships no WebGL.
+ * The flat map turning into a globe and back, drawn on a canvas in the plot's own units. Every dot
+ * of land and every mark has a place on the flat map and one on an orthographic globe, and is drawn
+ * at `t` of the way between them, 0 flat and 1 round; on the globe a dot fades as it nears the edge
+ * and one turned away fades out where it stood, so the sphere is its dots and a hairline, with no
+ * glow to show a seam against the card. Loaded only when the globe is asked for. See
+ * spec/console/overview.md, "The globe is the flat map turned round".
  */
-import createGlobe, { type Marker } from 'cobe';
-import type { Shown } from './marks.ts';
+import { DOT, DOTS, HEIGHT, PITCH, PROJECTION, WIDTH } from './land.generated.ts';
 
-/** A place as the globe marks it: where it is, and its mark as the flat map has it (marks.ts). */
-export interface Spot {
-	readonly location: readonly [number, number];
-	readonly radius: number;
-	readonly opacity: number;
-	readonly state: Shown;
+/** A place as `[latitude, longitude]`, in degrees, as land.generated.ts writes a node's. */
+export type Location = readonly [number, number];
+
+/** Where something is drawn in the plot's units, and how much of it shows. */
+export interface Placed {
+	readonly x: number;
+	readonly y: number;
+	readonly alpha: number;
 }
 
-export interface Globe {
-	/** Marks the nodes again, as their states change. */
-	mark(spots: readonly Spot[]): void;
-	destroy(): void;
+/** The globe's middle and radius: the plot's height, a hair inside it for the ring. */
+const CX = WIDTH / 2;
+const CY = HEIGHT / 2;
+const RADIUS = (HEIGHT / 2) * 0.96;
+/** How far north the globe is tipped toward the reader, in degrees. */
+const TILT = 15;
+/** Where on the globe a dot starts to fade, as a share of the quarter turn to its edge. */
+const FADE = 0.7;
+/** A dot's side on the globe: a little under the flat map's, the round land being denser. */
+const ROUND_DOT = 3;
+
+const radians = (degrees: number) => (degrees * Math.PI) / 180;
+const degrees = (radians: number) => (radians * 180) / Math.PI;
+
+/** The location a point on the plot stands for: d3's `geoMercator` at the plot's scale, undone. */
+function unflat(x: number, y: number): Location {
+	const [tx, ty] = PROJECTION.translate;
+	const longitude = (x - tx) / PROJECTION.scale;
+	const latitude = 2 * Math.atan(Math.exp((ty - y) / PROJECTION.scale)) - Math.PI / 2;
+	return [degrees(latitude), degrees(longitude)];
 }
 
-type Rgb = [number, number, number];
-
-/** Where the globe faces first: over the Atlantic, the American and European nodes in view. */
-const FACING = { latitude: 30, longitude: -30 };
-/** Radians turned per frame, and per pixel dragged. */
-const SPIN = 0.003;
-const DRAG = 0.005;
-/** cobe's marker size per unit of the flat map's radius, the middle step drawn at 0.03. */
-const PER_RADIUS = 0.03 / 9.5;
 /**
- * How the sphere is painted in each theme. `sphere` is its own color as cobe paints it: cobe has no
- * marker opacity, so a faint mark is its color mixed toward this. The glow is the card's ground, so
- * the sphere's edge fades into what it stands on rather than into a halo of its own.
+ * Where `location` is on a globe turned to face `facing` degrees of longitude and tipped `TILT`
+ * north, and how far round from its middle it is, 0 at the middle and 1 at the edge.
  */
-interface Palette {
-	readonly dark: number;
-	readonly diffuse: number;
-	readonly mapBrightness: number;
-	readonly baseColor: Rgb;
-	readonly sphere: Rgb;
-}
-const DARK: Palette = {
-	dark: 1,
-	diffuse: 1.2,
-	mapBrightness: 3.5,
-	baseColor: [0.22, 0.22, 0.22],
-	sphere: [0.04, 0.04, 0.04],
-};
-const LIGHT: Palette = {
-	dark: 0,
-	diffuse: 1.6,
-	mapBrightness: 1.4,
-	baseColor: [0.86, 0.86, 0.86],
-	sphere: [0.92, 0.92, 0.92],
-};
-
-/** The palette of the theme the page is in now, read off its own ground. */
-function palette(): Palette {
-	const [red, green, blue] = rgb('var(--color-ground)');
-	return 0.2126 * red + 0.7152 * green + 0.0722 * blue > 0.5 ? LIGHT : DARK;
-}
-
-/** The theme's colors as cobe takes them; read again on each change of theme. */
-function paint(of: Palette) {
+function round([latitude, longitude]: Location, facing: number) {
+	const phi = radians(latitude);
+	const lambda = radians(longitude - facing);
+	const tilt = radians(TILT);
+	const cosine = Math.cos(phi) * Math.cos(lambda);
+	const near = Math.sin(tilt) * Math.sin(phi) + Math.cos(tilt) * cosine;
 	return {
-		dark: of.dark,
-		diffuse: of.diffuse,
-		mapBrightness: of.mapBrightness,
-		baseColor: of.baseColor,
-		markerColor: rgb('var(--color-text-faint)'),
-		glowColor: rgb('var(--color-surface)'),
+		x: CX + RADIUS * Math.cos(phi) * Math.sin(lambda),
+		y: CY - RADIUS * (Math.cos(tilt) * Math.sin(phi) - Math.sin(tilt) * cosine),
+		away: Math.acos(Math.max(-1, Math.min(1, near))) / (Math.PI / 2),
 	};
 }
-/** cobe 2 draws only when updated, and decodes its land texture after the first draw. */
-const SETTLE_FRAMES = 30;
 
-export function mount(host: HTMLElement, still: boolean): Globe {
-	const canvas = document.createElement('canvas');
-	canvas.style.cssText = 'display:block;margin:0 auto;cursor:grab;touch-action:pan-y';
-	host.appendChild(canvas);
+/** How much of a dot `away` from the middle shows: whole, then fading to none at its rim. */
+function shown(away: number): number {
+	if (away >= 1) return 0;
+	return away < FADE ? 1 : 1 - (away - FADE) / (1 - FADE);
+}
 
-	const radians = (degrees: number) => (degrees * Math.PI) / 180;
-	let phi = (3 * Math.PI) / 2 - radians(FACING.longitude);
-	const theta = radians(FACING.latitude);
-	let size = side(host);
-	const ratio = Math.min(window.devicePixelRatio || 1, 2);
-	fit(canvas, size);
+/** `from` toward `to`, `t` of the way. */
+const toward = (from: number, to: number, t: number) => from + (to - from) * t;
 
-	let frames = SETTLE_FRAMES;
-	let theme = palette();
-	let spots: readonly Spot[] = [];
-	const globe = createGlobe(canvas, {
-		devicePixelRatio: ratio,
-		width: size,
-		height: size,
-		phi,
-		theta,
-		mapSamples: 16_000,
-		markerElevation: 0.01,
-		...paint(theme),
-	});
+/** Where something at `location`, drawn at `point` on the flat map, is at `t` of the way round. */
+export function place(
+	location: Location,
+	point: readonly [number, number],
+	t: number,
+	facing: number,
+): Placed {
+	const on = round(location, facing);
+	if (on.away >= 1) return { x: point[0], y: point[1], alpha: 1 - t };
+	return {
+		x: toward(point[0], on.x, t),
+		y: toward(point[1], on.y, t),
+		alpha: toward(1, shown(on.away), t),
+	};
+}
 
-	// The theme switch writes the root's attributes; the sphere is painted again in the new one.
-	const themed = new MutationObserver(() => {
-		resolved.clear();
-		theme = palette();
-		globe.update({ ...paint(theme), markers: spots.map((one) => marks(one, theme)) });
-		frames = SETTLE_FRAMES;
-	});
-	themed.observe(document.documentElement, { attributes: true });
+/** A dot of land: its middle on the flat map, and the place it stands for. */
+interface Dot {
+	readonly point: readonly [number, number];
+	readonly location: Location;
+}
 
-	let dragged: number | undefined;
-	let frame = requestAnimationFrame(function draw() {
-		if (!still || dragged !== undefined || frames > 0) {
-			if (!still && dragged === undefined) phi += SPIN;
-			globe.update({ phi, theta });
-			frames = Math.max(frames - 1, 0);
+/** The dots `DOTS` dashes each run into, as the flat map draws it: `DOT` wide, `PITCH` apart. */
+function dots(): Dot[] {
+	const out: Dot[] = [];
+	for (const [, x, y, length] of DOTS.matchAll(/M(-?[\d.]+) (-?[\d.]+)h([\d.]+)/g)) {
+		const [start, row, run] = [Number(x), Number(y), Number(length)];
+		for (let at = 0; at + DOT <= run + 0.001; at += PITCH) {
+			const middle = start + at + DOT / 2;
+			out.push({ point: [middle, row], location: unflat(middle, row) });
 		}
-		frame = requestAnimationFrame(draw);
-	});
-
-	const resize = new ResizeObserver(() => {
-		size = side(host);
-		fit(canvas, size);
-		globe.update({ width: size, height: size });
-		frames = SETTLE_FRAMES;
-	});
-	resize.observe(host);
-
-	canvas.addEventListener('pointerdown', (event) => {
-		dragged = event.clientX;
-		canvas.setPointerCapture(event.pointerId);
-		canvas.style.cursor = 'grabbing';
-	});
-	canvas.addEventListener('pointermove', (event) => {
-		if (dragged === undefined) return;
-		phi += (event.clientX - dragged) * DRAG;
-		dragged = event.clientX;
-	});
-	const release = () => {
-		dragged = undefined;
-		canvas.style.cursor = 'grab';
-		frames = 1;
-	};
-	canvas.addEventListener('pointerup', release);
-	canvas.addEventListener('pointercancel', release);
-
-	return {
-		mark(next) {
-			spots = next;
-			const markers: Marker[] = spots.map((one) => marks(one, theme));
-			globe.update({ markers });
-			frames = 1;
-		},
-		destroy() {
-			cancelAnimationFrame(frame);
-			resize.disconnect();
-			themed.disconnect();
-			globe.destroy();
-			const context = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
-			context?.getExtension('WEBGL_lose_context')?.loseContext();
-			host.replaceChildren();
-		},
-	};
+	}
+	return out;
 }
 
-/** A place as cobe's marker: blue, or red when gone, faded to the sphere as it runs less. */
-function marks({ location, radius, opacity, state }: Spot, theme: Palette): Marker {
-	const color = rgb(state === 'gone' ? 'var(--color-danger)' : 'var(--color-primary)');
-	const size = radius * PER_RADIUS;
-	return { location: [...location], size, color: mix(color, theme.sphere, opacity) };
+/** Exported for ./globe.test.ts to hold against the flat map's own dots. */
+export const LAND = dots();
+
+/** The colors the canvas is painted in, read off the page, so a switch of theme repaints it. */
+export interface Paint {
+	readonly land: string;
+	readonly ring: string;
 }
 
-function mix([r, g, b]: Rgb, [r0, g0, b0]: Rgb, share: number): Rgb {
-	return [r0 + (r - r0) * share, g0 + (g - g0) * share, b0 + (b - b0) * share];
-}
-
-/** The globe is round: as wide as the host is tall, or narrower when the host is. */
-function side(host: HTMLElement): number {
-	return Math.max(Math.floor(Math.min(host.clientWidth, host.clientHeight)), 1);
-}
-
-function fit(canvas: HTMLCanvasElement, size: number) {
-	canvas.style.width = `${size}px`;
-	canvas.style.height = `${size}px`;
-}
-
-const resolved = new Map<string, Rgb>();
-
-/** A CSS color as cobe takes it, 0 to 1 a channel, read off a pixel so any color syntax works. */
-function rgb(color: string): Rgb {
-	const known = resolved.get(color);
-	if (known) return known;
-	const probe = document.createElement('span');
-	probe.style.color = color;
-	document.body.appendChild(probe);
-	const computed = getComputedStyle(probe).color;
-	probe.remove();
-	const paint = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-	if (!paint) return [1, 1, 1];
-	paint.fillStyle = computed;
-	paint.fillRect(0, 0, 1, 1);
-	const [red = 255, green = 255, blue = 255] = paint.getImageData(0, 0, 1, 1).data;
-	const value: Rgb = [red / 255, green / 255, blue / 255];
-	resolved.set(color, value);
-	return value;
+/** The land and the globe's ring at `t` of the way round, the globe facing `facing`. */
+export function draw(context: CanvasRenderingContext2D, t: number, facing: number, paint: Paint) {
+	context.clearRect(0, 0, WIDTH, HEIGHT);
+	if (t > 0.001) {
+		context.globalAlpha = t;
+		context.beginPath();
+		context.arc(CX, CY, RADIUS, 0, 2 * Math.PI);
+		context.strokeStyle = paint.ring;
+		context.lineWidth = 1.5;
+		context.stroke();
+	}
+	const side = toward(DOT, ROUND_DOT, t);
+	const half = side / 2;
+	context.fillStyle = paint.land;
+	for (const dot of LAND) {
+		const at = place(dot.location, dot.point, t, facing);
+		if (at.alpha <= 0.01) continue;
+		context.globalAlpha = at.alpha;
+		context.fillRect(at.x - half, at.y - half, side, side);
+	}
+	context.globalAlpha = 1;
 }

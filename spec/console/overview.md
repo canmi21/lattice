@@ -22,16 +22,36 @@ region, so a reader who cannot see the color is told the line as it changes.
 
 ## The map is the page's whole picture
 
-**The map is the overview's center, with the view's four figures beside it**: nodes heard, apps
-running, deploys in the last day and how long one takes -- as one column of figures at the map's
-right, a hairline between each, and under the map where the page is too narrow. They are figures,
-not tiles: no ring and no sparkline, since the line above already says whether a figure is wrong.
-The map stays as it is drawn -- [../architecture/console.md](../architecture/console.md), "A figure
-is drawn before it is written" and the paragraphs after -- full width of its half, flat by default
-and a globe when asked for. **The globe is painted in the page's theme** and again when the theme
-switches: a light sphere with dark land in the light, the reverse in the dark, its glow the card's
-own ground so its edge fades into what it stands on. A view without the nodes, Platform's or
-Services', has the figures alone where the map would be.
+**The nodes are one card: a list of them on the left, the map on the right, and the view's figures
+along its foot.** The list is a line a node -- a dot in the map's blue, or red when it is not heard,
+its place, its code, and one figure of it, the one a switch above the list picks: how busy its
+processor is, how much of its memory is in use, or how many apps it runs, a share always to one
+decimal so the column lines up. Pointing at a line opens that node's card on the map, and the line
+is a link to the node. The figures -- nodes heard, apps running, deploys in the last day and how
+long one takes -- are a strip under both, a hairline between each: figures, not tiles, with no ring
+and no sparkline, since the line above already says whether a figure is wrong. The map stays as it
+is drawn -- [../architecture/console.md](../architecture/console.md), "A figure is drawn before it is
+written" and the paragraphs after -- and its switch between flat and round is two icons in a frame
+at its top right. A view without the nodes, Platform's or Services', has the figures alone.
+Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its arrangement and
+its switch, not its look.
+
+## The globe is the flat map turned round
+
+**The globe is the flat map's own dots, carried onto a sphere.** Each dot of land stands for a
+place, which the browser works out by undoing the flat map's Mercator projection -- no projection
+library and no data beyond the dots the server already sent -- and each has a place on the flat map
+and one on an orthographic globe, tipped 15 degrees north. Turning is a value from 0 to 1 that GSAP
+carries over 700 ms, eased at both ends, and every dot and every mark is drawn that far between its
+two places; a mark stays the flat map's own element throughout, so its card, its link and its halo
+come with it. **The sphere has no edge of its own to show a seam**: a dot fades as it nears the
+globe's rim, from 70 percent of the quarter turn to it, one on the far side fades out where it
+stood, and the outline is a hairline in the card's rule color, so in either theme the globe is its
+dots on the card's own ground. Its colors are read off the page and read again when the theme
+switches. Once round it turns slowly on its own, and a drag turns it by hand and leaves it spinning
+as fast as it was let go, easing back to its own pace; for a reader who asked for less motion it
+arrives round at once and stands still. The canvas exists only off the flat map: flat, the server's
+dots are what is drawn.
 
 ## What happened is one line a step
 

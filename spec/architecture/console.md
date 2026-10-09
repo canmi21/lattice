@@ -70,7 +70,8 @@ the layout and read by every chart, so the server and the browser write the same
 page does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is
 projected when the console is built**, flat and as a grid of dots, so neither the Worker nor the
 browser carries a projection or a world's topology -- only the dots it drew. A globe is offered
-beside it and loaded only when asked for, being WebGL the server cannot draw. On both, a node's mark
+beside it, the same dots turned round by the browser on a canvas and loaded only when asked for --
+[../console/overview.md](../console/overview.md), "The globe is the flat map turned round". On both, a node's mark
 says how much it runs and how busy it is: its size says how much machine stands at its place -- the
 memory of every node there together, up to 2 GiB, under 8, or 8 and more, so one large machine and many
 small ones read alike -- its depth steps with the apps running on it from faint to solid, and a halo breathes around it faster as its CPU

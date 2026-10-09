@@ -51,7 +51,8 @@ describe('segmented on the server', () => {
 			props: { options: RANGES, value: '24h', label: 'Time range' },
 		});
 		for (const range of ['1h', '6h', '24h', '7d', '30d']) expect(body).toContain(`>${range}<`);
-		expect(body).toMatch(/aria-checked="true"[^>]*>24h</);
+		// Svelte's hydration markers may stand between the option and its words.
+		expect(body).toMatch(/aria-checked="true"[^>]*>(?:<!--[^>]*-->)*24h</);
 		expect(body.match(/aria-checked="true"/g)).toHaveLength(1);
 	});
 

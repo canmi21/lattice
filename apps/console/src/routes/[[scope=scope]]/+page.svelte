@@ -5,7 +5,6 @@
 	 * that own them, Deployments' and Nodes'. See spec/console/overview.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { border } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Card from '#lib/card.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
@@ -13,6 +12,7 @@
 	import Heard from '#lib/nodes/heard.svelte';
 	import Activity from '#lib/overview/activity.svelte';
 	import Figures from '#lib/overview/figures.svelte';
+	import NodeList from '#lib/overview/node-list.svelte';
 	import { current, fromLive } from '#lib/overview/moving.js';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
@@ -57,18 +57,8 @@
 	);
 	/** A step's row and the list's own padding, before the runs land. */
 	const LIST = 6 * 36;
-
-	const styles = stylex.create({
-		/** The figures under the map, or beside it from Tailwind's `lg` up, a hairline between. */
-		column: {
-			borderStyle: 'solid',
-			borderColor: 'var(--color-line)',
-			borderTopWidth: { default: border.hairlinePx, '@media (min-width: 64rem)': '0' },
-			borderLeftWidth: { default: '0', '@media (min-width: 64rem)': border.hairlinePx },
-			borderRightWidth: '0',
-			borderBottomWidth: '0',
-		},
-	});
+	/** The node a line of the list points at, which the map opens. */
+	let pointed: string | undefined = $state();
 </script>
 
 {#snippet lists()}
@@ -111,18 +101,22 @@
 <!-- The nodes are All's and Infra's; see spec/architecture/console.md. -->
 {#if data.nodes}
 	<Verdict {live} {now} {keep} />
-	<section
-		class="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_15rem] {stylex.attrs(surfaces.card).class}"
-	>
+	<section class="flex min-w-0 flex-col {stylex.attrs(surfaces.card).class}">
 		<h2 class="sr-only">Nodes</h2>
-		<div class="min-w-0 p-5">
+		<div class="grid gap-6 p-5 xl:grid-cols-[18rem_minmax(0,1fr)]">
 			<Heard {live} cluster={data.cluster}>
-				<WorldMap states={live.view.nodes} now={live.now} />
-				{#snippet pending()}<Skeleton ratio="{WIDTH} / {HEIGHT}" />{/snippet}
+				<NodeList {live} bind:pointed />
+				{#snippet pending()}<Skeleton height={LIST} />{/snippet}
 			</Heard>
+			<div class="min-w-0">
+				<Heard {live} cluster={data.cluster}>
+					<WorldMap states={live.view.nodes} now={live.now} {pointed} />
+					{#snippet pending()}<Skeleton ratio="{WIDTH} / {HEIGHT}" />{/snippet}
+				</Heard>
+			</div>
 		</div>
-		<div class={stylex.attrs(styles.column).class}>
-			<Figures {live} deploys={data.deploys} {keep} stacked />
+		<div class={stylex.attrs(surfaces.rowRule).class}>
+			<Figures {live} deploys={data.deploys} {keep} />
 		</div>
 	</section>
 	{@render lists()}
