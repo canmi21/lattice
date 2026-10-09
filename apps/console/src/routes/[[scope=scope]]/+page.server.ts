@@ -1,6 +1,6 @@
 import { figures } from '#lib/overview/deploys.js';
 import { fromHistory } from '#lib/overview/moving.js';
-import { DAY } from '#lib/overview/timeline.js';
+import { WEEK } from '#lib/overview/timeline.js';
 import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { edgeOf } from '#lib/server/platform.js';
@@ -31,8 +31,8 @@ export const load: PageServerLoad = async (event) => {
 			message: failure.message,
 		})),
 	}));
-	// Every step of the last day besides, which the timeline draws; see spec/console/overview.md.
-	const moving = history.then(({ runs, apart }) => fromHistory(runs, apart, 40, 80, now - DAY));
+	// Every step of the last week besides, which the timeline draws; spec/console/overview.md.
+	const moving = history.then(({ runs, apart }) => fromHistory(runs, apart, 40, 80, now - WEEK));
 	const first = !event.isDataRequest;
 	return {
 		view,

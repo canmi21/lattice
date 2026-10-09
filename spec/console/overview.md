@@ -126,27 +126,29 @@ and the median is the figure a deploy time means. Figures are in the shell's fac
 [design.md](design.md), "Words in the sans, figures in the shell's face"; the figure is a step over
 the body and what it is out of a step under, so one line reads as one figure.
 
-## The day is a line a node
+## The week is a line a node
 
-**Under the map, the last 24 hours are one card, a line a node, time running left to right**, the
-way the map above lays the nodes out in space. Each line is headed by the node's flag and the part
-of its place that tells it from the others there -- `Tokyo`, `Narita`, `Haneda`, as the place's card
-heads them -- amber while it is leaving and red when it is gone; along it, every step the node took
-that did something: a quiet tick where a deploy finished, as wide as it took where that shows, a
-blue one running on to now while it goes, and a red dot where it failed. A skip draws nothing. At
-its end, how many of the node's apps should run and do not, `2 down`, red, each named on its hover
-with those held on purpose; `1 held`, quiet, where only held ones stand stopped. One run's marks
-stand one above another across the lines, so a rollout reads down the card -- the canary first, the
-rest after -- and pointing at a mark dims every other run's. A mark's hover says the app, how it
-went, when and how long it took, and why where it failed; it links to its run, or to the node's
-events where no run started it. The hours are ticked on an axis under the lines, `24h`, `18h`,
-`12h`, `6h`, `now`, and never ruled through them, where a rule read as one more mark. The legend and
-`View all`, to the deployments page, sit on the title's right. In a view without nodes the lines are
-its eight busiest apps instead. It took the place on 2026-10-09 of two cards, the latest runs as
-lines beside the apps not running, which repeated one app's runs down the card and left the other
-mostly empty: the history is the deployments page's, and the overview's is the shape of the day. The
-load carries every step of the last day for it beside the verdict's; see `fromHistory`'s `since`.
-Decided with the author on 2026-10-09.
+**Under the map, the last seven days are one card, a line a node, time running left to right**,
+`24h` and `7d` beside its title to look at the last day instead, the way the map above lays the
+nodes out in space. Each line is headed by the node's flag and the part of its place that tells it
+from the others there -- `Tokyo`, `Narita`, `Haneda`, as the place's card heads them -- amber while
+it is leaving and red when it is gone; along it, every step the node took that did something: a
+quiet tick where a deploy finished, as wide as it took where that shows, a blue one running on to
+now while it goes, and a red dot where it failed. A skip draws nothing. At its end, how many of the
+node's apps should run and do not, `2 down`, red, each named on its hover with those held on
+purpose; `1 held`, quiet, where only held ones stand stopped. One run's marks stand one above
+another across the lines, so a rollout reads down the card -- the canary first, the rest after --
+and pointing at a mark dims every other run's. A mark's hover says the app, how it went, when and
+how long it took, and why where it failed; it links to its run, or to the node's events where no run
+started it. The axis under the lines is ticked a day apart, `7d` to `now`, or six hours apart over a
+day, and never ruled through the lines, where a rule read as one more mark. The legend and `View
+all`, to the deployments page, sit on the title's right. In a view without nodes the lines are its
+eight busiest apps instead. It took the place on 2026-10-09 of two cards, the latest runs as lines
+beside the apps not running, which repeated one app's runs down the card and left the other mostly
+empty: the history is the deployments page's, and the overview's is the shape of the week, which
+showed the rollouts as bands and a failed one as a column of red where a day showed a few lone
+ticks. The load carries every step of the last week for it beside the verdict's; see `fromHistory`'s
+`since`. Decided with the author on 2026-10-09.
 
 ## Charts are their pages'
 

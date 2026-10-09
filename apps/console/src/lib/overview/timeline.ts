@@ -2,11 +2,12 @@
  * The overview's day as marks on a line a node: each step that did something in the last
  * `span`, from where it started to where it finished, or to now while it goes, as shares of the
  * span. A skip is a run that had nothing for a node, and draws nothing. See
- * spec/console/overview.md, "The day is a line a node".
+ * spec/console/overview.md, "The week is a line a node".
  */
 import type { Step } from './moving.ts';
 
 export const DAY = 86_400_000;
+export const WEEK = 7 * DAY;
 
 export interface Mark {
 	key: string;

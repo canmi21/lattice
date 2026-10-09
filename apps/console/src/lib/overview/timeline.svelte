@@ -5,7 +5,7 @@
 	 * failed -- and at the end how many of its apps are down. A run's marks stand one above
 	 * another across the nodes, so a rollout reads down the card; pointing at one lights the rest
 	 * of its run. In a view without nodes the lines are its busiest apps instead. See
-	 * spec/console/overview.md, "The day is a line a node".
+	 * spec/console/overview.md, "The week is a line a node".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -20,13 +20,14 @@
 	import { tone, type } from '../style.ts';
 	import { timeZone } from '../ui/time-zone.ts';
 	import type { Step } from './moving.ts';
-	import { type Mark, marks } from './timeline.ts';
+	import { DAY, type Mark, marks } from './timeline.ts';
 
 	let {
 		live,
 		steps,
 		keep,
 		nodes = true,
+		span = DAY,
 	}: {
 		live: Live;
 		/** Every step known, history and live together. */
@@ -34,6 +35,8 @@
 		keep: (app: string) => boolean;
 		/** A line a node; else a line an app, its busiest first. */
 		nodes?: boolean;
+		/** How far back the line reaches, in milliseconds: a day or a week. */
+		span?: number;
 	} = $props();
 
 	const { to, node: toNode, app: toApp } = scoped();
@@ -41,20 +44,30 @@
 
 	/** Apps' lines at most, in a view without nodes. */
 	const APPS = 8;
-	/** Where the hours are marked along the line, as shares of the day, and what they say. */
-	const HOURS = [
-		[0, '24h'],
-		[0.25, '18h'],
-		[0.5, '12h'],
-		[0.75, '6h'],
-		[1, 'now'],
-	] as const;
+	/** Where the axis is ticked, as shares of the span, and what each tick says. */
+	const HOURS = $derived.by((): (readonly [number, string])[] => {
+		if (span <= DAY) {
+			return [
+				[0, '24h'],
+				[0.25, '18h'],
+				[0.5, '12h'],
+				[0.75, '6h'],
+				[1, 'now'],
+			];
+		}
+		const days = Math.round(span / DAY);
+		return Array.from({ length: days + 1 }, (_, at) => [
+			at / days,
+			at === days ? 'now' : `${days - at}d`,
+		]);
+	});
 	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)_4rem] items-center gap-x-4';
 
 	const drawn = $derived(
 		marks(
 			steps.filter((step) => keep(step.app)),
 			live.now,
+			span,
 		),
 	);
 	/** The run a pointer is on, whose marks on every line stand out. */

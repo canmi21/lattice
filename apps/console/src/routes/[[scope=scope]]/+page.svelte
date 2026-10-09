@@ -15,6 +15,8 @@
 	import NodeList from '#lib/overview/node-list.svelte';
 	import { current, fromLive, merged } from '#lib/overview/moving.js';
 	import Timeline from '#lib/overview/timeline.svelte';
+	import { DAY, WEEK } from '#lib/overview/timeline.js';
+	import Segmented from '#lib/ui/segmented.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
@@ -59,6 +61,9 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
+	/** How far back the timeline reaches; a week until the author settles it. */
+	let back: '24h' | '7d' = $state('7d');
+	const span = $derived(back === '7d' ? WEEK : DAY);
 	const styles = stylex.create({
 		/** The legend's words, beside the marks they name. */
 		legend: { color: 'var(--color-text-muted)', fontSize: text.px12 },
@@ -85,9 +90,17 @@
 </script>
 
 {#snippet lists()}
-	<Card title="Last 24 hours" flush>
+	<Card title={span === WEEK ? 'Last 7 days' : 'Last 24 hours'} flush>
 		{#snippet aside()}
 			<div class="flex items-center gap-4">
+				<Segmented
+					label="How far back"
+					bind:value={back}
+					options={[
+						{ key: '24h', label: '24h' },
+						{ key: '7d', label: '7d' },
+					]}
+				/>
 				<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
 					<span class="h-3 w-0.5 rounded-[1px] {stylex.attrs(styles.done).class}"></span>deployed
 				</span>
@@ -105,7 +118,7 @@
 		{/snippet}
 		<div class="px-5 pb-4">
 			{#if seed.value}
-				<Timeline {live} steps={day} {keep} nodes={data.nodes} />
+				<Timeline {live} steps={day} {keep} nodes={data.nodes} {span} />
 			{:else}
 				<Skeleton height={LIST} />
 			{/if}
