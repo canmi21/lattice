@@ -30,10 +30,49 @@ const DRAG = 0.005;
 /** cobe's marker size per unit of the flat map's radius, the middle step drawn at 0.03. */
 const PER_RADIUS = 0.03 / 9.5;
 /**
- * The sphere's own dark as `dark: 1` paints it: cobe has no marker opacity, so a faint mark is its
- * color mixed toward this.
+ * How the sphere is painted in each theme. `sphere` is its own color as cobe paints it: cobe has no
+ * marker opacity, so a faint mark is its color mixed toward this. The glow is the card's ground, so
+ * the sphere's edge fades into what it stands on rather than into a halo of its own.
  */
-const SPHERE: Rgb = [0.04, 0.04, 0.04];
+interface Palette {
+	readonly dark: number;
+	readonly diffuse: number;
+	readonly mapBrightness: number;
+	readonly baseColor: Rgb;
+	readonly sphere: Rgb;
+}
+const DARK: Palette = {
+	dark: 1,
+	diffuse: 1.2,
+	mapBrightness: 3.5,
+	baseColor: [0.22, 0.22, 0.22],
+	sphere: [0.04, 0.04, 0.04],
+};
+const LIGHT: Palette = {
+	dark: 0,
+	diffuse: 1.6,
+	mapBrightness: 1.4,
+	baseColor: [0.86, 0.86, 0.86],
+	sphere: [0.92, 0.92, 0.92],
+};
+
+/** The palette of the theme the page is in now, read off its own ground. */
+function palette(): Palette {
+	const [red, green, blue] = rgb('var(--color-ground)');
+	return 0.2126 * red + 0.7152 * green + 0.0722 * blue > 0.5 ? LIGHT : DARK;
+}
+
+/** The theme's colors as cobe takes them; read again on each change of theme. */
+function paint(of: Palette) {
+	return {
+		dark: of.dark,
+		diffuse: of.diffuse,
+		mapBrightness: of.mapBrightness,
+		baseColor: of.baseColor,
+		markerColor: rgb('var(--color-text-faint)'),
+		glowColor: rgb('var(--color-surface)'),
+	};
+}
 /** cobe 2 draws only when updated, and decodes its land texture after the first draw. */
 const SETTLE_FRAMES = 30;
 
@@ -49,23 +88,29 @@ export function mount(host: HTMLElement, still: boolean): Globe {
 	const ratio = Math.min(window.devicePixelRatio || 1, 2);
 	fit(canvas, size);
 
+	let frames = SETTLE_FRAMES;
+	let theme = palette();
+	let spots: readonly Spot[] = [];
 	const globe = createGlobe(canvas, {
 		devicePixelRatio: ratio,
 		width: size,
 		height: size,
 		phi,
 		theta,
-		dark: 1,
-		diffuse: 1.2,
 		mapSamples: 16_000,
-		mapBrightness: 3.5,
-		baseColor: [0.22, 0.22, 0.22],
-		markerColor: rgb('var(--color-text-faint)'),
-		glowColor: [0.08, 0.08, 0.08],
 		markerElevation: 0.01,
+		...paint(theme),
 	});
 
-	let frames = SETTLE_FRAMES;
+	// The theme switch writes the root's attributes; the sphere is painted again in the new one.
+	const themed = new MutationObserver(() => {
+		resolved.clear();
+		theme = palette();
+		globe.update({ ...paint(theme), markers: spots.map((one) => marks(one, theme)) });
+		frames = SETTLE_FRAMES;
+	});
+	themed.observe(document.documentElement, { attributes: true });
+
 	let dragged: number | undefined;
 	let frame = requestAnimationFrame(function draw() {
 		if (!still || dragged !== undefined || frames > 0) {
@@ -103,14 +148,16 @@ export function mount(host: HTMLElement, still: boolean): Globe {
 	canvas.addEventListener('pointercancel', release);
 
 	return {
-		mark(spots) {
-			const markers: Marker[] = spots.map(marks);
+		mark(next) {
+			spots = next;
+			const markers: Marker[] = spots.map((one) => marks(one, theme));
 			globe.update({ markers });
 			frames = 1;
 		},
 		destroy() {
 			cancelAnimationFrame(frame);
 			resize.disconnect();
+			themed.disconnect();
 			globe.destroy();
 			const context = canvas.getContext('webgl2') ?? canvas.getContext('webgl');
 			context?.getExtension('WEBGL_lose_context')?.loseContext();
@@ -120,9 +167,10 @@ export function mount(host: HTMLElement, still: boolean): Globe {
 }
 
 /** A place as cobe's marker: blue, or red when gone, faded to the sphere as it runs less. */
-function marks({ location, radius, opacity, state }: Spot): Marker {
+function marks({ location, radius, opacity, state }: Spot, theme: Palette): Marker {
 	const color = rgb(state === 'gone' ? 'var(--color-danger)' : 'var(--color-primary)');
-	return { location: [...location], size: radius * PER_RADIUS, color: mix(color, SPHERE, opacity) };
+	const size = radius * PER_RADIUS;
+	return { location: [...location], size, color: mix(color, theme.sphere, opacity) };
 }
 
 function mix([r, g, b]: Rgb, [r0, g0, b0]: Rgb, share: number): Rgb {
