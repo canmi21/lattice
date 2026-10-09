@@ -2,9 +2,9 @@
 	/**
 	 * What a mark's card says of its place, as rows of a name and a value: how long it has been up,
 	 * its role, the apps it runs, and two rings, how busy its processor is and how much memory is in
-	 * use, written in `G`. A shared place is named once and its nodes follow one under another, each
-	 * headed by what tells it from the others there, its airport or its district, never its code,
-	 * and each head a link to its node. The map places the card; this draws it. See
+	 * use, written in `G`. A shared place's nodes follow one under another with no title over them,
+	 * each headed by what tells it from the others there and its country -- `Narita – Japan` --
+	 * never its code, and each head a link to its node. The map places the card; this draws it. See
 	 * spec/console/overview.md, "A place's card says what the list does not".
 	 */
 	import * as stylex from '@stylexjs/stylex';
@@ -13,7 +13,7 @@
 	import { uptime } from '../nodes/machine.ts';
 	import { scoped } from '../scope/context.ts';
 	import { tone } from '../style.ts';
-	import { nameOf, PLACES, ROLES, type Member, type Site } from './places.ts';
+	import { countryOf, nameOf, PLACES, ROLES, type Member, type Site } from './places.ts';
 
 	let { site, now }: { site: Site; now: number } = $props();
 
@@ -47,7 +47,7 @@
 		return `${minutes}m`;
 	}
 
-	const ROWS = ['Uptime', 'Role', 'Apps running', 'CPU', 'RAM'] as const;
+	const ROWS = ['Uptime', 'Role', 'Apps', 'CPU', 'RAM'] as const;
 
 	const styles = stylex.create({
 		card: {
@@ -65,6 +65,8 @@
 		title: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
 		muted: { color: 'var(--color-text-muted)' },
 		value: { color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' },
+		/** The country after a shared place's node, quieter than the city that leads. */
+		country: { color: 'var(--color-text-muted)', fontWeight: weight.normal },
 		/** A hairline between two nodes of a shared place, none above the first. */
 		apart: {
 			borderTopWidth: { default: '1px', ':first-child': '0' },
@@ -89,7 +91,7 @@
 		<span class={stylex.attrs(member.state === 'gone' && tone.bad).class}>{upOf(member)}</span>
 	{:else if row === 'Role'}
 		{ROLES[member.role]}
-	{:else if row === 'Apps running'}
+	{:else if row === 'Apps'}
 		{member.apps ? `${member.apps.running} of ${member.apps.total}` : '–'}
 	{:else if row === 'CPU'}
 		{#if cpuOf(member) === undefined}–{:else}<Gauge
@@ -120,10 +122,8 @@
 {/snippet}
 
 <div class="flex flex-col gap-1.5 {stylex.attrs(styles.card).class}" data-site={site.key}>
-	<span class={stylex.attrs(styles.title).class}
-		>{nameOf(site.members[0]?.code ?? site.key).full}</span
-	>
 	{#if lone}
+		<span class={stylex.attrs(styles.title).class}>{nameOf(lone.code).full}</span>
 		{@render rows(lone)}
 	{:else}
 		<!-- A node under another, so the card stays narrow however many share the place. -->
@@ -136,7 +136,10 @@
 						href={toNode(member.code)}
 						data-row={member.code}
 						aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
-						class="self-start {stylex.attrs(styles.head).class}">{partOf(member.code)}</a
+						class="self-start {stylex.attrs(styles.head).class}"
+						>{partOf(member.code)}<span class={stylex.attrs(styles.country).class}
+							>{` – ${countryOf(member.code)}`}</span
+						></a
 					>
 					{@render rows(member)}
 				</li>

@@ -30,7 +30,7 @@ const site = (members: Member[], overrides: Partial<Site> = {}): Site => ({
 });
 
 describe('a place card on the server', () => {
-	it('names a shared place once and lists its nodes one under another', () => {
+	it('lists the nodes of a shared place one under another, each by its city and country', () => {
 		const members = [
 			member('tyo', { role: 'core', apps: { running: 9, total: 9 }, cpu: 1.8 }),
 			member('nrt', { cpu: 3.96, booted: NOW / 1000 - 3 * 86_400 }),
@@ -39,13 +39,15 @@ describe('a place card on the server', () => {
 		const { body } = render(PlaceCard, {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
-		expect(body.match(/>\s*Tokyo, Japan\s*</g)).toHaveLength(1);
+		// No title over them: each node's head says where it is.
+		expect(body).not.toMatch(/>\s*Tokyo, Japan\s*</);
+		expect(body).toMatch(/>Narita<span[^>]*> – Japan<\/span>/);
 		expect(body).not.toContain('<img');
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
 		}
-		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}</a>`);
-		for (const row of ['Uptime', 'Role', 'Apps running', 'CPU', 'RAM']) {
+		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}<span`);
+		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM']) {
 			expect(body.match(new RegExp(`>${row}</dt>`, 'g'))).toHaveLength(3);
 		}
 		expect(body).toContain('3d 0h');
@@ -62,7 +64,7 @@ describe('a place card on the server', () => {
 		expect(body).toContain('Sweden, European Union');
 		// The name is the country's and the union's; the card adds no city to it.
 		expect(body).not.toContain('Gävle');
-		for (const row of ['Uptime', 'Role', 'Apps running', 'CPU', 'RAM']) {
+		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM']) {
 			expect(body).toContain(`>${row}</dt>`);
 		}
 		expect(body).toContain('1.5%');
