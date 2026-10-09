@@ -23,7 +23,7 @@
 		now,
 		empty,
 		label,
-		limit = 8,
+		limit = 10,
 	}: { lines: Line[]; now: number; empty: string; label: string; limit?: number } = $props();
 
 	const { to, node: toNode } = scoped();
@@ -79,7 +79,7 @@
 				<a
 					href={hrefOf(line)}
 					title={line.detail}
-					class="grid h-8 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-2 {stylex.attrs(
+					class="grid h-7 grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-md px-2 {stylex.attrs(
 						styles.row,
 					).class}"
 				>

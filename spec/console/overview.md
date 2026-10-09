@@ -61,7 +61,11 @@ tore the map down the middle until 2026-10-09, when frames of Vercel's turn show
 70 percent of the quarter turn to it, and the outline is a hairline in the card's rule color, so in either theme the globe is its
 dots on the card's own ground. Its colors are read off the page and read again when the theme
 switches. Once round it turns slowly on its own, and a drag turns it by hand and leaves it spinning
-as fast as it was let go, easing back to its own pace. **A place's card open brakes it**: the turn
+the way it was thrown, as fast as it was let go: thrown faster than its own pace it slows to that
+pace in the thrown direction, thrown slower it gathers to it, and it turns that way from then on.
+**Every mark is pointed at as the largest is**: its target is the largest size's whole, with what
+is drawn at its own size in the middle, so a small mark on a turning globe is as easy to hold as a
+large one. **A place's card open brakes it**: the turn
 slows to a stop in about a third of a second, so the card holds still to be read, and gathers its
 pace back once the card closes. For a reader who asked for less motion it
 arrives round at once and stands still. The canvas exists only off the flat map: flat, the server's
@@ -113,7 +117,7 @@ reads as one figure.
 ## What happened is one line a run's app
 
 **Under the map, two lists side by side: Activity, what is deploying and what finished last, and
-Failures, what failed in the last week.** A line is a run's placements of one app, however many
+Failures, what failed in the last week**, ten lines each at 28 pixels a line. A line is a run's placements of one app, however many
 nodes it went to -- a deploy to eight nodes is one line, not eight -- and what no run started, an
 upload or a panel's action, is gathered by who started it and the ten minutes it began in. A line
 is a dot for how it went, green done, blue going, red failed if any of its nodes failed; the app by

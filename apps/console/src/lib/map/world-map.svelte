@@ -17,7 +17,7 @@
 	import type { Held } from '../wire.ts';
 	import type { Paint } from './globe.ts';
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
-	import { opacity, period, radius as size, shown, type Shown } from './marks.ts';
+	import { opacity, period, radius as size, shown, SIZES, type Shown } from './marks.ts';
 	import PlaceCard from './place-card.svelte';
 	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
 
@@ -60,6 +60,11 @@
 	/** Degrees the globe turns a frame on its own, and per unit of the plot dragged across. */
 	const SPIN = 0.06;
 	const DRAG = 0.2;
+	/**
+	 * Every mark is pointed at as though it were the largest, so a small one turning on the globe is
+	 * as easy to hold as a large one; only what is drawn keeps its own size.
+	 */
+	const HIT = SIZES[SIZES.length - 1]?.radius ?? 12;
 	/** Pixels between a mark's edge and its card, and between the card and the map's edge. */
 	const GAP = 8;
 	const EDGE = 4;
@@ -201,11 +206,13 @@
 
 	/**
 	 * Once round, the globe turns on its own, a little each frame, and a drag turns it by hand and
-	 * leaves it spinning as fast as it was let go, easing back to its own pace; a place's card open
-	 * slows it to a stop. Still for a reader who asked for less motion. See
-	 * spec/console/overview.md, "The globe is the flat map turned round".
+	 * leaves it spinning as fast as it was let go, the way it was thrown, easing to its own pace in
+	 * that direction from then on; a place's card open slows it to a stop. Still for a reader who
+	 * asked for less motion. See spec/console/overview.md, "The globe is the flat map turned round".
 	 */
 	let spin = SPIN;
+	/** Which way it turns on its own, 1 or -1: the way it was last thrown. */
+	let heading = 1;
 	let held: { x: number; facing: number; last: number; at: number } | undefined = $state();
 	$effect(() => {
 		if (view !== 'globe' || stilled()) return;
@@ -213,7 +220,9 @@
 			if (shape.t >= 0.999 && !held) {
 				// A place's card open brakes it to a stop in about a third of a second, so the card
 				// holds still to be read; let go, it gathers its own pace back more slowly.
-				spin = active ? spin * 0.88 : spin * 0.95 + SPIN * 0.05;
+				// Thrown faster than its own pace, it slows to that pace the way it was thrown;
+				// slower, it gathers to it the same way.
+				spin = active ? spin * 0.88 : spin + (heading * SPIN - spin) * 0.05;
 				facing -= spin;
 			}
 			frame = requestAnimationFrame(step);
@@ -238,11 +247,14 @@
 		const x = plotX(event);
 		facing = held.facing - (x - held.x) * DRAG;
 		const now = performance.now();
-		spin = ((held.last - x) * DRAG) / Math.max((now - held.at) / 16, 1);
+		// The turn a frame the hand gave it: `facing` falls by `spin` each frame, and dragging right
+		// lowers it, so a drag right is a positive spin and the throw carries on the way it went.
+		spin = ((x - held.last) * DRAG) / Math.max((now - held.at) / 16, 1);
 		held.last = x;
 		held.at = now;
 	}
 	function release() {
+		if (held && Math.abs(spin) > SPIN / 10) heading = Math.sign(spin);
 		held = undefined;
 	}
 
@@ -381,26 +393,34 @@
 				style:top={share(spot.y, HEIGHT)}
 				style:opacity={spot.alpha < 1 ? spot.alpha : undefined}
 				style:visibility={spot.alpha < 0.05 ? 'hidden' : undefined}
-				style:width={across(site.radius)}
-				style:height={across(site.radius)}
+				style:width={across(HIT)}
+				style:height={across(HIT)}
 				onpointerenter={() => open(site.key)}
 				onpointerleave={leave}
 				onfocus={() => open(site.key)}
 				onfocusout={blur}
 			>
-				{#if site.state === 'live'}
-					<span
-						data-halo
-						class="absolute inset-0 {stylex.attrs(styles.halo).class}"
-						style:animation-duration="{site.period}s"
-						style:animation-delay="{-(site.phase * site.period).toFixed(2)}s"
-					></span>
-				{/if}
+				<!-- The mark as drawn, its own size at the middle of a target as large as the largest. -->
 				<span
-					class="absolute inset-0 {stylex.attrs(styles.fill, site.state === 'gone' && styles.gone)
-						.class}"
-					style:opacity={site.opacity}
-				></span>
+					data-drawn
+					class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+					style:width={across(site.radius)}
+					style:height={across(site.radius)}
+				>
+					{#if site.state === 'live'}
+						<span
+							data-halo
+							class="absolute inset-0 {stylex.attrs(styles.halo).class}"
+							style:animation-duration="{site.period}s"
+							style:animation-delay="{-(site.phase * site.period).toFixed(2)}s"
+						></span>
+					{/if}
+					<span
+						class="absolute inset-0 {stylex.attrs(styles.fill, site.state === 'gone' && styles.gone)
+							.class}"
+						style:opacity={site.opacity}
+					></span>
+				</span>
 			</a>
 
 			{#if card?.key === site.key && !compact}

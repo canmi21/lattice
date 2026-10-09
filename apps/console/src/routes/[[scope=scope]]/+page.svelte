@@ -64,7 +64,7 @@
 		),
 	);
 	/** A step's row and the list's own padding, before the runs land. */
-	const LIST = 6 * 36;
+	const LIST = 10 * 28;
 	/** The node the database is primary on, once read; each card's latency is to it. */
 	const primary = new Landed(
 		() => data.primary,
