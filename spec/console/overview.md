@@ -54,6 +54,18 @@ whole name and both figures. A view without the nodes, Platform's or Services', 
 alone. Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its
 arrangement and its switch, not its look.
 
+## A flag's dot is how its node is
+
+**The dot on a node's flag says how the node is, the worst of what is wrong with it**: blue where it
+is heard and every app that should run does, amber while it is leaving, quiet while a relay just
+started has not heard it yet, and red where an app that should run does not or the node is gone. Its
+hover says why -- `2 apps down: Object Storage, PostgreSQL`, `Upgrading`, `Not heard` -- and names
+an app held on purpose without counting it. A place takes the worst of its nodes and names each. The
+place list and the timeline draw the same dot from one rule, `health.ts`, so it means one thing
+wherever a flag stands; it said only whether a node was heard until 2026-10-09, when the timeline's
+count of apps down at each line's end crowded the line and moved onto the dot. Decided with the
+author on 2026-10-09.
+
 ## The globe is the flat map turned round
 
 **The globe is the flat map's own dots, carried onto a sphere.** Each dot of land stands for a

@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
 	 * Every place beside the map, a line each under quiet headings: its country's flag with a dot
-	 * on its corner for whether its nodes are heard, its name whole, how many nodes stand there
+	 * for how its nodes are, ./health.ts, its name whole, how many nodes stand there
 	 * where it is more than one, how busy its busiest processor is and how much memory is in use,
 	 * the busiest place first and the order taken again every few seconds. The rest of a place is
 	 * the map's card, which pointing at a line opens. A node's line links to it, a shared place's
@@ -12,13 +12,13 @@
 	import { tick } from 'svelte';
 	import { reorder } from '../design/motion.ts';
 	import type { Live } from '../live.svelte.ts';
-	import Flag from '../map/flag.svelte';
 	import { nameOf } from '../map/places.ts';
-	import { shown as drawn, worst } from '../map/marks.ts';
-	import { readings, stateOf } from '../node.ts';
+	import HealthFlag from './health-flag.svelte';
+	import { healthOf, worstOf } from './health.ts';
+	import { readings } from '../node.ts';
 	import { CODES } from '../nodes/facts.ts';
 	import { scoped } from '../scope/context.ts';
-	import { tone, type } from '../style.ts';
+	import { type } from '../style.ts';
 
 	let {
 		live,
@@ -46,7 +46,7 @@
 					const held = live.view.nodes[code];
 					return {
 						code,
-						state: drawn(stateOf(held, live.now)),
+						told: healthOf(held, live.now),
 						cpu: readings(held?.snapshot?.machine)?.cpu,
 						memory: readings(held?.snapshot?.machine)?.memory?.used,
 					};
@@ -62,7 +62,7 @@
 				name,
 				members,
 				busiest,
-				state: worst(members.map((one) => one.state)),
+				told: worstOf(members),
 				// To one decimal always, so the column lines up.
 				cpu: busiest === undefined ? '–' : `${busiest.toFixed(1)}%`,
 				// Its nodes' memory in use together, in GiB written `G`, to one decimal always.
@@ -124,10 +124,6 @@
 		},
 		/** A place's name, a step under the page's body, so the list stays dense. */
 		name: { color: 'var(--color-text)', fontSize: text.px13 },
-		/** A heard place's dot in the map's own blue, so a line and its mark read as one. */
-		live: { color: 'var(--color-primary)' },
-		/** The dot's ring, the card's ground, so it reads as cut out of the flag's corner. */
-		ring: { borderWidth: '1.5px', borderStyle: 'solid', borderColor: 'var(--color-surface)' },
 		count: { color: 'var(--color-text-muted)', fontSize: text.px12 },
 		value: {
 			color: 'var(--color-text)',
@@ -136,8 +132,6 @@
 		},
 	});
 
-	/** The dot's color, as its place's mark is drawn; see ../map/marks.ts. */
-	const DOT = { live: styles.live, leaving: tone.warn, waiting: tone.quiet, gone: tone.bad };
 </script>
 
 <div class="flex flex-col gap-1">
@@ -165,18 +159,7 @@
 					onblur={() => (pointed = undefined)}
 				>
 					<span class="flex min-w-0 items-center gap-2.5">
-						<!-- Whether it is heard, as a dot on the flag's corner ringed in the card's own
-						     ground, as the account's avatar wears its presence. -->
-						<span class="relative inline-flex shrink-0">
-							<Flag code={lead} size={16} />
-							<span
-								aria-hidden="true"
-								class="absolute -right-1 bottom-0 size-2 rounded-full bg-current {stylex.attrs(
-									DOT[place.state],
-									styles.ring,
-								).class}"
-							></span>
-						</span>
+						<HealthFlag code={lead} told={place.told} />
 						<span class="truncate {stylex.attrs(styles.name).class}">{place.name}</span>
 						{#if shared}
 							<span class="shrink-0 {stylex.attrs(styles.count).class}"
