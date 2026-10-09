@@ -46,18 +46,21 @@ never an empty shell -- and a chart that cannot be drawn on the server is drawn 
 inside a card the server already placed. A level's page in the sidebar is a link like any other and
 obeys the same rule -- [../console/navigation.md](../console/navigation.md).
 
-**The platform holds the state; the console only draws it.** The console's server is a front end:
-it keeps nothing, and what it shows it asks of the platform as the request arrives -- the cluster
-of the relay nearest it, whose `/state` answers from what it already holds in memory. A read the
-console's server makes of the platform is answered at once, at any time, never computed or fanned
-out while the console waits; a read that cannot be is the platform's to keep ready, not the
-console's to wait on. **So the document's own response is drawn filled**: a page's load awaits the
-cluster when the request is the browser's first, not a move -- `event.isDataRequest` false -- and
-the server draws the place list, the map and every part drawn from the nodes, which the browser
-then takes over from the data in the page with no read of its own; on a move between pages the
-cluster is streamed as above, since the browser holds it already. Reads the platform computes --
-history, series, events -- stream on the first response too. The placeholders stay for a read
-that fails or comes late, rarely seen but never removed. Decided with the author on 2026-10-09.
+**The console's server never waits on data; it only draws.** It is stateless -- a Worker that keeps
+nothing, restarts at any moment and loses nothing by it -- and everything it draws it asks, as the
+request arrives, of one backend: the relay of the node nearest it, one hop over that node's VPC
+binding, the console's own backend in all but where it runs. The backend is the platform's Rust, and
+it holds the state: **every read the console's server makes is answered at once, from what that
+backend already holds in memory** -- never fanned out across the nodes, never computed while the
+console waits. A read the console needs and the backend cannot yet answer that way is the backend's
+to hold, not the console's to gather. **So the document's own response is drawn filled**: a page's
+load awaits its reads when the request is the browser's first, not a move -- `event.isDataRequest`
+false -- and the browser takes over from the data in the page with no read of its own; on a move
+between pages a read is streamed as above, since the browser holds most of it already. The
+placeholders stay for a read that fails or comes late, rarely seen but never removed. The reads that
+still fan out across the nodes break this rule until they move, in
+[../todo/todo.md](../todo/todo.md), "The console's reads move to the backend". Decided with the
+author on 2026-10-09.
 
 **A node is shown by its city, and its code is the key.** What the console writes for a node is a
 display name, its city and its country, written whole -- `Tokyo, Japan`, `Raleigh, United States`,

@@ -38,6 +38,18 @@ the system, and it is this layer's":
   panel showed until it retired.
 - **It is polished until the author runs the system from it**, before it is made for anybody else.
 
+## The console's reads move to the backend
+
+[../architecture/console.md](../architecture/console.md), "The console's server never waits on
+data; it only draws", has the console's server read only what the platform's backend holds. These
+still fan out across the nodes from the Worker, each to become one read of the nearest relay, in
+platform's `spec/issues/relay.md`, "What the relay holds for the console":
+
+- **The runs**: `fleetEvents`, every node's last 500 events, grouped in the Worker -- the
+  overview's deploy figures, activity and failures, Deployments and a run's page.
+- **The fleet's readings**: `fleetNow` and `fleetSeries` on Nodes.
+- **The database's primary**: `primaryOf`, which asks each node's proxy in turn.
+
 ## The console's depth
 
 What the console's pages draw around today, each waiting on the service that holds the fact --
