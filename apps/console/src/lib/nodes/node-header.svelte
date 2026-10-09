@@ -18,7 +18,7 @@
 	import { timeZone } from '../ui/time-zone.ts';
 	import { providerName } from './facts.ts';
 	import { architecture, uptime, type NodeRow } from './machine.ts';
-	import { LIVENESS, capital } from './words.ts';
+	import { STATES, capital } from './words.ts';
 
 	let {
 		row,
@@ -34,7 +34,7 @@
 	} = $props();
 
 	const zone = timeZone();
-	const said = $derived(LIVENESS[row.state]);
+	const said = $derived(STATES[row.state]);
 	const up = $derived(uptime(info?.booted, now));
 	const line = $derived(
 		[

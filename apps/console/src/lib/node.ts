@@ -1,23 +1,43 @@
 /**
- * One node as its card reads it: whether it is still heard, and the few machine readings worth a
- * glance. The readings are the meter's, as infra's apps/deploy/panel reads them.
+ * One node as its card reads it: its state as the relay says it, and the few machine readings
+ * worth a glance. The readings are the meter's, as infra's apps/deploy/panel reads them.
  */
-import type { Held } from './wire.ts';
+import type { Entry, Held, State } from './wire.ts';
 
-/** A live node moves about every three seconds; see platform's spec/architecture/relay.md. */
-export const LIVE_MS = 10_000;
-/** Silent this long, the node or every path to it is down. */
-export const GONE_MS = 60_000;
+const STATES: ReadonlySet<string> = new Set<State>([
+	'live',
+	'late',
+	'upgrading',
+	'restarting',
+	'waiting',
+	'gone',
+]);
 
-export type Liveness = 'live' | 'late' | 'gone';
+/**
+ * What the relay says of a node, and gone for one it holds nothing of. The relay reads it and the
+ * browser never does -- spec/architecture/console.md, "A node has three states on the map".
+ */
+export function stateOf(entry: Entry | undefined, now: number): State {
+	if (entry?.state !== undefined && STATES.has(entry.state)) return entry.state;
+	if (entry?.heard_at === undefined) return 'gone';
+	return heardSince(entry.heard_at, now);
+}
 
-/** How recently `heardAt` is, as of `now`; a time this browser cannot read is gone. */
-export function liveness(heardAt: string, now: number): Liveness {
+/** What `entry` holds of its node, and nothing for a peer its relay has not heard. */
+export function heldOf(entry: Entry | undefined): Held | undefined {
+	return entry?.version === undefined ? undefined : entry;
+}
+
+/**
+ * The rollout's stand-in, for a relay on the build before `state`: removed once every relay sends
+ * it -- platform's spec/architecture/relay.md, "A node says it is leaving before it goes".
+ */
+function heardSince(heardAt: string, now: number): State {
 	const heard = Date.parse(heardAt);
 	if (Number.isNaN(heard)) return 'gone';
 	const silent = now - heard;
-	if (silent <= LIVE_MS) return 'live';
-	if (silent <= GONE_MS) return 'late';
+	if (silent <= 10_000) return 'live';
+	if (silent <= 60_000) return 'late';
 	return 'gone';
 }
 

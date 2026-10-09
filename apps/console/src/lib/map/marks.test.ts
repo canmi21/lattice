@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DOT, PITCH } from './land.generated.ts';
-import { BREATHS, DEPTHS, opacity, period, radius, shown, SIZES } from './marks.ts';
+import { BREATHS, DEPTHS, opacity, period, radius, shown, SIZES, worst } from './marks.ts';
 
 const GIB = 2 ** 30;
 
@@ -25,10 +25,21 @@ describe('a mark by how much machine stands at its place', () => {
 });
 
 describe('a mark by whether its node is heard', () => {
-	it('draws a late node as heard: two states, never three', () => {
+	it('draws a late node as heard, and one upgrading or restarting as leaving', () => {
 		expect(shown('live')).toBe('live');
 		expect(shown('late')).toBe('live');
+		expect(shown('upgrading')).toBe('leaving');
+		expect(shown('restarting')).toBe('leaving');
+		expect(shown('waiting')).toBe('waiting');
 		expect(shown('gone')).toBe('gone');
+	});
+
+	it("takes the worst of a place's nodes: gone over leaving over waiting over heard", () => {
+		expect(worst(['live', 'leaving', 'gone'])).toBe('gone');
+		expect(worst(['live', 'leaving', 'waiting'])).toBe('leaving');
+		expect(worst(['live', 'waiting'])).toBe('waiting');
+		expect(worst(['live', 'live'])).toBe('live');
+		expect(worst([])).toBe('live');
 	});
 });
 

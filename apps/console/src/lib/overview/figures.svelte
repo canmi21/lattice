@@ -1,11 +1,11 @@
 <script lang="ts">
 	/**
 	 * The fleet in four figures along the map's foot: each its name, the figure and what it is out
-	 * of on one line, and at its right a small drawing of it -- a pip a node, a ring of the apps
-	 * running, a ring of the deploys that succeeded, the last deploys' durations as a line. A figure
-	 * holds a faint bar until its read lands; apps count those `keep` keeps, and the nodes' figure
-	 * stands only where `nodes` is set. See spec/console/overview.md, "The figures are a line and a
-	 * drawing each".
+	 * of on one line, and at its right a small drawing of it -- a pip a node in its mark's color, a
+	 * ring of the apps running, a ring of the deploys that succeeded, the last deploys' durations as
+	 * a line. A figure holds a faint bar until its read lands; apps count those `keep` keeps, and
+	 * the nodes' figure stands only where `nodes` is set. See spec/console/overview.md, "The figures
+	 * are a line and a drawing each".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -14,9 +14,11 @@
 	import Sparkline from '../chart/sparkline.svelte';
 	import type { Live } from '../live.svelte.ts';
 	import { nameOf } from '../map/places.ts';
-	import { liveness } from '../node.ts';
+	import { shown } from '../map/marks.ts';
+	import { stateOf } from '../node.ts';
 	import { CODES } from '../nodes/facts.ts';
 	import { type } from '../style.ts';
+	import type { State } from '../wire.ts';
 	import type { Figures } from './deploys.ts';
 
 	let {
@@ -36,12 +38,12 @@
 	const known = $derived(held.length > 0);
 	const heard = $derived(
 		CODES.map((code) => {
-			const one = live.view.nodes[code];
-			return { code, heard: one ? liveness(one.heard_at, live.now) !== 'gone' : false };
+			const state = stateOf(live.view.nodes[code], live.now);
+			return { code, state, shown: shown(state) };
 		}),
 	);
 	const apps = $derived.by(() => {
-		const kept = held.flatMap((one) => one.snapshot.apps).filter((app) => keep(app.name));
+		const kept = held.flatMap((one) => one.snapshot?.apps ?? []).filter((app) => keep(app.name));
 		return { running: kept.filter((app) => app.running).length, total: kept.length };
 	});
 	/** A span of milliseconds in its one largest unit: `58s`, `26m`, `1.4h`. */
@@ -65,7 +67,9 @@
 			backgroundColor: 'color-mix(in srgb, var(--color-raised) 45%, transparent)',
 			borderRadius: radius.md,
 		},
-		heard: { backgroundColor: 'var(--color-primary)' },
+		live: { backgroundColor: 'var(--color-primary)' },
+		leaving: { backgroundColor: 'var(--color-warn)' },
+		waiting: { backgroundColor: 'var(--color-text-muted)' },
 		gone: { backgroundColor: 'var(--color-danger)' },
 		/** A hairline between two figures, the strip's only rule. */
 		apart: {
@@ -74,6 +78,16 @@
 			borderLeftColor: 'var(--color-line-faint)',
 		},
 	});
+
+	/** A pip's title, each node's state as the relay says it; a late one is heard. */
+	const SAID: Record<State, string> = {
+		live: 'heard',
+		late: 'heard',
+		upgrading: 'upgrading',
+		restarting: 'restarting',
+		waiting: 'waiting',
+		gone: 'not heard',
+	};
 </script>
 
 {#snippet cell(label: string, figure: string | undefined, rest: string | undefined, art?: Snippet)}
@@ -98,8 +112,8 @@
 	<span class="grid shrink-0 grid-cols-4 gap-1.5" role="img" aria-label="Each node, heard or not">
 		{#each heard as one (one.code)}
 			<span
-				class="size-1.5 rounded-full {stylex.attrs(one.heard ? styles.heard : styles.gone).class}"
-				title="{nameOf(one.code).full}: {one.heard ? 'heard' : 'not heard'}"
+				class="size-1.5 rounded-full {stylex.attrs(styles[one.shown]).class}"
+				title="{nameOf(one.code).full}: {SAID[one.state]}"
 			></span>
 		{/each}
 	</span>
@@ -117,7 +131,7 @@
 	{#if nodes}
 		{@render cell(
 			'Nodes',
-			known ? String(heard.filter((one) => one.heard).length) : undefined,
+			known ? String(heard.filter((one) => one.shown === 'live').length) : undefined,
 			`/ ${CODES.length}`,
 			pips,
 		)}

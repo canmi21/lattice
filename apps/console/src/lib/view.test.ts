@@ -20,14 +20,43 @@ describe('merge', () => {
 		const first = merge(EMPTY, { type: 'node', node: 'tyo', state: held(200) });
 		const late = merge(first, { type: 'node', node: 'tyo', state: held(100, 'apt') });
 		expect(late.nodes.tyo?.version).toBe(200);
-		expect(late.nodes.tyo?.snapshot.apps[0]?.name).toBe('geo');
+		expect(late.nodes.tyo?.snapshot?.apps[0]?.name).toBe('geo');
 		const newer = merge(late, { type: 'node', node: 'tyo', state: held(300, 'apt') });
-		expect(newer.nodes.tyo?.snapshot.apps[0]?.name).toBe('apt');
+		expect(newer.nodes.tyo?.snapshot?.apps[0]?.name).toBe('apt');
 	});
 
 	it('leaves the view as it was when nothing offered is newer, so nothing repaints', () => {
 		const view = merge(EMPTY, { type: 'node', node: 'tyo', state: held(200) });
 		expect(merge(view, { type: 'node', node: 'tyo', state: held(200) })).toBe(view);
+	});
+
+	it('takes the same version again where its state moved, as time alone moves it', () => {
+		const view = merge(EMPTY, {
+			type: 'node',
+			node: 'tyo',
+			state: { ...held(200), state: 'live' },
+		});
+		const late = merge(view, { type: 'node', node: 'tyo', state: { ...held(200), state: 'late' } });
+		expect(late.nodes.tyo?.state).toBe('late');
+		expect(merge(late, { type: 'node', node: 'tyo', state: { ...held(200), state: 'late' } })).toBe(
+			late,
+		);
+		expect(
+			merge(late, { type: 'node', node: 'tyo', state: { ...held(100), state: 'live' } }).nodes.tyo
+				?.state,
+		).toBe('late');
+	});
+
+	it('takes a peer its relay has not heard as its state alone, keeping what was held of it', () => {
+		const waiting = merge(EMPTY, { type: 'node', node: 'rdu', state: { state: 'waiting' } });
+		expect(waiting.nodes.rdu).toEqual({ state: 'waiting' });
+		const heard = merge(waiting, { type: 'node', node: 'rdu', state: held(100) });
+		expect(heard.nodes.rdu?.version).toBe(100);
+		// A relay just started has not heard it yet: the snapshot stays, under the relay's word.
+		const again = merge(heard, { type: 'node', node: 'rdu', state: { state: 'waiting' } });
+		expect(again.nodes.rdu?.version).toBe(100);
+		expect(again.nodes.rdu?.state).toBe('waiting');
+		expect(merge(again, { type: 'node', node: 'rdu', state: { state: 'waiting' } })).toBe(again);
 	});
 
 	it('takes from a cluster only what it holds newer, and keeps nodes it does not name', () => {

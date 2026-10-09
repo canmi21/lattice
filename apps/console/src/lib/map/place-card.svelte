@@ -12,7 +12,8 @@
 	import Gauge from '../chart/gauge.svelte';
 	import { uptime } from '../nodes/machine.ts';
 	import { scoped } from '../scope/context.ts';
-	import { tone, type } from '../style.ts';
+	import { tone, type, type Tone } from '../style.ts';
+	import type { State } from '../wire.ts';
 	import { countryOf, nameOf, PLACES, ROLES, type Member, type Site } from './places.ts';
 
 	let { site, now }: { site: Site; now: number } = $props();
@@ -42,9 +43,15 @@
 		return `${member.latency < 10 ? member.latency.toFixed(1) : Math.round(member.latency)}ms`;
 	}
 
-	/** How long it has been up, in its two largest units and no space inside one: `3d 2h`. */
+	/**
+	 * How long it has been up, in its two largest units and no space inside one: `3d 2h`; in its
+	 * place, why it is away, as spec/architecture/console.md, "A node has three states on the map".
+	 */
 	function upOf(member: Member): string {
 		if (member.state === 'gone') return 'Not heard';
+		if (member.state === 'upgrading') return 'Upgrading';
+		if (member.state === 'restarting') return 'Restarting';
+		if (member.state === 'waiting') return 'Waiting';
 		const up = uptime(member.booted, now);
 		if (up === undefined) return '–';
 		const [days, hours, minutes] = [
@@ -56,6 +63,14 @@
 		if (hours) return `${hours}h ${minutes}m`;
 		return `${minutes}m`;
 	}
+
+	/** The tone a word in the uptime's place takes; a figure takes none. */
+	const UPTIME_TONE: Partial<Record<State, Tone>> = {
+		upgrading: 'warn',
+		restarting: 'warn',
+		waiting: 'quiet',
+		gone: 'bad',
+	};
 
 	const ROWS = ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency'] as const;
 
@@ -91,7 +106,8 @@
 
 {#snippet value(member: Member, row: (typeof ROWS)[number])}
 	{#if row === 'Uptime'}
-		<span class={stylex.attrs(member.state === 'gone' && tone.bad).class}>{upOf(member)}</span>
+		{@const said = UPTIME_TONE[member.state]}
+		<span class={stylex.attrs(said && tone[said]).class}>{upOf(member)}</span>
 	{:else if row === 'Role'}
 		<!-- A word, in the sans; every other row is a figure, in the shell's face. -->
 		{ROLES[member.role]}

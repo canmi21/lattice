@@ -31,6 +31,9 @@ function held(secondsAgo: number, cpu?: number, gib?: number): Held {
 	};
 }
 
+/** What is held of a node, its state as the relay says it. */
+const said = (secondsAgo: number, state: Held['state']): Held => ({ ...held(secondsAgo), state });
+
 /** Each place's mark, from its link to the link's end. */
 const marks = (body: string) =>
 	Object.fromEntries(
@@ -70,7 +73,28 @@ describe('world map on the server', () => {
 		expect(body).not.toContain('data-node="hnd"');
 	});
 
-	it('shows two states, a late node heard, a place gone if any of its nodes is', () => {
+	it('draws what the relay says over what its clock would, a leaving place amber', () => {
+		const by = marks(
+			render(WorldMap, {
+				props: {
+					states: {
+						...states,
+						hnd: said(2, 'upgrading'),
+						buf: said(300, 'live'),
+						rdu: { state: 'waiting' },
+					},
+					now: NOW,
+				},
+			}).body,
+		);
+		expect(by.tokyo).toContain('data-state="leaving"');
+		expect(by.tokyo).toContain('aria-label="Tokyo, Japan, 3 nodes, leaving"');
+		expect(by.tokyo).not.toContain('data-halo');
+		expect(by.buf).toContain('data-state="live"');
+		expect(by.rdu).toContain('data-state="waiting"');
+	});
+
+	it('reads a relay that sends no state by its clock, a late node heard, gone if any is', () => {
 		const by = marks(render(WorldMap, { props: { states, now: NOW } }).body);
 		expect(by.tokyo).toContain('data-state="live"');
 		expect(by.gvx).toContain('data-state="live"');

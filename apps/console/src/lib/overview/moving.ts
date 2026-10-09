@@ -6,7 +6,7 @@
  */
 import type { FleetEvent } from '../server/fleet.ts';
 import type { Run } from '../server/runs.ts';
-import type { Event, Held } from '../wire.ts';
+import type { Entry, Event } from '../wire.ts';
 
 export interface Step {
 	/** The CI run it belongs to; none for a step no run started. */
@@ -94,9 +94,9 @@ export function fromHistory(
 const isDone = (step: Step) => !['running', 'failed', 'skipped'].includes(step.outcome);
 
 /** Every event each node's snapshot holds. */
-export function fromLive(nodes: Readonly<Record<string, Held>>): Step[] {
+export function fromLive(nodes: Readonly<Record<string, Entry>>): Step[] {
 	return Object.entries(nodes).flatMap(([node, held]) =>
-		held.snapshot.events.map((event) => stepOf(node, event)),
+		(held.snapshot?.events ?? []).map((event) => stepOf(node, event)),
 	);
 }
 

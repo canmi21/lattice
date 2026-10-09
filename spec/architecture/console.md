@@ -100,13 +100,15 @@ clock**, and its whole mark takes the state's color: blue when it is heard -- `l
 node between two snapshots -- amber when it said it is leaving -- `upgrading` or `restarting`, back
 within its `within` -- and red when it is gone. `waiting`, a peer a relay just started has not heard
 yet, is drawn neutral and never red. A place takes the worst of its nodes, gone over leaving over
-heard. The card says `Upgrading` or `Restarting` where it said the uptime, and the line at the top
-counts a node leaving apart from one gone -- platform's `spec/architecture/relay.md`, "A node says
-it is leaving before it goes". Decided with the author on 2026-10-09. The smallest step is two of
-the land's dots across, so a mark reads as part of the same grid. No line is drawn between nodes,
-and no name: a node's code and figures appear in a card on hover. **A mark is a place, not a
-machine**: nodes in one place -- Tokyo's three -- are one mark, its depth from the apps they run
-together, its breath from the busiest of them, red if any is gone, and its card listing each node.
+waiting over heard. The card says `Upgrading` or `Restarting` where it said the uptime, `Waiting`
+for a peer not yet heard and `Not heard` for gone alone; the line at the top names only gone nodes
+as not heard and counts a node leaving apart, at warn, and the Nodes figure counts live and late as
+heard, a node leaving not -- platform's `spec/architecture/relay.md`, "A node says it is leaving
+before it goes". Decided with the author on 2026-10-09. The smallest step is two of the land's dots
+across, so a mark reads as part of the same grid. No line is drawn between nodes, and no name: a
+node's code and figures appear in a card on hover. **A mark is a place, not a machine**: nodes in
+one place -- Tokyo's three -- are one mark, its depth from the apps they run together, its breath
+from the busiest of them, red if any is gone, and its card listing each node.
 
 **Developing it reads the real nodes.** Each node's binding is declared `remote`, so `vite dev`
 reaches the same VPC services the deployed Worker does, with the read token in a `.dev.vars` written

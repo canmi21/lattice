@@ -14,7 +14,7 @@
 	import { providerName } from './facts.ts';
 	import { share, type NodeRow } from './machine.ts';
 	import NodeName from './node-name.svelte';
-	import { LIVENESS } from './words.ts';
+	import { STATES } from './words.ts';
 
 	let {
 		rows,
@@ -41,7 +41,7 @@
 			? ''
 			: `Load ${row.load.toFixed(2)}${row.cores ? ` on ${row.cores} cores` : ''}`;
 	const heard = (row: NodeRow) => (row.heardAt ? Date.parse(row.heardAt) : Number.NaN);
-	const order = { live: 0, late: 1, gone: 2 };
+	const order = { live: 0, late: 1, waiting: 2, upgrading: 3, restarting: 4, gone: 5 };
 
 	const columns: Column<NodeRow>[] = [
 		{
@@ -56,7 +56,7 @@
 			key: 'state',
 			label: 'Liveness',
 			value: (row) => order[row.state],
-			text: (row) => LIVENESS[row.state].word,
+			text: (row) => STATES[row.state].word,
 			cell: state,
 		},
 		{
@@ -179,7 +179,7 @@
 {/snippet}
 
 {#snippet state(row: NodeRow)}
-	{@const said = LIVENESS[row.state]}
+	{@const said = STATES[row.state]}
 	<span class="inline-flex items-center gap-2 whitespace-nowrap">
 		<Badge tone={said.tone}>{said.word}</Badge>
 		{#if row.heardAt && row.state !== 'live'}

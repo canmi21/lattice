@@ -6,7 +6,8 @@
  * platform's spec/architecture/relay.md.
  */
 import type { Node } from '../server/nodes.ts';
-import type { Shown } from './marks.ts';
+import type { State } from '../wire.ts';
+import { type Shown, shown, worst } from './marks.ts';
 
 export type Role = 'core' | 'relay' | 'home';
 
@@ -155,7 +156,8 @@ export interface Member {
 	code: string;
 	role: Role;
 	cluster: string | undefined;
-	state: Shown;
+	/** As the relay says it, which the card words; the mark draws it as `shown` reads it. */
+	state: State;
 	/** Apps running, of how many listed. */
 	apps: { running: number; total: number } | undefined;
 	/** Total and used memory in bytes, and CPU percent now. */
@@ -184,7 +186,7 @@ export interface Site {
 	memory: number | undefined;
 	apps: number | undefined;
 	cpu: number | undefined;
-	/** Gone if any of its nodes is gone. */
+	/** The worst of its nodes': gone over leaving over heard. */
 	state: Shown;
 }
 
@@ -226,7 +228,7 @@ export function gather(members: readonly Member[]): Site[] {
 			memory: sum(known((member) => member.memory)),
 			apps: sum(known((member) => member.apps?.running)),
 			cpu: cpus.length ? Math.max(...cpus) : undefined,
-			state: group.some((member) => member.state === 'gone') ? 'gone' : 'live',
+			state: worst(group.map((member) => shown(member.state))),
 		};
 	});
 }

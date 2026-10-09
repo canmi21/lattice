@@ -59,7 +59,7 @@
 	const holds = (read: Awaited<typeof data.cluster>, deploys: Awaited<typeof data.deploys>) =>
 		deploys.seen > 0 ||
 		!read.ok ||
-		Object.values(read.data.nodes).some((one) => one.snapshot.apps.some((app) => keep(app.name)));
+		Object.values(read.data.nodes).some((one) => one.snapshot?.apps.some((app) => keep(app.name)));
 	/** As soon as both are read: at once where the load held them, as it does for the first. */
 	const held = $derived(
 		data.cluster instanceof Promise || data.deploys instanceof Promise

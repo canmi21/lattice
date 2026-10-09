@@ -1,11 +1,15 @@
 /** The states a node's pages show, each as a word and the one tone it is shown in. */
 import { handCommand } from '../deployments/state.ts';
-import type { Liveness } from '../node.ts';
 import type { Tone } from '../style.ts';
+import type { State } from '../wire.ts';
 
-export const LIVENESS: Record<Liveness, { word: string; tone: Tone }> = {
+/** A node's state as the relay says it; see spec/architecture/console.md. */
+export const STATES: Record<State, { word: string; tone: Tone }> = {
 	live: { word: 'Live', tone: 'good' },
 	late: { word: 'Late', tone: 'warn' },
+	upgrading: { word: 'Upgrading', tone: 'warn' },
+	restarting: { word: 'Restarting', tone: 'warn' },
+	waiting: { word: 'Waiting', tone: 'quiet' },
 	gone: { word: 'Gone', tone: 'bad' },
 };
 

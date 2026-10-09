@@ -3,15 +3,15 @@
  * one newer than `newest`, the newest the page loaded. Either is a reason to read the page again;
  * `only` narrows both to one run.
  */
-import type { Held } from '../wire.ts';
+import type { Entry } from '../wire.ts';
 
 export function stirring(
-	nodes: Readonly<Record<string, Held>>,
+	nodes: Readonly<Record<string, Entry>>,
 	newest: number | undefined,
 	only?: number,
 ): boolean {
 	return Object.values(nodes).some((held) =>
-		held.snapshot.events.some(
+		(held.snapshot?.events ?? []).some(
 			({ source: { kind, run }, outcome }) =>
 				kind === 'run' &&
 				run !== undefined &&

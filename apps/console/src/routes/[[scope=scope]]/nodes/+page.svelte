@@ -13,7 +13,7 @@
 	import Heard from '#lib/nodes/heard.svelte';
 	import { nodeRow, type NodeRow } from '#lib/nodes/machine.js';
 	import NodesTable from '#lib/nodes/nodes-table.svelte';
-	import { LIVENESS } from '#lib/nodes/words.js';
+	import { STATES } from '#lib/nodes/words.js';
 	import FleetCharts from '#lib/overview/fleet-charts.svelte';
 	import Badge from '#lib/ui/badge.svelte';
 	import { Landed } from '#lib/ui/landed.svelte.js';
@@ -37,7 +37,7 @@
 		),
 	);
 	const counts = $derived(
-		(['live', 'late', 'gone'] as const).map((state) => ({
+		(Object.keys(STATES) as (keyof typeof STATES)[]).map((state) => ({
 			state,
 			count: rows.filter((row) => row.state === state).length,
 		})),
@@ -45,7 +45,7 @@
 	const TILES = ['Heard', 'Apps running', 'CPU busy, heard nodes', 'Memory in use, heard nodes'];
 	/** The table's header and a 44 px row per node; see src/lib/table/data-table.svelte. */
 	const ROWS = (CODES.length + 1) * 44;
-	const heard = $derived(rows.filter((row) => row.state !== 'gone'));
+	const heard = $derived(rows.filter((row) => row.state === 'live' || row.state === 'late'));
 	const apps = $derived(
 		rows.reduce(
 			(sum, row) => ({
@@ -74,7 +74,7 @@
 	{#snippet meta()}
 		<Heard live={held} cluster={data.cluster}>
 			{#each counts as { state, count } (state)}
-				{#if count}<Badge tone={LIVENESS[state].tone}>{count} {LIVENESS[state].word}</Badge>{/if}
+				{#if count}<Badge tone={STATES[state].tone}>{count} {STATES[state].word}</Badge>{/if}
 			{/each}
 		</Heard>
 	{/snippet}

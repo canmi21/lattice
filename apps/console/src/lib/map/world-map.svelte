@@ -8,16 +8,16 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { untrack } from 'svelte';
 	import { duration, radius } from '@canmi/kit/tokens/vocabulary.stylex';
-	import { liveness, readings, running } from '../node.ts';
+	import { heldOf, readings, running, stateOf } from '../node.ts';
 	import { scoped } from '../scope/context.ts';
 	import GlobeIcon from '@tabler/icons-svelte-runes/icons/world';
 	import MapIcon from '@tabler/icons-svelte-runes/icons/map';
 	import { stilled, turn } from '../design/motion.ts';
 	import Segmented from '../ui/segmented.svelte';
-	import type { Held } from '../wire.ts';
+	import type { Entry } from '../wire.ts';
 	import type { Paint } from './globe.ts';
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
-	import { opacity, period, radius as size, shown, SIZES, type Shown } from './marks.ts';
+	import { opacity, period, radius as size, SIZES, type Shown } from './marks.ts';
 	import PlaceCard from './place-card.svelte';
 	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
 
@@ -31,8 +31,8 @@
 		primary,
 	}: {
 		/** What is held of each node, by code; a node not in it has not been heard. */
-		states: Record<string, Held>;
-		/** The clock liveness is read against, in milliseconds. */
+		states: Readonly<Record<string, Entry>>;
+		/** The clock an uptime is read against, and a relay's state where it sends none. */
 		now: number;
 		/** A node whose place is drawn above the rest, as the one a page is about. */
 		selected?: string;
@@ -50,7 +50,12 @@
 	const millisecondsOf = (seconds: number | undefined) =>
 		seconds === undefined ? undefined : seconds * 1000;
 
-	const WORDS: Record<Shown, string> = { live: 'Live', gone: 'Gone' };
+	const WORDS: Record<Shown, string> = {
+		live: 'Live',
+		leaving: 'Leaving',
+		waiting: 'Waiting',
+		gone: 'Gone',
+	};
 	const VIEWS = [
 		{ key: 'flat', label: 'Map', icon: MapIcon },
 		{ key: 'globe', label: 'Globe', icon: GlobeIcon },
@@ -76,13 +81,13 @@
 	const sites = $derived(
 		gather(
 			(Object.keys(POINTS) as (keyof typeof POINTS)[]).map((code) => {
-				const held = states[code];
+				const held = heldOf(states[code]);
 				const machine = readings(held?.snapshot.machine);
 				return {
 					code,
 					role: PLACES[code].role,
 					cluster: PLACES[code].cluster,
-					state: shown(held ? liveness(held.heard_at, now) : 'gone'),
+					state: stateOf(states[code], now),
 					apps: held ? running(held) : undefined,
 					memory: machine?.memory?.total,
 					used: machine?.memory?.used,
@@ -324,6 +329,8 @@
 			transitionProperty: 'opacity',
 			transitionDuration: duration.base,
 		},
+		leaving: { backgroundColor: 'var(--color-warn)' },
+		waiting: { backgroundColor: 'var(--color-text-muted)' },
 		gone: { backgroundColor: 'var(--color-danger)' },
 		/**
 		 * The card's point: a square of its ground turned a quarter, half out past its edge, ruled on
@@ -442,8 +449,10 @@
 						></span>
 					{/if}
 					<span
-						class="absolute inset-0 {stylex.attrs(styles.fill, site.state === 'gone' && styles.gone)
-							.class}"
+						class="absolute inset-0 {stylex.attrs(
+							styles.fill,
+							site.state !== 'live' && styles[site.state],
+						).class}"
 						style:opacity={site.opacity}
 					></span>
 				</span>

@@ -57,6 +57,22 @@ describe('a place card on the server', () => {
 		expect(body).not.toMatch(/>(tyo|nrt|hnd)</);
 	});
 
+	it('says why a leaving node is away where its uptime stood, never that it is not heard', () => {
+		const members = [
+			member('tyo', { state: 'upgrading', booted: NOW / 1000 - 86_400 }),
+			member('nrt', { state: 'restarting' }),
+			member('hnd', { state: 'late', booted: NOW / 1000 - 3600 }),
+		];
+		const { body } = render(PlaceCard, {
+			props: { site: site(members, { state: 'leaving' }), now: NOW },
+		});
+		expect(body).toContain('Upgrading');
+		expect(body).toContain('Restarting');
+		expect(body).toContain('1h 0m');
+		expect(body).not.toContain('Not heard');
+		expect(body).not.toContain('1d 0h');
+	});
+
 	it('lists a node alone by uptime, role, apps and two rings, with no state or clock', () => {
 		const lone = member('gvx', { cluster: undefined, role: 'core' });
 		const { body } = render(PlaceCard, { props: { site: site([lone]), now: NOW } });

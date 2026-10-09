@@ -1,15 +1,29 @@
 /**
  * What a node's mark says: its size how much machine stands at its place, its depth how much it
- * runs, its breathing how busy it is now, its color whether it is heard. The globe takes all but
- * the breathing. See spec/architecture/console.md, the paragraph on the world map.
+ * runs, its breathing how busy it is now, its color whether it is heard, leaving or gone. The globe
+ * takes all but the breathing. See spec/architecture/console.md, the paragraph on the world map.
  */
-import type { Liveness } from '../node.ts';
+import type { State } from '../wire.ts';
 
-/** The two states a mark shows: a late node is only between two snapshots, so it is drawn heard. */
-export type Shown = 'live' | 'gone';
+/**
+ * What a mark shows of a node's state: heard, `live` or `late`, a late node being only between two
+ * snapshots; leaving, back within its `within`; waiting, not heard yet by a relay just started; and
+ * gone. See spec/architecture/console.md, "A node has three states on the map".
+ */
+export type Shown = 'live' | 'leaving' | 'waiting' | 'gone';
 
-export function shown(liveness: Liveness): Shown {
-	return liveness === 'gone' ? 'gone' : 'live';
+export function shown(state: State): Shown {
+	if (state === 'live' || state === 'late') return 'live';
+	if (state === 'upgrading' || state === 'restarting') return 'leaving';
+	return state;
+}
+
+/** Worst first, which a place takes of its nodes: gone, then leaving, then waiting, then heard. */
+const WORST: readonly Shown[] = ['gone', 'leaving', 'waiting', 'live'];
+
+/** The worst of `states`; heard where there are none. */
+export function worst(states: readonly Shown[]): Shown {
+	return WORST.find((state) => states.includes(state)) ?? 'live';
 }
 
 /**

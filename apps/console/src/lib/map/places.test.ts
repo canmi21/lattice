@@ -17,6 +17,11 @@ const member = (code: string, overrides: Partial<Member> = {}): Member => ({
 });
 
 const tokyo = (overrides: Partial<Member> = {}) => ({ cluster: 'tokyo', ...overrides });
+/** Tokyo's state with its nodes in each of `states`, in node order. */
+const place = (...states: Member['state'][]) =>
+	gather(
+		states.map((state, index) => member(['tyo', 'nrt', 'hnd'][index] ?? '', tokyo({ state }))),
+	)[0]?.state;
 
 describe('the marks the nodes gather into', () => {
 	it('draws the nodes of one place as one mark, and a node alone as its own', () => {
@@ -50,11 +55,12 @@ describe('the marks the nodes gather into', () => {
 		expect([site?.memory, site?.apps, site?.cpu]).toEqual([undefined, undefined, undefined]);
 	});
 
-	it('is gone if any of its nodes is gone', () => {
-		const [live] = gather([member('tyo', tokyo()), member('nrt', tokyo())]);
-		const [gone] = gather([member('tyo', tokyo()), member('nrt', tokyo({ state: 'gone' }))]);
-		expect(live?.state).toBe('live');
-		expect(gone?.state).toBe('gone');
+	it('takes the worst of its nodes, gone over leaving over heard', () => {
+		expect(place('live', 'late')).toBe('live');
+		expect(place('live', 'upgrading')).toBe('leaving');
+		expect(place('restarting', 'upgrading', 'gone')).toBe('gone');
+		expect(place('live', 'waiting')).toBe('waiting');
+		expect(place('waiting', 'restarting')).toBe('leaving');
 	});
 });
 

@@ -53,7 +53,15 @@ export interface Snapshot {
 	 * is absent. Platform's spec/architecture/relay.md, "The round trip to each neighbor".
 	 */
 	round_trip?: Record<string, number>;
+	/**
+	 * Its relay's last word before it stopped on purpose: why, and the seconds it means to be back
+	 * within. Platform's spec/architecture/relay.md, "A node says it is leaving before it goes".
+	 */
+	leaving?: { reason: 'upgrade' | 'restart'; within: number };
 }
+
+/** A node as the answering relay reads it; see `Snapshot.leaving` for where it is defined. */
+export type State = 'live' | 'late' | 'upgrading' | 'restarting' | 'waiting' | 'gone';
 
 /** What a relay holds of one node. */
 export interface Held {
@@ -62,14 +70,27 @@ export interface Held {
 	/** When the answering relay took this version. */
 	heard_at: string;
 	snapshot: Snapshot;
+	/** Absent from a relay on the build before it; see ./node.ts, `stateOf`. */
+	state?: State;
 }
+
+/** A peer the answering relay has not heard since it started, `waiting` and then `gone`. */
+export interface Unheard {
+	state: State;
+	version?: undefined;
+	heard_at?: undefined;
+	snapshot?: undefined;
+}
+
+/** One node as a relay sends it: what it holds, or its state alone. */
+export type Entry = Held | Unheard;
 
 /** Every node at once: `/state`'s data, and a socket's first message. */
 export interface Cluster {
 	version: number;
 	/** The node whose relay answered. */
 	node: string;
-	nodes: Record<string, Held>;
+	nodes: Record<string, Entry>;
 }
 
-export type Live = ({ type: 'cluster' } & Cluster) | { type: 'node'; node: string; state: Held };
+export type Live = ({ type: 'cluster' } & Cluster) | { type: 'node'; node: string; state: Entry };

@@ -4,9 +4,9 @@
  */
 import type { Now } from '../host.ts';
 import { nameOf, type Role, PLACES } from '../map/places.ts';
-import { type Liveness, liveness, readings, running } from '../node.ts';
+import { heldOf, readings, running, stateOf } from '../node.ts';
 import type { Node } from '../server/nodes.ts';
-import type { Held } from '../wire.ts';
+import type { Entry, State } from '../wire.ts';
 import { FACTS, type Facts } from './facts.ts';
 
 /** The meter's `{ info, sample }`, or nothing where `machine` is not that shape. */
@@ -47,8 +47,8 @@ export interface NodeRow {
 	role: Role;
 	facts: Facts;
 	architecture?: string;
-	/** `gone` for a node the relay holds nothing of, whose `heardAt` is then absent. */
-	state: Liveness;
+	/** As the relay says it; `gone` for a node it holds nothing of, whose `heardAt` is absent. */
+	state: State;
 	heardAt?: string;
 	/** Percent, 0 to 100. */
 	cpu?: number;
@@ -62,16 +62,17 @@ export interface NodeRow {
 }
 
 /** The machine the live snapshot carries, else the one the server read. */
-export function machineFor(held: Held | undefined, read: Now | undefined): Now | undefined {
-	return machineOf(held?.snapshot.machine) ?? read;
+export function machineFor(held: Entry | undefined, read: Now | undefined): Now | undefined {
+	return machineOf(held?.snapshot?.machine) ?? read;
 }
 
 export function nodeRow(
 	code: Node,
-	held: Held | undefined,
+	entry: Entry | undefined,
 	read: Now | undefined,
 	now: number,
 ): NodeRow {
+	const held = heldOf(entry);
 	const machine = machineFor(held, read);
 	const measured = machine ? readings(machine) : undefined;
 	return {
@@ -81,7 +82,7 @@ export function nodeRow(
 		role: PLACES[code].role,
 		facts: FACTS[code],
 		architecture: architecture(machine?.info.kernel),
-		state: held ? liveness(held.heard_at, now) : 'gone',
+		state: stateOf(entry, now),
 		heardAt: held?.heard_at,
 		cpu: measured?.cpu,
 		load: measured?.load,

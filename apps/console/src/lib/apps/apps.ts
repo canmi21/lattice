@@ -47,7 +47,7 @@ export const drifts = (images: string[]): boolean => new Set(images).size > 1;
 /** Where `name` runs, in node order. */
 export function placements(order: Order, cluster: Cluster, name: string): Placement[] {
 	return order.flatMap((node) =>
-		(cluster.nodes[node]?.snapshot.apps ?? [])
+		(cluster.nodes[node]?.snapshot?.apps ?? [])
 			.filter((app) => app.name === name)
 			.map((app) => ({ node, app, state: stateOf(app) })),
 	);
@@ -56,7 +56,7 @@ export function placements(order: Order, cluster: Cluster, name: string): Placem
 /** Every app the cluster holds, once, by name. */
 export function rowsOf(order: Order, cluster: Cluster): AppRow[] {
 	const names = new Set(
-		order.flatMap((node) => cluster.nodes[node]?.snapshot.apps.map((app) => app.name) ?? []),
+		order.flatMap((node) => cluster.nodes[node]?.snapshot?.apps.map((app) => app.name) ?? []),
 	);
 	return [...names].sort((a, b) => a.localeCompare(b)).map((name) => rowOf(order, cluster, name));
 }
