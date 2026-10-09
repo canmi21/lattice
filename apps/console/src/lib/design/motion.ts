@@ -67,8 +67,8 @@ export function pass(ghost: HTMLElement, panel: HTMLElement, way: 1 | -1): void 
 
 /**
  * The world map turning into a globe and back: `state.t` carried to `to`, 0 flat and 1 round, over
- * 700 ms eased at both ends, or at once for a reader who asked for less motion. Settles when it
- * arrives, and a new turn takes over from wherever the last one had got to.
+ * 700 ms, most of the way in the first third and the rest settling, or at once for a reader who
+ * asked for less motion. A new turn takes over from wherever the last one had got to.
  */
 export function turn(state: { t: number }, to: 0 | 1): Promise<void> {
 	gsap.killTweensOf(state);
@@ -77,6 +77,6 @@ export function turn(state: { t: number }, to: 0 | 1): Promise<void> {
 		return Promise.resolve();
 	}
 	return new Promise((settle) => {
-		gsap.to(state, { t: to, duration: 0.7, ease: 'power2.inOut', onComplete: settle });
+		gsap.to(state, { t: to, duration: 0.7, ease: 'power4.out', onComplete: settle });
 	});
 }

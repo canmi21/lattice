@@ -1,8 +1,9 @@
 /**
- * The flat map turning into a globe and back, drawn on a canvas in the plot's own units. Every dot
- * of land and every mark has a place on the flat map and one on an orthographic globe, and is drawn
- * at `t` of the way between them, 0 flat and 1 round; on the globe a dot fades as it nears the edge
- * and one turned away fades out where it stood, so the sphere is its dots and a hairline, with no
+ * The flat map turning into a globe and back, drawn on a canvas in the plot's own units. Every
+ * dot of land and every mark has a place on the flat map and one on an orthographic globe, and is
+ * drawn at `t` of the way between them, 0 flat and 1 round. A dot turned away travels too, to where
+ * the sphere's formula puts it inside the disc, fading as it goes, so the whole map moves at once;
+ * on the globe a dot fades as it nears the rim, so the sphere is its dots and a hairline, with no
  * glow to show a seam against the card. Loaded only when the globe is asked for. See
  * spec/console/overview.md, "The globe is the flat map turned round".
  */
@@ -66,7 +67,10 @@ function shown(away: number): number {
 /** `from` toward `to`, `t` of the way. */
 const toward = (from: number, to: number, t: number) => from + (to - from) * t;
 
-/** Where something at `location`, drawn at `point` on the flat map, is at `t` of the way round. */
+/**
+ * Where something at `location`, drawn at `point` on the flat map, is at `t` of the way round.
+ * One on the far side is not held where it stood: it travels with the rest and fades out.
+ */
 export function place(
 	location: Location,
 	point: readonly [number, number],
@@ -74,7 +78,6 @@ export function place(
 	facing: number,
 ): Placed {
 	const on = round(location, facing);
-	if (on.away >= 1) return { x: point[0], y: point[1], alpha: 1 - t };
 	return {
 		x: toward(point[0], on.x, t),
 		y: toward(point[1], on.y, t),

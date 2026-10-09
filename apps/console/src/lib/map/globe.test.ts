@@ -25,9 +25,10 @@ describe('the globe the flat map turns into', () => {
 		expect(latitude).toBeLessThan(90);
 	});
 
-	it('fades a place turned away, where it stood, as the map turns', () => {
-		const away = place(LOCATIONS.tyo, POINTS.tyo, 0.5, -30 - 180 + 139.65);
+	it('carries a place turned away with the rest, fading it out on the way', () => {
+		const away = place(LOCATIONS.tyo, POINTS.tyo, 0.5, LOCATIONS.tyo[1] + 180);
 		expect(away.alpha).toBeCloseTo(0.5, 5);
-		expect([away.x, away.y]).toEqual([...POINTS.tyo]);
+		expect(away.x).not.toBeCloseTo(POINTS.tyo[0], 0);
+		expect(place(LOCATIONS.tyo, POINTS.tyo, 1, LOCATIONS.tyo[1] + 180).alpha).toBe(0);
 	});
 });

@@ -42,11 +42,14 @@ its switch, not its look.
 place, which the browser works out by undoing the flat map's Mercator projection -- no projection
 library and no data beyond the dots the server already sent -- and each has a place on the flat map
 and one on an orthographic globe, tipped 15 degrees north. Turning is a value from 0 to 1 that GSAP
-carries over 700 ms, eased at both ends, and every dot and every mark is drawn that far between its
-two places; a mark stays the flat map's own element throughout, so its card, its link and its halo
-come with it. **The sphere has no edge of its own to show a seam**: a dot fades as it nears the
-globe's rim, from 70 percent of the quarter turn to it, one on the far side fades out where it
-stood, and the outline is a hairline in the card's rule color, so in either theme the globe is its
+carries over 700 ms, most of the way in the first third and the rest settling (`power4.out`), and
+every dot and every mark is drawn that far between its two places; a mark stays the flat map's own
+element throughout, so its card, its link and its halo come with it. **The whole map moves at
+once**: a dot on the far side is carried too, to where the sphere's formula puts it, inside the
+disc, and fades out on the way, rather than standing where it was while the rest moves -- which
+tore the map down the middle until 2026-10-09, when frames of Vercel's turn showed every dot going.
+**The sphere has no edge of its own to show a seam**: a dot fades as it nears the globe's rim, from
+70 percent of the quarter turn to it, and the outline is a hairline in the card's rule color, so in either theme the globe is its
 dots on the card's own ground. Its colors are read off the page and read again when the theme
 switches. Once round it turns slowly on its own, and a drag turns it by hand and leaves it spinning
 as fast as it was let go, easing back to its own pace; for a reader who asked for less motion it
