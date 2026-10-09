@@ -28,6 +28,9 @@ const stylexPlugin = stylex({
 export default defineConfig(({ mode }) => ({
 	// The commit, the build moment and the disclosure; see lib's spec/web/build.md.
 	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
+	// Its own pinned port, refused rather than moved when taken, so one console runs at a time; see
+	// spec/toolchain.md, "Dev ports are pinned".
+	server: { port: 26527, strictPort: true },
 	plugins: [
 		{
 			// The font stylesheets in @canmi/fonts name their host by a placeholder, which mode

@@ -44,6 +44,10 @@ read, because `mise.toml` is not one of them.
 The rule is the workspace's `spec/toolchain.md`, "Dev ports are pinned"; what follows is how
 this repository keeps it.
 
+The console's is 26527, in its `vite.config.ts` beside `strictPort`: it was Vite's 5173 until
+2026-10-09, which any other Vite project on the machine also takes, so a second console or a
+stranger's server could stand where the console was expected.
+
 One checkout runs one set, on the pinned numbers. The slot arithmetic that shifted every port
 for a second checkout of this repository is gone with the arrangement it served, and so is the
 sandbox's shift of one hundred -- see [architecture/modes.md](architecture/modes.md). What both
