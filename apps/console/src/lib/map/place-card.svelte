@@ -68,7 +68,6 @@
 			borderStyle: 'solid',
 			borderColor: 'var(--color-line)',
 			borderRadius: 8,
-			boxShadow: '0 4px 12px rgb(0 0 0 / 0.18), 0 1px 3px rgb(0 0 0 / 0.12)',
 			fontSize: text.px13,
 			lineHeight: 1.4,
 		},

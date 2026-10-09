@@ -68,6 +68,8 @@
 	/** Pixels between a mark's edge and its card, and between the card and the map's edge. */
 	const GAP = 8;
 	const EDGE = 4;
+	/** How near a corner a card's point may come, past its rounding. */
+	const POINT_INSET = 14;
 	/** How long a card stays once the pointer leaves its mark, to be reached across the gap. */
 	const LINGER_MS = 150;
 
@@ -286,9 +288,14 @@
 		const right = x + reach;
 		const left = right + cardWidth <= mapWidth - EDGE ? right : x - reach - cardWidth;
 		const clamp = (value: number, most: number) => Math.min(Math.max(value, EDGE), most - EDGE);
+		const top = clamp(y - cardHeight / 2, mapHeight - cardHeight);
 		return {
 			left: clamp(left, mapWidth - cardWidth),
-			top: clamp(y - cardHeight / 2, mapHeight - cardHeight),
+			top,
+			/** Which side of its mark the card stands, which its point is on the other edge of. */
+			side: left === right ? ('right' as const) : ('left' as const),
+			/** How far down the card its point is: level with the mark, kept off the corners. */
+			point: Math.min(Math.max(y - top, POINT_INSET), cardHeight - POINT_INSET),
 		};
 	});
 
@@ -318,6 +325,25 @@
 			transitionDuration: duration.base,
 		},
 		gone: { backgroundColor: 'var(--color-danger)' },
+		/**
+		 * The card's point: a square of its ground turned a quarter, half out past its edge, ruled on
+		 * the two sides that face out so the card's own rule runs on into it.
+		 */
+		point: {
+			backgroundColor: 'var(--color-surface)',
+			borderStyle: 'solid',
+			borderColor: 'var(--color-line)',
+			borderWidth: 0,
+			transform: 'translateY(-50%) rotate(45deg)',
+		},
+		/** Pointing left, from the card's left edge, at a mark to its left. */
+		pointLeft: { left: -6, borderLeftWidth: 1, borderBottomWidth: 1 },
+		/** Pointing right, from the card's right edge, at a mark to its right. */
+		pointRight: { right: -6, borderRightWidth: 1, borderTopWidth: 1 },
+		/** The card and its point lifted as one shape, so the point casts the card's shadow too. */
+		lifted: {
+			filter: 'drop-shadow(0 4px 10px rgb(0 0 0 / 0.16)) drop-shadow(0 1px 2px rgb(0 0 0 / 0.12))',
+		},
 		halo: {
 			display: { default: 'block', '@media (prefers-reduced-motion: reduce)': 'none' },
 			backgroundColor: 'var(--color-primary)',
@@ -428,7 +454,9 @@
 				<div
 					role="tooltip"
 					data-place={site.key}
-					class="absolute top-0 left-0 z-20 {shared ? '' : 'pointer-events-none'}"
+					class="absolute top-0 left-0 z-20 {shared ? '' : 'pointer-events-none'} {stylex.attrs(
+						styles.lifted,
+					).class}"
 					style:visibility={placed ? 'visible' : 'hidden'}
 					style:transform={placed ? `translate(${placed.left}px, ${placed.top}px)` : undefined}
 					bind:clientWidth={cardWidth}
@@ -438,6 +466,17 @@
 					onfocusout={blur}
 				>
 					<PlaceCard {site} {now} />
+					<!-- A small point at the card's edge, toward its mark. -->
+					{#if placed}
+						<span
+							aria-hidden="true"
+							class="absolute size-3 {stylex.attrs(
+								styles.point,
+								placed.side === 'right' ? styles.pointLeft : styles.pointRight,
+							).class}"
+							style:top="{placed.point}px"
+						></span>
+					{/if}
 				</div>
 			{/if}
 		{/each}

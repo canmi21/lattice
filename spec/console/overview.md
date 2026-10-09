@@ -73,7 +73,10 @@ dots are what is drawn.
 
 ## A place's card says what the list does not
 
-**Pointing at a place opens a card of rows, a name and a value each**: uptime, role, apps running
+**A place's card points at its mark**: a small point at the card's edge toward the mark, level
+with it and kept off the corners when the card is pushed up or down by the map's edge, the card and
+its point lifted by one shadow so they read as one shape. **Pointing at a place opens a card of
+rows, a name and a value each**: uptime, role, apps running
 of listed as `15/15`,
 and two rings with their figures, the processor's share busy and the memory in use written in `G`
 to one decimal. Uptime is its two largest units with no space inside one, `3d 2h`, and a node not
