@@ -12,7 +12,7 @@
 	import Gauge from '../chart/gauge.svelte';
 	import { uptime } from '../nodes/machine.ts';
 	import { scoped } from '../scope/context.ts';
-	import { tone } from '../style.ts';
+	import { tone, type } from '../style.ts';
 	import { countryOf, nameOf, PLACES, ROLES, type Member, type Site } from './places.ts';
 
 	let { site, now }: { site: Site; now: number } = $props();
@@ -73,9 +73,10 @@
 			lineHeight: 1.4,
 		},
 		title: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
+		/** A word among figures, as `Primary` is in the latency's row. */
+		word: { fontFamily: 'var(--font-sans)' },
 		muted: { color: 'var(--color-text-muted)' },
-		/** A value in the shell's face, as the console's figures are; see spec/console/design.md. */
-		value: { color: 'var(--color-text)', fontFamily: 'var(--font-shell)', textAlign: 'right' },
+		value: { color: 'var(--color-text)', textAlign: 'right' },
 		/** A hairline between two nodes of a shared place, none above the first. */
 		apart: {
 			borderTopWidth: { default: '1px', ':first-child': '0' },
@@ -99,6 +100,7 @@
 	{#if row === 'Uptime'}
 		<span class={stylex.attrs(member.state === 'gone' && tone.bad).class}>{upOf(member)}</span>
 	{:else if row === 'Role'}
+		<!-- A word, in the sans; every other row is a figure, in the shell's face. -->
 		{ROLES[member.role]}
 	{:else if row === 'Apps'}
 		{member.apps ? `${member.apps.running} of ${member.apps.total}` : '–'}
@@ -110,7 +112,10 @@
 				figure={cpuOf(member)}
 			/>{/if}
 	{:else if row === 'Latency'}
-		<span title="Round trip to the database's primary">{latencyOf(member)}</span>
+		<span
+			title="Round trip to the database's primary"
+			class={stylex.attrs(member.primary && styles.word).class}>{latencyOf(member)}</span
+		>
 	{:else if ramOf(member) === undefined}
 		–
 	{:else}
