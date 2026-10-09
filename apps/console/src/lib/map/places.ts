@@ -115,6 +115,21 @@ export function nameOf(code: string): Name {
 	return place ? displayName(place.city, place.country) : { full: code, short: code, lead: code };
 }
 
+/** Each country a node stands in, by its ISO 3166 code, which a flag is drawn from. */
+const ISO: Readonly<Record<string, string>> = {
+	Belgium: 'BE',
+	China: 'CN',
+	Japan: 'JP',
+	Sweden: 'SE',
+	'United Kingdom': 'GB',
+	'United States': 'US',
+};
+
+/** The ISO 3166 code of the country a node is in, which its flag is drawn by; none if unknown. */
+export function isoOf(code: string): string | undefined {
+	return ISO[PLACES[code as Node]?.country ?? ''];
+}
+
 /** The country a node is in, in full -- `Japan`, `United States` -- or the code where unplaced. */
 export function countryOf(code: string): string {
 	return PLACES[code as Node]?.country ?? code;
@@ -149,6 +164,8 @@ export interface Member {
 	cpu: number | undefined;
 	/** When it was last heard; never, where it has not been. */
 	heard: string | undefined;
+	/** When its machine started, in seconds since the epoch, where its meter says. */
+	booted?: number;
 	point: readonly [number, number];
 }
 

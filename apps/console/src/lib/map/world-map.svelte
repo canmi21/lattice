@@ -76,6 +76,7 @@
 					used: machine?.memory?.used,
 					cpu: machine?.cpu,
 					heard: held?.heard_at,
+					booted: machine?.booted,
 					point: POINTS[code],
 				};
 			}),
@@ -189,9 +190,9 @@
 
 	/**
 	 * Once round, the globe turns on its own, a little each frame, and a drag turns it by hand and
-	 * leaves it spinning as fast as it was let go, easing back to its own pace; still for a reader
-	 * who asked for less motion. See spec/console/overview.md, "The globe is the flat map turned
-	 * round".
+	 * leaves it spinning as fast as it was let go, easing back to its own pace; a place's card open
+	 * slows it to a stop. Still for a reader who asked for less motion. See
+	 * spec/console/overview.md, "The globe is the flat map turned round".
 	 */
 	let spin = SPIN;
 	let held: { x: number; facing: number; last: number; at: number } | undefined = $state();
@@ -199,7 +200,9 @@
 		if (view !== 'globe' || stilled()) return;
 		let frame = requestAnimationFrame(function step() {
 			if (shape.t >= 0.999 && !held) {
-				spin = spin * 0.95 + SPIN * 0.05;
+				// A place's card open brakes it to a stop in about a third of a second, so the card
+				// holds still to be read; let go, it gathers its own pace back more slowly.
+				spin = active ? spin * 0.88 : spin * 0.95 + SPIN * 0.05;
 				facing -= spin;
 			}
 			frame = requestAnimationFrame(step);

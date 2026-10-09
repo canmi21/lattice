@@ -28,6 +28,8 @@ export interface Readings {
 	/** Bytes used, and of how many where the meter says. */
 	memory?: { used: number; total?: number };
 	disk?: { used: number; total?: number };
+	/** When the machine started, in seconds since the epoch. */
+	booted?: number;
 }
 
 /** What the meter's `{ info, sample }` says of the machine, or nothing where it is not that. */
@@ -49,6 +51,7 @@ export function readings(machine: unknown): Readings | undefined {
 		load: number('load.1'),
 		memory: used('memory.used', info.memory),
 		disk: used('storage.used', info.storage),
+		booted: typeof info.booted === 'number' && info.booted > 0 ? info.booted : undefined,
 	};
 }
 

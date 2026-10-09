@@ -21,6 +21,9 @@
 		"map": "node scripts/land.ts",
 		"deploy": "vite build && wrangler deploy"
 	},
+	"dependencies": {
+		"@twemoji/svg": "15.0.0"
+	},
 	"devDependencies": {
 		"@canmi/kit": "^2026.1008.1",
 		"@canmi/me": "^2026.1008.0",

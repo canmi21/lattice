@@ -60,9 +60,39 @@ tore the map down the middle until 2026-10-09, when frames of Vercel's turn show
 70 percent of the quarter turn to it, and the outline is a hairline in the card's rule color, so in either theme the globe is its
 dots on the card's own ground. Its colors are read off the page and read again when the theme
 switches. Once round it turns slowly on its own, and a drag turns it by hand and leaves it spinning
-as fast as it was let go, easing back to its own pace; for a reader who asked for less motion it
+as fast as it was let go, easing back to its own pace. **A place's card open brakes it**: the turn
+slows to a stop in about a third of a second, so the card holds still to be read, and gathers its
+pace back once the card closes. For a reader who asked for less motion it
 arrives round at once and stands still. The canvas exists only off the flat map: flat, the server's
 dots are what is drawn.
+
+## A place's card says what the list does not
+
+**Pointing at a place opens a card of rows, a name and a value each**: uptime, role, apps running,
+and two rings with their figures, the processor's share busy and the memory in use written in `G`
+to one decimal. Uptime is its two largest units with no space inside one, `3d 2h`, and a node not
+heard says so in red in its place. No state and no last-heard clock: the dot in the list and the
+mark's color already say whether a node is heard. The card's title is the place's name, after its
+country's flag, drawn by Twemoji -- flat, as the console is, where the system's emoji font is not --
+from `@twemoji/svg`, the maintained fork's package, whose graphics are CC-BY 4.0 by Twitter and its
+contributors; only the flags of the countries a node stands in are imported, and the build writes
+each into the page, being small. A node alone
+named by its country adds its city at the right, `Gävle`. **A shared place is named once and its
+nodes are columns** of the same rows, each headed by what tells it from the others there --
+`Tokyo`, `Narita`, `Haneda` -- never by its code, which is the key and not a name, said only to
+assistive technology; each head links to its node. The page's own table rules and padding are taken
+off the card's table. A row of each node's round trip to the database's primary waits on a
+measurement -- [../issues/console.md](../issues/console.md), "A node's latency to the database's
+primary is measured nowhere".
+
+## The figures are a line and a drawing each
+
+**Each of the four figures is its name, then the figure and what it is out of on one line, and a
+small drawing of it at its right**: a pip a node, blue heard and red not; a ring of the apps
+running; a ring, green, of the deploys that succeeded; the last deploys' durations as a line. A
+span is written in its largest unit with no space, `58s`, `26m`, and a share as `100% ok`. The
+figure is a step over the body and what it is out of a step under, so one line reads as one
+figure.
 
 ## What happened is one line a step
 

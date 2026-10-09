@@ -1,17 +1,21 @@
 <script lang="ts">
 	/**
-	 * The fleet in four figures, as a strip or a column beside the map: nodes heard and apps
-	 * running, from the live store so they move as the nodes do; deploys in the last day and how
-	 * long one takes, from the runs the page streams. A figure holds a faint bar until its read
-	 * lands. Apps count those `keep` keeps, and the nodes' figure stands only where `nodes` is set,
-	 * the nodes being infra's. See spec/console/overview.md, "The map is the page's whole picture".
+	 * The fleet in four figures along the map's foot: each its name, the figure and what it is out
+	 * of on one line, and at its right a small drawing of it -- a pip a node, a ring of the apps
+	 * running, a ring of the deploys that succeeded, the last deploys' durations as a line. A figure
+	 * holds a faint bar until its read lands; apps count those `keep` keeps, and the nodes' figure
+	 * stands only where `nodes` is set. See spec/console/overview.md, "The figures are a line and a
+	 * drawing each".
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { line, radius, weight } from '@canmi/kit/tokens/vocabulary.stylex';
-	import { duration, percent } from '../chart/numbers.ts';
+	import { radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import type { Snippet } from 'svelte';
+	import Gauge from '../chart/gauge.svelte';
+	import Sparkline from '../chart/sparkline.svelte';
 	import type { Live } from '../live.svelte.ts';
-	import { PLACES } from '../map/places.ts';
+	import { nameOf } from '../map/places.ts';
 	import { liveness } from '../node.ts';
+	import { CODES } from '../nodes/facts.ts';
 	import { type } from '../style.ts';
 	import type { Figures } from './deploys.ts';
 
@@ -20,93 +24,139 @@
 		deploys,
 		keep = () => true,
 		nodes = true,
-		stacked = false,
 	}: {
 		live: Live;
 		deploys: Promise<{ figures: Figures }>;
 		keep?: (app: string) => boolean;
 		nodes?: boolean;
-		/** One figure under another, as a column beside the map, rather than a row. */
-		stacked?: boolean;
 	} = $props();
 
-	const TOTAL = Object.keys(PLACES).length;
 	const held = $derived(Object.values(live.view.nodes));
 	const known = $derived(held.length > 0);
-	const heard = $derived(held.filter((one) => liveness(one.heard_at, live.now) === 'live').length);
+	const heard = $derived(
+		CODES.map((code) => {
+			const one = live.view.nodes[code];
+			return { code, heard: one ? liveness(one.heard_at, live.now) !== 'gone' : false };
+		}),
+	);
 	const apps = $derived.by(() => {
 		const kept = held.flatMap((one) => one.snapshot.apps).filter((app) => keep(app.name));
 		return { running: kept.filter((app) => app.running).length, total: kept.length };
 	});
-	const seconds = (ms: number | null) => (ms === null ? '–' : duration(ms / 1000));
+	/** A span of milliseconds in its one largest unit: `58s`, `26m`, `1.4h`. */
+	function brief(ms: number | null): string {
+		if (ms === null) return '–';
+		const seconds = ms / 1000;
+		if (seconds < 60) return `${Math.round(seconds)}s`;
+		if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+		return `${(seconds / 3600).toFixed(1)}h`;
+	}
 
 	const styles = stylex.create({
 		figure: {
-			fontSize: '1.5rem', // unnamed: a figure a step under the tile's, the ladder stopping below
-			fontWeight: weight.semibold,
-			letterSpacing: '-0.02em', // unnamed: a display size drawn a little tight
-			lineHeight: line.none,
-			fontVariantNumeric: 'tabular-nums',
 			color: 'var(--color-text-strong)',
+			fontSize: '1.25rem', // unnamed: a figure a step over the body, the ladder stopping below
+			fontWeight: weight.semibold,
+			fontVariantNumeric: 'tabular-nums',
 		},
+		rest: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 		placeholder: {
 			backgroundColor: 'color-mix(in srgb, var(--color-raised) 45%, transparent)',
 			borderRadius: radius.md,
 		},
+		heard: { backgroundColor: 'var(--color-primary)' },
+		gone: { backgroundColor: 'var(--color-danger)' },
 		/** A hairline between two figures, the strip's only rule. */
 		apart: {
 			borderLeftWidth: { default: '1px', ':first-child': '0' },
 			borderLeftStyle: 'solid',
 			borderLeftColor: 'var(--color-line-faint)',
 		},
-		under: {
-			borderTopWidth: { default: '1px', ':first-child': '0' },
-			borderTopStyle: 'solid',
-			borderTopColor: 'var(--color-line-faint)',
-		},
 	});
 </script>
 
-{#snippet figure(label: string, value: string | number | undefined, unit?: string)}
-	<div
-		class="flex min-w-0 flex-col justify-center gap-2 px-5 py-4 {stylex.attrs(
-			stacked ? styles.under : styles.apart,
-		).class}"
-	>
-		<span class={stylex.attrs(type.label).class}>{label}</span>
-		{#if value === undefined}
-			<span class="h-6 w-14 {stylex.attrs(styles.placeholder).class}" aria-busy="true"></span>
-		{:else}
-			<span class="flex items-baseline gap-1.5">
-				<span class={stylex.attrs(styles.figure).class}>{value}</span>
-				{#if unit}<span class="truncate {stylex.attrs(type.soft).class}">{unit}</span>{/if}
-			</span>
-		{/if}
+{#snippet cell(label: string, figure: string | undefined, rest: string | undefined, art?: Snippet)}
+	<div class="flex min-w-0 items-center gap-4 px-5 py-4 {stylex.attrs(styles.apart).class}">
+		<div class="flex min-w-0 flex-1 flex-col gap-1">
+			<span class={stylex.attrs(type.label).class}>{label}</span>
+			{#if figure === undefined}
+				<span class="my-1 h-5 w-16 {stylex.attrs(styles.placeholder).class}" aria-busy="true"
+				></span>
+			{:else}
+				<span class="flex items-baseline gap-1.5 whitespace-nowrap">
+					<span class={stylex.attrs(styles.figure).class}>{figure}</span>
+					{#if rest}<span class={stylex.attrs(styles.rest).class}>{rest}</span>{/if}
+				</span>
+			{/if}
+		</div>
+		{#if figure !== undefined}{@render art?.()}{/if}
 	</div>
 {/snippet}
 
-<div
-	class="grid {stacked
-		? 'h-full grid-cols-2 lg:grid-cols-1 lg:grid-rows-4'
-		: `grid-cols-2 ${nodes ? 'md:grid-cols-4' : 'md:grid-cols-3'}`}"
->
+{#snippet pips()}
+	<span class="grid shrink-0 grid-cols-4 gap-1.5" role="img" aria-label="Each node, heard or not">
+		{#each heard as one (one.code)}
+			<span
+				class="size-1.5 rounded-full {stylex.attrs(one.heard ? styles.heard : styles.gone).class}"
+				title="{nameOf(one.code).full}: {one.heard ? 'heard' : 'not heard'}"
+			></span>
+		{/each}
+	</span>
+{/snippet}
+
+{#snippet running()}
+	<Gauge
+		share={apps.total ? apps.running / apps.total : undefined}
+		size={28}
+		label="{apps.running} of {apps.total} apps running"
+	/>
+{/snippet}
+
+<div class="grid grid-cols-2 {nodes ? 'md:grid-cols-4' : 'md:grid-cols-3'}">
 	{#if nodes}
-		{@render figure('Nodes heard', known ? heard : undefined, `of ${TOTAL}`)}
-	{/if}
-	{@render figure('Apps running', known ? apps.running : undefined, `of ${apps.total}`)}
-	{#await deploys}
-		{@render figure('Deploys, 24 h', undefined)}
-		{@render figure('Median deploy, 30 d', undefined)}
-	{:then { figures }}
-		{@render figure(
-			'Deploys, 24 h',
-			figures.day,
-			figures.rate === null ? undefined : `${percent(figures.rate)} succeeded`,
+		{@render cell(
+			'Nodes heard',
+			known ? String(heard.filter((one) => one.heard).length) : undefined,
+			`/ ${CODES.length}`,
+			pips,
 		)}
-		{@render figure(
+	{/if}
+	{@render cell(
+		'Apps running',
+		known ? String(apps.running) : undefined,
+		`/ ${apps.total}`,
+		running,
+	)}
+	{#await deploys}
+		{@render cell('Deploys, 24 h', undefined, undefined)}
+		{@render cell('Median deploy, 30 d', undefined, undefined)}
+	{:then { figures }}
+		{#snippet succeeded()}
+			<Gauge
+				share={figures.rate ?? undefined}
+				size={28}
+				color="var(--color-good)"
+				label={figures.rate === null
+					? 'None finished'
+					: `${Math.round(figures.rate * 100)}% succeeded`}
+			/>
+		{/snippet}
+		{#snippet spread()}
+			<span class="w-16 shrink-0">
+				<Sparkline values={figures.durations} height={24} label="The last deploys' durations" />
+			</span>
+		{/snippet}
+		{@render cell(
+			'Deploys, 24 h',
+			String(figures.day),
+			figures.rate === null ? undefined : `${Math.round(figures.rate * 100)}% ok`,
+			succeeded,
+		)}
+		{@render cell(
 			'Median deploy, 30 d',
-			seconds(figures.median),
-			figures.p95 === null ? undefined : `p95 ${seconds(figures.p95)}`,
+			brief(figures.median),
+			figures.p95 === null ? undefined : `p95 ${brief(figures.p95)}`,
+			figures.durations.length > 1 ? spread : undefined,
 		)}
 	{/await}
 </div>

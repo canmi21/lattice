@@ -30,36 +30,46 @@ const site = (members: Member[], overrides: Partial<Site> = {}): Site => ({
 });
 
 describe('a place card on the server', () => {
-	it('names a shared place, sums it, and links a row for every node', () => {
+	it('names a shared place once and reads its nodes across, a column each', () => {
 		const members = [
 			member('tyo', { role: 'core', apps: { running: 9, total: 9 }, cpu: 1.8 }),
-			member('nrt', { cpu: 3.96 }),
+			member('nrt', { cpu: 3.96, booted: NOW / 1000 - 3 * 86_400 }),
 			member('hnd', { state: 'gone', cpu: undefined }),
 		];
 		const { body } = render(PlaceCard, {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
-		expect(body).toContain('>Tokyo, Japan<');
-		expect(body).toContain('3 nodes, 25.4 GiB, 21 apps');
+		expect(body.match(/>\s*Tokyo, Japan\s*</g)).toHaveLength(1);
+		// Twemoji's flag, small enough that the build writes it into the page.
+		expect(body).toMatch(/<img[^>]*src="data:image\/svg\+xml[^"]*ED1B2F/);
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
 		}
-		expect(body).toMatch(/data-row="tyo"[^]*?1.8%[^]*?9 apps/);
-		expect(body).toMatch(/data-row="hnd"[^]*?–/);
-		expect(body).not.toContain('Role');
+		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}</a>`);
+		for (const row of ['Uptime', 'Role', 'Apps running', 'CPU', 'RAM']) {
+			expect(body.match(new RegExp(`>${row}</th>`, 'g'))).toHaveLength(1);
+		}
+		expect(body).toContain('3d 0h');
+		expect(body).toContain('Not heard');
+		expect(body).toContain('9 of 9');
+		expect(body).toContain('0.5G');
+		// The code is the key, never the name; it is said only to assistive technology.
+		expect(body).not.toMatch(/>(tyo|nrt|hnd)</);
 	});
 
-	it('keeps the figures of a node alone', () => {
+	it('lists a node alone by uptime, role, apps and two rings, with no state or clock', () => {
 		const lone = member('gvx', { cluster: undefined, role: 'core' });
 		const { body } = render(PlaceCard, { props: { site: site([lone]), now: NOW } });
-		expect(body).toContain('Sweden, European Union<');
-		expect(body).toContain('>gvx<');
+		expect(body).toContain('Sweden, European Union');
 		expect(body).toContain('>Gävle<');
-		for (const label of ['Status', 'Heard', 'Role', 'Apps running', 'CPU now', 'Memory used']) {
-			expect(body).toContain(`>${label}<`);
+		for (const row of ['Uptime', 'Role', 'Apps running', 'CPU', 'RAM']) {
+			expect(body).toContain(`>${row}</dt>`);
 		}
-		expect(body).toContain('1.0 GiB');
-		expect(body).toContain('50%');
+		expect(body).toContain('1.5%');
+		expect(body).toContain('0.5G');
+		for (const gone of ['Status', 'Heard', 'CPU now', 'Memory used', '>gvx<']) {
+			expect(body).not.toContain(gone);
+		}
 		expect(body).not.toContain('data-row');
 	});
 });
