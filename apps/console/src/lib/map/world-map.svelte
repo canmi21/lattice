@@ -28,6 +28,7 @@
 		compact = false,
 		pointed,
 		tallest,
+		primary,
 	}: {
 		/** What is held of each node, by code; a node not in it has not been heard. */
 		states: Record<string, Held>;
@@ -41,6 +42,8 @@
 		pointed?: string;
 		/** The most the map may stand tall, a CSS length; its width follows, the rest left empty. */
 		tallest?: string;
+		/** The node the database is primary on, which each card's latency is to. */
+		primary?: string;
 	} = $props();
 
 	const { node: toNode } = scoped();
@@ -77,6 +80,8 @@
 					cpu: machine?.cpu,
 					heard: held?.heard_at,
 					booted: machine?.booted,
+					primary: primary === code,
+					latency: primary === undefined ? undefined : held?.snapshot.round_trip_ms?.[primary],
 					point: POINTS[code],
 				};
 			}),

@@ -4,6 +4,7 @@ import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { edgeOf } from '#lib/server/platform.js';
 import { cluster } from '#lib/server/read.js';
+import { primaryOf } from '#lib/server/primary.js';
 import type { PageServerLoad } from './$types';
 
 const DAYS = 30;
@@ -18,9 +19,10 @@ export const load: PageServerLoad = (event) => {
 	const view = viewOf(event.params.scope);
 	const history = runsIn(edge, view);
 	const now = Date.now();
+	const nodes = view === 'all' || view === 'infra';
 	return {
 		view,
-		nodes: view === 'all' || view === 'infra',
+		nodes,
 		cluster: cluster(edge),
 		deploys: history.then(({ runs, failures }) => ({
 			seen: runs.length,
@@ -31,5 +33,7 @@ export const load: PageServerLoad = (event) => {
 			})),
 		})),
 		moving: history.then(({ runs, apart }) => fromHistory(runs, apart)),
+		// Where each place's latency is to; see spec/console/overview.md.
+		primary: nodes ? primaryOf(edge) : Promise.resolve(undefined),
 	};
 };

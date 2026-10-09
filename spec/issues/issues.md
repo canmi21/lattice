@@ -24,7 +24,7 @@ which areas exist and which entries are worth reaching for first.
 
 | area                     | entries | what it holds                                                        |
 | ------------------------ | ------- | -------------------------------------------------------------------- |
-| [console.md](console.md) | 3       | what the console's pages read from elsewhere                         |
+| [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
 | [site.md](site.md)       | 25      | routing, rendering, the article page, the tests, the license surface |
 | [cms.md](cms.md)         | 4       | what the CMS cannot yet offer, and what it cannot reach              |
@@ -58,7 +58,6 @@ reasons.
 
 - Where the console learns a node's facts
 - Where display names come from once others deploy apps
-- A node's latency to the database's primary is measured nowhere
 
 ### [css.md](css.md)
 

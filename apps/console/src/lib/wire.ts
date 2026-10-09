@@ -48,6 +48,12 @@ export interface Snapshot {
 	machine?: unknown;
 	/** The parts the node's last round failed to read, each held at what was read before. */
 	stale?: string[];
+	/**
+	 * Its relay's round trip to each neighbor's, in milliseconds to a tenth, by node; a neighbor
+	 * not timed lately is absent. Platform's spec/architecture/relay.md, "The round trip to each
+	 * neighbor".
+	 */
+	round_trip_ms?: Record<string, number>;
 }
 
 /** What a relay holds of one node. */

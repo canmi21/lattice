@@ -80,9 +80,13 @@ by what tells it from the others there and its country, written as every place's
 `Narita, Japan` -- never by its code, which is the key and not a name, said only to assistive
 technology; each head links to its node. One under
 another keeps the card narrow however many share a place; side by side it grew as wide as the map.
-A row of each node's round trip to the database's primary waits on a measurement --
-[../issues/console.md](../issues/console.md), "A node's latency to the database's primary is
-measured nowhere".
+**The last row is latency, each node's round trip to the database's primary**, as its relay
+times its ping to that node's -- platform's `spec/architecture/relay.md`, "The round trip to each
+neighbor" -- a tenth of a millisecond under ten and whole above, `0.4ms`, `151ms`. The primary
+says `Primary` in its own row rather than a zero, and a node its relay has not timed lately says
+`–`, which is not the same as slow. Which node is primary the page reads once, from the `primary`
+proxy's health through the nearest node that answers, since the proxy runs on every node and
+routes to the one primary; the round trips themselves move live, in the snapshots.
 
 **A country's flag stands before each place's name in the list**, drawn by Twemoji -- flat, as the
 console is, where the system's emoji font is not -- from `@twemoji/svg`, the maintained fork's

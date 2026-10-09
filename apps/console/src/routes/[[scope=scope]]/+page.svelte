@@ -57,6 +57,11 @@
 	);
 	/** A step's row and the list's own padding, before the runs land. */
 	const LIST = 6 * 36;
+	/** The node the database is primary on, once read; each card's latency is to it. */
+	const primary = new Landed(
+		() => data.primary,
+		() => data.view,
+	);
 	/** The node a line of the list points at, which the map opens. */
 	let pointed: string | undefined = $state();
 </script>
@@ -112,7 +117,13 @@
 			     spec/console/overview.md, "The map is the page's whole picture". -->
 			<div class="min-w-0">
 				<Heard {live} cluster={data.cluster}>
-					<WorldMap states={live.view.nodes} now={live.now} {pointed} tallest="26.25rem" />
+					<WorldMap
+						states={live.view.nodes}
+						now={live.now}
+						{pointed}
+						tallest="26.25rem"
+						primary={primary.value}
+					/>
 					{#snippet pending()}
 						<div class="mx-auto" style:max-width="calc(26.25rem * {WIDTH} / {HEIGHT})">
 							<Skeleton ratio="{WIDTH} / {HEIGHT}" />

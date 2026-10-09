@@ -166,6 +166,10 @@ export interface Member {
 	heard: string | undefined;
 	/** When its machine started, in seconds since the epoch, where its meter says. */
 	booted?: number;
+	/** Its round trip to the database's primary in milliseconds, where it is timed and not it. */
+	latency?: number;
+	/** Whether the database's primary is this node. */
+	primary?: boolean;
 	point: readonly [number, number];
 }
 
