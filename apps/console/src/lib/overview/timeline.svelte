@@ -1,26 +1,27 @@
 <script lang="ts">
 	/**
-	 * The last day, a line a node: its flag and the part of its place that tells it apart, the
-	 * steps it took as marks along the line -- a quiet tick done, a blue one going, a red dot
-	 * failed -- and at the end how many of its apps are down. A run's marks stand one above
-	 * another across the nodes, so a rollout reads down the card; pointing at one lights the rest
-	 * of its run. In a view without nodes the lines are its busiest apps instead. See
+	 * The week, a line a node: its flag with the dot that says how it is, the part of its place that
+	 * tells it apart, and what it did along the line. Over a day a mark is a run, a tick done, a blue
+	 * one going and a red dot failed, and one run's marks stand one above another, lit together
+	 * under the pointer; over a week an hour is a cell, as dark as it was busy and red where a run
+	 * failed in it. In a view without nodes the lines are its busiest apps instead. See
 	 * spec/console/overview.md, "The week is a line a node".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { localTime } from '../format.ts';
 	import type { Live } from '../live.svelte.ts';
-	import Flag from '../map/flag.svelte';
 	import { nameOf, partOf } from '../map/places.ts';
-	import { stateOf } from '../node.ts';
 	import { CODES } from '../nodes/facts.ts';
 	import { scoped } from '../scope/context.ts';
 	import { displayOf } from '../scope/scope.ts';
-	import { tone, type } from '../style.ts';
+	import { type } from '../style.ts';
 	import { timeZone } from '../ui/time-zone.ts';
+	import HealthFlag from './health-flag.svelte';
+	import { healthOf } from './health.ts';
 	import type { Step } from './moving.ts';
-	import { DAY, type Mark, marks } from './timeline.ts';
+	import { type Cell, DAY, HOUR, type Mark, cells, marks } from './timeline.ts';
+	import { OUTCOME } from './words.ts';
 
 	let {
 		live,
@@ -44,9 +45,15 @@
 
 	/** Apps' lines at most, in a view without nodes. */
 	const APPS = 8;
+	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4';
+
+	/** Over more than a day, an hour a cell; over a day, a mark a run. */
+	const hourly = $derived(span > DAY);
+	const of = $derived(Math.round(span / HOUR));
+
 	/** Where the axis is ticked, as shares of the span, and what each tick says. */
-	const HOURS = $derived.by((): (readonly [number, string])[] => {
-		if (span <= DAY) {
+	const ticks = $derived.by((): (readonly [number, string])[] => {
+		if (!hourly) {
 			return [
 				[0, '24h'],
 				[0.25, '18h'],
@@ -61,7 +68,6 @@
 			at === days ? 'now' : `${days - at}d`,
 		]);
 	});
-	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)_4rem] items-center gap-x-4';
 
 	const drawn = $derived(
 		marks(
@@ -77,50 +83,41 @@
 		key: string;
 		href: string;
 		marks: Mark[];
-		/** Its apps that should run and do not, and those held stopped on purpose. */
-		down: string[];
-		held: string[];
 		code?: string;
 		label: string;
 		/** The whole name, on the label's hover. */
 		whole: string;
-		state?: ReturnType<typeof stateOf>;
 	}
 
 	const lines = $derived.by((): Line[] => {
 		if (nodes) {
-			return CODES.map((code) => {
-				const entry = live.view.nodes[code];
-				const apps = (entry?.snapshot?.apps ?? []).filter((app) => keep(app.name) && !app.running);
-				return {
-					key: code,
-					href: toNode(code),
-					marks: drawn.filter((mark) => mark.node === code),
-					down: apps.filter((app) => !app.held).map((app) => app.name),
-					held: apps.filter((app) => app.held).map((app) => app.name),
-					code,
-					label: partOf(code),
-					whole: nameOf(code).full,
-					state: stateOf(entry, live.now),
-				};
-			});
+			return CODES.map((code) => ({
+				key: code,
+				href: toNode(code),
+				marks: drawn.filter((mark) => mark.node === code),
+				code,
+				label: partOf(code),
+				whole: nameOf(code).full,
+			}));
 		}
-		const busiest = [...Map.groupBy(drawn, (mark) => mark.app)]
+		const busiest = [
+			...Map.groupBy(
+				drawn.flatMap((mark) => mark.apps.map((app) => ({ app, mark }))),
+				(one) => one.app,
+			),
+		]
 			.toSorted(([, a], [, b]) => b.length - a.length)
 			.slice(0, APPS);
 		return busiest.map(([app, its]) => ({
 			key: app,
 			href: toApp(app),
-			marks: its,
-			down: [],
-			held: [],
+			marks: its.map((one) => one.mark),
 			label: displayOf(app),
 			whole: displayOf(app),
 		}));
 	});
 
-	const WORD = { running: 'deploying', failed: 'failed', succeeded: 'deployed' } as const;
-	/** How long it took, in its one largest unit: `42s`, `3m`, `2h`. */
+	/** How long it took, in its one largest unit: ` in 42s`, ` in 3m`. */
 	function took(mark: Mark): string {
 		if (!mark.finished_at) return '';
 		const seconds = Math.round((Date.parse(mark.finished_at) - Date.parse(mark.started_at)) / 1000);
@@ -128,54 +125,71 @@
 		if (seconds < 3600) return ` in ${Math.round(seconds / 60)}m`;
 		return ` in ${Math.round(seconds / 3600)}h`;
 	}
+	const appsOf = (mark: Mark) => mark.apps.map(displayOf).join(', ');
 	const said = (mark: Mark) =>
-		`${displayOf(mark.app)} ${WORD[mark.outcome]} at ${localTime(mark.started_at, zone)}${took(mark)}` +
+		`${appsOf(mark)}: ${OUTCOME[mark.outcome]}, ${localTime(mark.started_at, zone)}${took(mark)}` +
 		(mark.detail ? `\n${mark.detail}` : '');
+	/** A cell's hover: each of its runs. */
+	const told = (cell: Cell) => cell.marks.map(said).join('\n');
+	const hrefOf = (mark: Mark) =>
+		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
 	const pct = (share: number) => `${(share * 100).toFixed(3)}%`;
-	const LABEL_TONE = { gone: 'bad', upgrading: 'warn', restarting: 'warn' } as const;
 
 	const styles = stylex.create({
 		label: { color: 'var(--color-text)', fontSize: text.px13 },
-		/** An hour's tick on the axis. */
-		hour: { backgroundColor: 'var(--color-text-muted)' },
 		/** The line itself, a hairline through the middle where the marks stand. */
 		track: { backgroundColor: 'var(--color-line)' },
 		done: { backgroundColor: 'color-mix(in srgb, var(--color-text) 55%, transparent)' },
 		going: { backgroundColor: 'var(--color-busy)' },
-		failed: { backgroundColor: 'var(--color-danger)', boxShadow: '0 0 0 2px var(--color-surface)' },
+		failed: {
+			backgroundColor: 'var(--color-danger)',
+			boxShadow: '0 0 0 2px var(--color-surface)',
+		},
+		/** A cell as dark as its hour was busy: one run, two or three, and more. */
+		one: { backgroundColor: 'color-mix(in srgb, var(--color-text) 30%, transparent)' },
+		few: { backgroundColor: 'color-mix(in srgb, var(--color-text) 55%, transparent)' },
+		many: { backgroundColor: 'color-mix(in srgb, var(--color-text) 85%, transparent)' },
+		cellFailed: { backgroundColor: 'var(--color-danger)' },
 		/** Another run's marks step back while one is pointed at. */
 		dim: { opacity: 0.25 },
 		mark: { transitionProperty: 'opacity', transitionDuration: duration.base },
-		down: { color: 'var(--color-danger)', fontSize: text.px12 },
-		held: { color: 'var(--color-text-muted)', fontSize: text.px12 },
+		tick: { backgroundColor: 'var(--color-text-muted)' },
 		axis: { color: 'var(--color-text-muted)', fontSize: text.px12 },
 		empty: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 	});
+
+	const shade = (cell: Cell) =>
+		cell.outcome === 'failed'
+			? styles.cellFailed
+			: cell.outcome === 'running'
+				? styles.going
+				: cell.marks.length > 3
+					? styles.many
+					: cell.marks.length > 1
+						? styles.few
+						: styles.one;
 </script>
 
 {#snippet mark(one: Mark)}
 	{@const faded = lit !== undefined && one.run !== lit}
-	{@const href =
-		one.run === undefined ? `${toNode(one.node)}?tab=events` : to(`/deployments/${one.run}`)}
 	{#if one.outcome === 'failed'}
 		<a
-			{href}
+			href={hrefOf(one)}
 			title={said(one)}
-			class="absolute top-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full {stylex.attrs(
+			class="absolute top-1/2 z-10 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full {stylex.attrs(
 				styles.mark,
 				styles.failed,
 				faded && styles.dim,
 			).class}"
 			style:left={pct(one.from)}
-			style:z-index="2"
 			onpointerenter={() => (lit = one.run)}
 			onpointerleave={() => (lit = undefined)}
 		></a>
 	{:else}
-		<!-- At least two pixels wide, so a deploy of a minute stands as a tick, and as long as it took
+		<!-- At least two pixels wide, so a run of a minute stands as a tick, and as long as it took
 		     where that is longer. -->
 		<a
-			{href}
+			href={hrefOf(one)}
 			title={said(one)}
 			class="absolute top-1/2 h-3 min-w-0.5 -translate-y-1/2 rounded-[1px] {stylex.attrs(
 				styles.mark,
@@ -190,21 +204,34 @@
 	{/if}
 {/snippet}
 
-{#if lines.length}
+{#snippet cell(one: Cell)}
+	{@const only = one.marks.length === 1 ? one.marks[0] : undefined}
+	<!-- An hour's width less a pixel, so two busy hours side by side still read as two. -->
+	<a
+		href={only ? hrefOf(only) : to('/deployments')}
+		title={told(one)}
+		class="absolute top-1/2 h-3 -translate-y-1/2 rounded-[1px] {stylex.attrs(shade(one)).class}"
+		style:left={pct(one.index / one.of)}
+		style:width="calc({pct(1 / one.of)} - 1px)"
+	></a>
+{/snippet}
+
+{#if nodes || lines.length}
 	<div class="flex flex-col">
 		{#each lines as line (line.key)}
 			<div class="h-7 {COLUMNS}">
 				<a
 					href={line.href}
 					title={line.whole}
-					class="flex min-w-0 items-center gap-2.5 {stylex.attrs(
-						styles.label,
-						line.state &&
-							line.state in LABEL_TONE &&
-							tone[LABEL_TONE[line.state as keyof typeof LABEL_TONE]],
-					).class}"
+					class="flex min-w-0 items-center gap-2.5 {stylex.attrs(styles.label).class}"
 				>
-					{#if line.code}<Flag code={line.code} size={14} />{/if}
+					{#if line.code}
+						<HealthFlag
+							code={line.code}
+							told={healthOf(live.view.nodes[line.code], live.now)}
+							size={14}
+						/>
+					{/if}
 					<span class="truncate">{line.label}</span>
 				</a>
 				<div class="relative h-full">
@@ -212,40 +239,30 @@
 						aria-hidden="true"
 						class="absolute inset-x-0 top-1/2 h-px {stylex.attrs(styles.track).class}"
 					></span>
-					{#each line.marks as one (one.key)}
-						{@render mark(one)}
-					{/each}
-				</div>
-				<span class="text-right whitespace-nowrap">
-					{#if line.down.length}
-						<span
-							class={stylex.attrs(type.shell, styles.down).class}
-							title={[...line.down, ...line.held.map((app) => `${app} (held)`)]
-								.map(displayOf)
-								.join('\n')}>{line.down.length} down</span
-						>
-					{:else if line.held.length}
-						<span
-							class={stylex.attrs(type.shell, styles.held).class}
-							title={line.held.map(displayOf).join('\n')}>{line.held.length} held</span
-						>
+					{#if hourly}
+						{#each cells(line.marks, of) as one (one.key)}
+							{@render cell(one)}
+						{/each}
+					{:else}
+						{#each line.marks as one (one.key)}
+							{@render mark(one)}
+						{/each}
 					{/if}
-				</span>
+				</div>
 			</div>
 		{/each}
-		<!-- The hours, under the lines and in their column, the rules standing up through them. -->
+		<!-- The axis, under the lines and in their column: ticked, never ruled through them. -->
 		<div class="h-6 {COLUMNS}">
 			<span></span>
 			<div class="relative h-full">
-				{#each HOURS as [at, word] (word)}
-					<!-- The hour's tick on the axis alone: one standing through the lines read as a mark. -->
+				{#each ticks as [at, word] (word)}
 					<span
 						aria-hidden="true"
-						class="absolute top-0 h-1 w-px {stylex.attrs(styles.hour).class}"
+						class="absolute top-0 h-1 w-px {stylex.attrs(styles.tick).class}"
 						style:left={pct(at)}
 					></span>
 					<span
-						class="absolute top-1 {at === 0
+						class="absolute top-1.5 {at === 0
 							? ''
 							: at === 1
 								? '-translate-x-full'
@@ -254,11 +271,10 @@
 					>
 				{/each}
 			</div>
-			<span></span>
 		</div>
 	</div>
 {:else}
 	<p class="flex min-h-40 items-center justify-center {stylex.attrs(styles.empty).class}">
-		Nothing deployed in the last day
+		Nothing deployed in this span
 	</p>
 {/if}

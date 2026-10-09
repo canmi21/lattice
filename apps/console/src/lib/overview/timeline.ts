@@ -1,58 +1,110 @@
 /**
- * The overview's day as marks on a line a node: each step that did something in the last
- * `span`, from where it started to where it finished, or to now while it goes, as shares of the
- * span. A skip is a run that had nothing for a node, and draws nothing. See
- * spec/console/overview.md, "The week is a line a node".
+ * The overview's week as marks on a line a node: each run that did something on a node in the
+ * span, one mark however many of its apps it placed there, from its first start to its last finish
+ * or to now while it goes, as shares of the span; and over a week, those marks gathered an hour a
+ * cell. A skip draws nothing. See spec/console/overview.md, "The week is a line a node".
  */
 import type { Step } from './moving.ts';
 
 export const DAY = 86_400_000;
 export const WEEK = 7 * DAY;
+export const HOUR = 3_600_000;
+
+export type Outcome = 'running' | 'failed' | 'succeeded';
 
 export interface Mark {
 	key: string;
 	node: string;
-	app: string;
+	/** What it placed on the node, in the order its steps came. */
+	apps: string[];
 	run?: number;
-	outcome: 'running' | 'failed' | 'succeeded';
+	outcome: Outcome;
 	/** Where it starts on the line, 0 the span's start and 1 now. */
 	from: number;
-	/** Where it ends: where it finished, or now while it goes. */
+	/** Where it ends: its last finish, or now while any of it goes. */
 	to: number;
 	started_at: string;
 	finished_at?: string;
 	detail?: string;
 }
 
+/** Worst first: going, then failed, then done. */
+const WORST: readonly Outcome[] = ['running', 'failed', 'succeeded'];
+const worst = (outcomes: readonly Outcome[]): Outcome =>
+	WORST.find((one) => outcomes.includes(one)) ?? 'succeeded';
+
+const outcomeOf = (step: Step): Outcome =>
+	step.outcome === 'running' || step.outcome === 'failed' ? step.outcome : 'succeeded';
+
 const share = (at: number, start: number, span: number) =>
 	Math.min(1, Math.max(0, (at - start) / span));
 
-/** `steps` as marks of the `span` ending at `now`, oldest first so the newest is drawn on top. */
+/** `steps` as a mark a run a node over the `span` ending at `now`, oldest first. */
 export function marks(steps: readonly Step[], now: number, span = DAY): Mark[] {
 	const start = now - span;
-	return steps
-		.filter((step) => step.outcome !== 'skipped')
-		.flatMap((step): Mark[] => {
-			const began = Date.parse(step.started_at);
-			const ended =
-				step.outcome === 'running' ? now : Date.parse(step.finished_at ?? step.started_at);
+	const gathered = new Map<string, Step[]>();
+	for (const step of steps) {
+		if (step.outcome === 'skipped') continue;
+		// What no run started is its own mark, by its app and its moment.
+		const key =
+			step.run === undefined
+				? `${step.source} ${step.node} ${step.app} ${step.started_at}`
+				: `run ${step.run} ${step.node}`;
+		gathered.set(key, [...(gathered.get(key) ?? []), step]);
+	}
+	return [...gathered]
+		.flatMap(([key, group]): Mark[] => {
+			const outcome = worst(group.map(outcomeOf));
+			const began = Math.min(...group.map((one) => Date.parse(one.started_at)));
+			const finishes = group.map((one) => Date.parse(one.finished_at ?? one.started_at));
+			const ended = outcome === 'running' ? now : Math.max(...finishes);
 			if (Number.isNaN(began) || ended < start || began > now) return [];
-			const outcome =
-				step.outcome === 'running' || step.outcome === 'failed' ? step.outcome : 'succeeded';
+			const first = group[0] as Step;
+			const failed = group.find((one) => one.outcome === 'failed');
 			return [
 				{
-					key: `${step.run ?? step.source} ${step.node} ${step.app} ${step.started_at}`,
-					node: step.node,
-					app: step.app,
-					...(step.run === undefined ? {} : { run: step.run }),
+					key,
+					node: first.node,
+					apps: [...new Set(group.map((one) => one.app))],
+					...(first.run === undefined ? {} : { run: first.run }),
 					outcome,
 					from: share(began, start, span),
 					to: share(ended, start, span),
-					started_at: step.started_at,
-					...(step.finished_at ? { finished_at: step.finished_at } : {}),
-					...(step.detail ? { detail: step.detail } : {}),
+					started_at: new Date(began).toISOString(),
+					...(outcome === 'running' ? {} : { finished_at: new Date(ended).toISOString() }),
+					...(failed?.detail ? { detail: failed.detail } : {}),
 				},
 			];
 		})
 		.toSorted((a, b) => a.from - b.from);
+}
+
+/** An hour of one node's line, and the marks that started in it. */
+export interface Cell {
+	key: string;
+	node: string;
+	/** Which of the span's cells, from 0 at its start. */
+	index: number;
+	/** Out of how many the span holds. */
+	of: number;
+	outcome: Outcome;
+	marks: Mark[];
+}
+
+/** `marks` gathered into the `of` cells of their span, a cell by where each mark starts. */
+export function cells(marks: readonly Mark[], of: number): Cell[] {
+	const gathered = new Map<string, Mark[]>();
+	for (const mark of marks) {
+		const index = Math.min(of - 1, Math.floor(mark.from * of));
+		const key = `${mark.node} ${index}`;
+		gathered.set(key, [...(gathered.get(key) ?? []), mark]);
+	}
+	return [...gathered].map(([key, its]) => ({
+		key,
+		node: (its[0] as Mark).node,
+		index: Math.min(of - 1, Math.floor((its[0] as Mark).from * of)),
+		of,
+		outcome: worst(its.map((one) => one.outcome)),
+		marks: its,
+	}));
 }

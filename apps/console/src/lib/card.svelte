@@ -6,11 +6,14 @@
 
 	let {
 		title,
+		heading,
 		flush = false,
 		aside,
 		children,
 	}: {
 		title?: string;
+		/** A title that is more than words, as ./ui/title-choice.svelte is; `title` names it then. */
+		heading?: Snippet;
 		flush?: boolean;
 		/** On the title's right: a count, a legend, a switch. */
 		aside?: Snippet;
@@ -19,11 +22,13 @@
 </script>
 
 <section class="flex min-w-0 flex-col {stylex.attrs(surfaces.card).class}">
-	{#if title}
+	{#if title || heading}
 		<header
 			class="flex min-h-12 items-center justify-between gap-3 px-5 pt-4 {flush ? 'pb-3' : ''}"
 		>
-			<h2 class={stylex.attrs(type.heading).class}>{title}</h2>
+			<h2 class={stylex.attrs(type.heading).class}>
+				{#if heading}{@render heading()}{:else}{title}{/if}
+			</h2>
 			{@render aside?.()}
 		</header>
 	{/if}
