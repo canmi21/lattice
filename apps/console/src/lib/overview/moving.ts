@@ -25,14 +25,17 @@ export interface Step {
 	finished_at?: string;
 	/** The event's id on its node, where the step came from an event rather than a run's summary. */
 	id?: number;
+	/** The commit its run built. */
+	commit?: string;
 }
 
 /** An event as a step: a run's within it, anything else apart. */
 function stepOf(node: string, event: Event): Step {
-	const { kind, run } = event.source;
+	const { kind, run, commit } = event.source;
 	const { app, action, outcome, stage, detail, started_at, finished_at, id } = event;
 	return {
 		run: kind === 'run' ? run : undefined,
+		...(kind === 'run' && commit ? { commit } : {}),
 		source: kind,
 		action,
 		node,
@@ -61,6 +64,7 @@ export function fromHistory(
 		run.placements.map(
 			({ node, app, action, outcome, stage, detail, started_at, finished_at }) => ({
 				run: run.run,
+				...(run.commit ? { commit: run.commit } : {}),
 				source: 'run',
 				action,
 				node,
@@ -183,12 +187,17 @@ export function what(step: Pick<Step, 'action' | 'source'>): string {
 	return `${said} by ${step.source}`;
 }
 
-/** A run's placements of one app as one line, however many nodes it went to. */
+/** A run as one line, however many apps and nodes it went to; or one thing done by hand. */
 export interface Line {
 	key: string;
-	app: string;
 	/** The run it belongs to; none for what no run started, gathered by its source and moment. */
 	run?: number;
+	/** Its apps, those that failed first, then in the order their steps came. */
+	apps: string[];
+	/** What was done, where no run started it: `Redeploy`, `Deploy of an upload`. */
+	what?: string;
+	/** The commit its run built. */
+	commit?: string;
 	/** Its nodes, in the order their steps came. */
 	nodes: string[];
 	/** Going while any step goes; failed if any failed; else what the rest ended as. */
@@ -199,11 +208,13 @@ export interface Line {
 	detail?: string;
 	/** When it last moved. */
 	at: string;
+	/** Milliseconds from its first start to its last finish, once nothing of it goes. */
+	duration?: number;
 }
 
 const TEN_MINUTES = 600_000;
 
-/** `steps` gathered a line a run's app, newest first. See spec/console/overview.md. */
+/** `steps` gathered a line a run, newest first. See spec/console/overview.md. */
 export function lines(steps: Step[]): Line[] {
 	const gathered = new Map<string, Step[]>();
 	for (const step of steps) {
@@ -212,7 +223,7 @@ export function lines(steps: Step[]): Line[] {
 		const key =
 			step.run === undefined
 				? `${step.source} ${step.app} ${Math.floor(Date.parse(step.started_at) / TEN_MINUTES)}`
-				: `run ${step.run} ${step.app}`;
+				: `run ${step.run}`;
 		gathered.set(key, [...(gathered.get(key) ?? []), step]);
 	}
 	return [...gathered]
@@ -221,18 +232,22 @@ export function lines(steps: Step[]): Line[] {
 			const failed = group.find((one) => one.outcome === 'failed');
 			const telling = going ?? failed;
 			const first = group[0] as Step;
+			const apps = [...new Set(group.map((one) => one.app))];
+			const broke = new Set(group.filter((one) => one.outcome === 'failed').map((one) => one.app));
+			const ends = group.map((one) => Date.parse(one.finished_at ?? one.started_at));
+			const start = Math.min(...group.map((one) => Date.parse(one.started_at)));
+			const commit = group.find((one) => one.commit)?.commit;
 			return {
 				key,
-				app: first.app,
-				...(first.run === undefined ? {} : { run: first.run }),
+				...(first.run === undefined ? { what: what(first) } : { run: first.run }),
+				apps: [...apps.filter((app) => broke.has(app)), ...apps.filter((app) => !broke.has(app))],
+				...(commit ? { commit } : {}),
 				nodes: [...new Set(group.map((one) => one.node))],
 				outcome: going ? 'running' : failed ? 'failed' : 'succeeded',
 				...(telling?.stage ? { stage: telling.stage } : {}),
 				...(failed?.detail ? { detail: failed.detail } : {}),
-				at: group
-					.map((one) => one.finished_at ?? one.started_at)
-					.toSorted()
-					.at(-1) as string,
+				at: new Date(Math.max(...ends)).toISOString(),
+				...(going ? {} : { duration: Math.max(...ends) - start }),
 			};
 		})
 		.toSorted((a, b) => Date.parse(b.at) - Date.parse(a.at));

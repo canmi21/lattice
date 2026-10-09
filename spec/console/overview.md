@@ -126,20 +126,26 @@ Figures are in the shell's face -- [design.md](design.md), "Words in the sans, f
 shell's face"; the figure is a step over the body and what it is out of a step under, so one line
 reads as one figure.
 
-## What happened is one line a run's app
+## What happened is one line a run
 
-**Under the map, two lists side by side: Activity, what is deploying and what finished last, and
-Failures, what failed in the last week**, ten lines each at 28 pixels a line. A line is a run's placements of one app, however many
-nodes it went to -- a deploy to eight nodes is one line, not eight -- and what no run started, an
-upload or a panel's action, is gathered by who started it and the ten minutes it began in. A line
-is a dot for how it went, green done, blue going, red failed if any of its nodes failed; the app by
-its name, never its code; a flag a country it went to, three at most and the rest counted, `+2`,
-every node by name on the flags' hover; where it is or where it stopped, a quiet word -- the stage,
-blue while it goes -- and nothing at all for a success, whose dot says it; and how long ago, short
-and in the shell's face, `15m`, `8h`, `2d`. A line links to its run, or to its node's events where
-no run started it, and a failure's reason is on its hover. With nothing to list, what there is not
-is said in the middle of the card -- `No failures this week`. A failure older than a week is the
-deployments page's, not the overview's; the line at the top counts the last day's.
+**Under the map, one card, Deployments, lists what happened, a line a run, with `All` and `Failed`
+on its title's right** -- the failed count beside the word -- **and `View all` to the deployments
+page.** Two lists side by side, Activity and Failures, each a line a run's app, were the card until
+2026-10-09: the failures' half stood mostly empty, the same app's runs repeated down the other, and
+neither said how long a run took or what it built. A line is a run however many apps and nodes it
+went to, and what no run started, an upload or a panel's action, is one app's, gathered by who
+started it and the ten minutes it began in. Across a line, in columns fixed from the left so they
+read down the card: a dot for how it went, green done, blue going, red failed if any of it failed;
+its apps by name, never their codes, those that failed first, two named and the rest counted, `+3`;
+a flag a country it went to, three at most and the rest counted, every node by name on the flags'
+hover; where it is or where it stopped, a quiet word -- the stage, blue while it goes -- or, once it
+is done, how long it took, `41s`, `3m 5s`, in the shell's face; the commit its run built, seven
+characters; then, in the room left, why it failed or what was done by hand, `Redeploy`; and how long
+ago at the end, `15m`, `8h`, `2d`. A line links to its run, or to its node's events where no run
+started it. `All` is everything, newest first, ten lines; `Failed` is the last week's failures, ten
+at most, and older are the deployments page's -- the line at the top counts the last day's. The card
+keeps ten lines' height either way, so switching moves nothing below, and with nothing to list says
+so in its middle, `No failures this week`. Decided with the author on 2026-10-09.
 
 ## Charts are their pages'
 

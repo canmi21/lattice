@@ -5,6 +5,7 @@
 	 * that own them, Deployments' and Nodes'. See spec/console/overview.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Card from '#lib/card.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
@@ -16,10 +17,12 @@
 	import { current, fromLive, lines } from '#lib/overview/moving.js';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
+	import { scoped } from '#lib/scope/context.js';
 	import { shows } from '#lib/scope/scope.js';
 	import { surfaces } from '#lib/style.js';
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
+	import Segmented from '#lib/ui/segmented.svelte';
 	import Silent from '#lib/ui/silent.svelte';
 	import Skeleton from '#lib/ui/skeleton.svelte';
 	import Unread from '#lib/unread.svelte';
@@ -42,11 +45,11 @@
 				fromLive(live.view.nodes).filter((step) => keep(step.app)),
 			),
 	);
-	/** What is going and what finished last, a line a run's app. */
+	/** Everything, going, failed and finished, a line a run, newest first. */
 	const recent = $derived(
-		now ? lines([...now.running.flatMap((group) => group.steps), ...now.done]) : [],
+		now ? lines([...now.running.flatMap((group) => group.steps), ...now.failed, ...now.done]) : [],
 	);
-	/** What failed in the last week, a line a run's app; older is the deployments page's. */
+	/** What failed in the last week, a line a run; older is the deployments page's. */
 	const WEEK = 7 * 86_400_000;
 	const failed = $derived(
 		now ? lines(now.failed).filter((line) => live.now - Date.parse(line.at) < WEEK) : [],
@@ -63,6 +66,19 @@
 			? Promise.all([data.cluster, data.deploys]).then(([read, deploys]) => holds(read, deploys))
 			: holds(data.cluster, data.deploys),
 	);
+	const { to } = scoped();
+	/** Which of the deployments the card lists. */
+	let showing: 'all' | 'failed' = $state('all');
+
+	const styles = stylex.create({
+		more: {
+			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			fontSize: text.px13,
+			transitionProperty: 'color',
+			transitionDuration: duration.base,
+		},
+	});
+
 	/** A step's row and the list's own padding, before the runs land. */
 	const LIST = 10 * 28;
 	/** The node the database is primary on, once read; each card's latency is to it. */
@@ -75,32 +91,41 @@
 </script>
 
 {#snippet lists()}
-	<div class="grid gap-4 xl:grid-cols-2">
-		<Card title="Activity">
-			{#if now}
+	<Card title="Deployments" flush>
+		{#snippet aside()}
+			<div class="flex items-center gap-3">
+				<Segmented
+					label="Which deployments"
+					bind:value={showing}
+					options={[
+						{ key: 'all', label: 'All' },
+						{ key: 'failed', label: failed.length ? `Failed ${failed.length}` : 'Failed' },
+					]}
+				/>
+				<a href={to('/deployments')} class={stylex.attrs(styles.more).class}>View all</a>
+			</div>
+		{/snippet}
+		<!-- As tall as its ten lines whichever is shown, so switching moves nothing below. -->
+		<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
+			{#if !now}
+				<Skeleton height={LIST} />
+			{:else if showing === 'all'}
 				<Activity
 					lines={recent}
 					now={live.now}
-					label="What is deploying and what finished last, newest first"
+					label="Every deployment, newest first"
 					empty="Nothing has deployed yet"
 				/>
 			{:else}
-				<Skeleton height={LIST} />
-			{/if}
-		</Card>
-		<Card title="Failures">
-			{#if now}
 				<Activity
 					lines={failed}
 					now={live.now}
 					label="What failed this week, newest first"
 					empty="No failures this week"
 				/>
-			{:else}
-				<Skeleton height={LIST} />
 			{/if}
-		</Card>
-	</div>
+		</div>
+	</Card>
 {/snippet}
 
 <PageHeader title="Overview" />
