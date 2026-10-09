@@ -294,6 +294,9 @@ importers:
         specifier: 15.0.0
         version: 15.0.0
     devDependencies:
+      '@canmi/fonts':
+        specifier: workspace:*
+        version: link:../../libs/fonts
       '@canmi/kit':
         specifier: ^2026.1008.1
         version: 2026.1008.1(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)

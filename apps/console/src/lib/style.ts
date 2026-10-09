@@ -94,6 +94,11 @@ export const type = stylex.create({
 		fontFamily: family.monoTheme,
 		fontSize: text.px12,
 	},
+	/** A figure read out in the shell's face, at the size around it: a percent, a count, a span. */
+	shell: {
+		fontFamily: 'var(--font-shell)',
+		fontVariantNumeric: figures.tabular,
+	},
 });
 
 /** The one color a state is shown in, wherever it is shown. */

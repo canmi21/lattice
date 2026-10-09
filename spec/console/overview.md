@@ -91,12 +91,15 @@ countries a node stands in are imported, and the build writes each into the page
 
 ## The figures are a line and a drawing each
 
-**Each of the four figures is its name, then the figure and what it is out of on one line, and a
-small drawing of it at its right**: a pip a node, blue heard and red not; a ring of the apps
-running; a ring, green, of the deploys that succeeded; the last deploys' durations as a line. A
-span is written in its largest unit with no space, `58s`, `26m`, and a share as `100% ok`. The
-figure is a step over the body and what it is out of a step under, so one line reads as one
-figure.
+**Each of the four figures is a one-word name, then the figure and what it is out of on one line,
+and a small drawing of it at its right**: `Nodes`, `8 / 8`, a pip a node, blue heard and red not;
+`Apps`, `102 / 105`, a ring of those running; `Deploys`, `23 24h`, a ring, green, of those that
+succeeded; `Deploy time`, `58s p95 26m`, the last deploys' durations as a line. A run of words was
+what made the strip read badly -- `Median deploy, 30 d`, `100% succeeded` -- so a name is one word or
+two, the window is a figure beside the count, and the median is the figure a deploy time means.
+Figures are in the shell's face -- [design.md](design.md), "Words in the sans, figures in the
+shell's face"; the figure is a step over the body and what it is out of a step under, so one line
+reads as one figure.
 
 ## What happened is one line a step
 

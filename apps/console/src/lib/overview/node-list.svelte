@@ -129,8 +129,10 @@
 							>
 						{/if}
 					</span>
-					<span class="text-right {stylex.attrs(styles.value).class}">{place.cpu}</span>
-					<span class="text-right {stylex.attrs(styles.value).class}">{place.memory}</span>
+					<span class="text-right {stylex.attrs(type.shell, styles.value).class}">{place.cpu}</span>
+					<span class="text-right {stylex.attrs(type.shell, styles.value).class}"
+						>{place.memory}</span
+					>
 				</a>
 			</li>
 		{/each}

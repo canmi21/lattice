@@ -13,6 +13,8 @@
 	import TopBar from '#lib/design/top-bar.svelte';
 	import { provideActions } from '#lib/ui/actions.svelte.js';
 	import { setTimeZone } from '#lib/ui/time-zone.js';
+	// The shell's face, its CDN filled in by the build; see vite.config.ts.
+	import '@canmi/fonts/mono.css';
 	import '../app.css';
 	import type { LayoutData } from './$types';
 

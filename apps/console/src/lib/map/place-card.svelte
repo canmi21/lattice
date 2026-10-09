@@ -64,7 +64,8 @@
 		},
 		title: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
 		muted: { color: 'var(--color-text-muted)' },
-		value: { color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' },
+		/** A value in the shell's face, as the console's figures are; see spec/console/design.md. */
+		value: { color: 'var(--color-text)', fontFamily: 'var(--font-shell)', textAlign: 'right' },
 		/** A hairline between two nodes of a shared place, none above the first. */
 		apart: {
 			borderTopWidth: { default: '1px', ':first-child': '0' },

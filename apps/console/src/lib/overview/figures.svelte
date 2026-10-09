@@ -84,8 +84,8 @@
 				></span>
 			{:else}
 				<span class="flex items-baseline gap-1.5 whitespace-nowrap">
-					<span class={stylex.attrs(styles.figure).class}>{figure}</span>
-					{#if rest}<span class={stylex.attrs(styles.rest).class}>{rest}</span>{/if}
+					<span class={stylex.attrs(type.shell, styles.figure).class}>{figure}</span>
+					{#if rest}<span class={stylex.attrs(type.shell, styles.rest).class}>{rest}</span>{/if}
 				</span>
 			{/if}
 		</div>
@@ -115,21 +115,16 @@
 <div class="grid grid-cols-2 {nodes ? 'md:grid-cols-4' : 'md:grid-cols-3'}">
 	{#if nodes}
 		{@render cell(
-			'Nodes heard',
+			'Nodes',
 			known ? String(heard.filter((one) => one.heard).length) : undefined,
 			`/ ${CODES.length}`,
 			pips,
 		)}
 	{/if}
-	{@render cell(
-		'Apps running',
-		known ? String(apps.running) : undefined,
-		`/ ${apps.total}`,
-		running,
-	)}
+	{@render cell('Apps', known ? String(apps.running) : undefined, `/ ${apps.total}`, running)}
 	{#await deploys}
-		{@render cell('Deploys, 24 h', undefined, undefined)}
-		{@render cell('Median deploy, 30 d', undefined, undefined)}
+		{@render cell('Deploys', undefined, undefined)}
+		{@render cell('Deploy time', undefined, undefined)}
 	{:then { figures }}
 		{#snippet succeeded()}
 			<Gauge
@@ -146,14 +141,9 @@
 				<Sparkline values={figures.durations} height={24} label="The last deploys' durations" />
 			</span>
 		{/snippet}
+		{@render cell('Deploys', String(figures.day), '24h', succeeded)}
 		{@render cell(
-			'Deploys, 24 h',
-			String(figures.day),
-			figures.rate === null ? undefined : `${Math.round(figures.rate * 100)}% ok`,
-			succeeded,
-		)}
-		{@render cell(
-			'Median deploy, 30 d',
+			'Deploy time',
 			brief(figures.median),
 			figures.p95 === null ? undefined : `p95 ${brief(figures.p95)}`,
 			figures.durations.length > 1 ? spread : undefined,

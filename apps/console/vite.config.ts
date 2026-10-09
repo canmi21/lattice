@@ -5,6 +5,7 @@ import stylex from '@stylexjs/unplugin/vite';
 import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
+import { pickUrls } from '@monoflake/sdk';
 import { buildDefine } from '@canmi/web/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
@@ -24,10 +25,19 @@ const stylexPlugin = stylex({
 	lightningcssOptions: { minify: true },
 });
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
 	// The commit, the build moment and the disclosure; see lib's spec/web/build.md.
 	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 	plugins: [
+		{
+			// The font stylesheets in @canmi/fonts name their host by a placeholder, which mode
+			// decides: the CDN, or the local gateway in development, as the avatar's is read.
+			name: 'replace-cdn-url',
+			transform(code: string, id: string) {
+				if (!/\.css($|\?)/.test(id) || !code.includes('__CDN_URL__')) return null;
+				return code.replaceAll('__CDN_URL__', pickUrls(mode !== 'production').cdn);
+			},
+		},
 		tailwindcss(),
 		sentrySvelteKit(
 			pluginOptions({
@@ -69,4 +79,4 @@ export default defineConfig({
 		sourcemap: sourcemapSetting(upload),
 		rollupOptions: { output: { hashCharacters: 'hex' } },
 	},
-});
+}));

@@ -81,8 +81,9 @@
 					class="truncate {stylex.attrs(styles.word, tone[shade === 'good' ? 'quiet' : shade])
 						.class}">{wordOf(step)}</span
 				>
-				<span class={stylex.attrs(styles.time).class} title={localTime(when(step), zone)}
-					>{ago(when(step), now)}</span
+				<span
+					class={stylex.attrs(type.shell, styles.time).class}
+					title={localTime(when(step), zone)}>{ago(when(step), now)}</span
 				>
 			</a>
 		</li>

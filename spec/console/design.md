@@ -90,6 +90,19 @@ other -- where mono's 10 and 13 read as grey; near black a few percent is a larg
 reading lightness by ratio, so the dark's value is tuned by eye and not by symmetry. Decided with
 the author on 2026-10-09.
 
+## Words in the sans, figures in the shell's face
+
+**What a reader reads as words is in the sans; what they read as a figure is in the shell's face.**
+The shell's face is the site's Ioskeley Mono, `--font-shell`, from `@canmi/fonts`'s `mono.css`:
+the same chunks in the object store the site's code blocks take, its host filled in by the console's
+build as the site's is -- the CDN in production, the local gateway in development, where the
+avatar is read from too. A percent, a count, a size in `G`, a span like `3d 2h` or `58s`, a time
+ago, and a code name are figures; a heading, a label, a place's or an app's name are words. The
+regular cut is the one reached: nothing in the console sets a figure bold or italic, so the cuts
+the site's fonts spec calls unreachable stay unreached here too -- web's
+`spec/architecture/fonts.md`, "Only the regular cut of the monospace face is reachable, and the
+rest stay". A figure's label stays a word, short: `Nodes`, `Deploy time`, not a phrase.
+
 ## A page is named once, in the top bar
 
 **A page's name is the top bar's trail and nowhere else on the screen.** The page itself carries no
