@@ -34,8 +34,11 @@ card on the map, and a node's line is a link to the node. The figures -- nodes h
 long one takes -- are a strip under both, a hairline between each: figures, not tiles, with no ring
 and no sparkline, since the line above already says whether a figure is wrong. The map stays as it
 is drawn -- [../architecture/console.md](../architecture/console.md), "A figure is drawn before it is
-written" and the paragraphs after -- and its switch between flat and round is two icons in a frame
-at its top right. A view without the nodes, Platform's or Services', has the figures alone.
+written" and the paragraphs after -- **never taller than 26.25rem**, 420 pixels as Vercel's stands,
+its width following from its shape and the room either side of it left empty, so a wide screen
+widens the margin and not the map; its switch between flat and round is two icons in a frame at
+the top right of its column, where it stays however narrow the map. The list's column is 15rem, so
+a figure sits near its name. A view without the nodes, Platform's or Services', has the figures alone.
 Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its arrangement and
 its switch, not its look.
 

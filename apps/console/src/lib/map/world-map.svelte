@@ -27,6 +27,7 @@
 		selected,
 		compact = false,
 		pointed,
+		tallest,
 	}: {
 		/** What is held of each node, by code; a node not in it has not been heard. */
 		states: Record<string, Held>;
@@ -38,6 +39,8 @@
 		compact?: boolean;
 		/** A node pointed at from outside the map, a list beside it, whose place's card opens. */
 		pointed?: string;
+		/** The most the map may stand tall, a CSS length; its width follows, the rest left empty. */
+		tallest?: string;
 	} = $props();
 
 	const { node: toNode } = scoped();
@@ -301,103 +304,110 @@
 	});
 </script>
 
-<!-- A drag turns the globe once it is round; see spec/console/overview.md. -->
-<div
-	class="@container relative w-full select-none {view === 'globe'
-		? held
-			? 'cursor-grabbing'
-			: 'cursor-grab'
-		: ''}"
-	style:aspect-ratio="{WIDTH} / {HEIGHT}"
-	style:touch-action={view === 'globe' ? 'none' : undefined}
-	bind:clientWidth={mapWidth}
-	role="presentation"
-	onpointerdown={view === 'globe' ? grab : undefined}
-	onpointermove={view === 'globe' ? drag : undefined}
-	onpointerup={release}
-	onpointercancel={release}
->
-	{#if turned}
-		<canvas
-			bind:this={canvas}
-			class="pointer-events-none absolute inset-0 block size-full"
-			aria-hidden="true"
-		></canvas>
-	{:else}
-		<svg viewBox="0 0 {WIDTH} {HEIGHT}" class="absolute inset-0 block size-full" aria-hidden="true">
-			<!-- Each run of land is one line, dashed into square dots: scripts/project.ts. -->
-			<path
-				d={DOTS}
-				fill="none"
-				stroke-width={DOT}
-				stroke-dasharray="{DOT} {PITCH - DOT}"
-				class={stylex.attrs(styles.land).class}
-			/>
-		</svg>
-	{/if}
+<!-- The switch rides the column's corner; the map inside it keeps its shape, centered. -->
+<div class="relative w-full">
+	<!-- A drag turns the globe once it is round; see spec/console/overview.md. -->
+	<div
+		class="@container relative mx-auto w-full select-none {view === 'globe'
+			? held
+				? 'cursor-grabbing'
+				: 'cursor-grab'
+			: ''}"
+		style:aspect-ratio="{WIDTH} / {HEIGHT}"
+		style:max-width={tallest ? `calc(${tallest} * ${WIDTH} / ${HEIGHT})` : undefined}
+		style:touch-action={view === 'globe' ? 'none' : undefined}
+		bind:clientWidth={mapWidth}
+		role="presentation"
+		onpointerdown={view === 'globe' ? grab : undefined}
+		onpointermove={view === 'globe' ? drag : undefined}
+		onpointerup={release}
+		onpointercancel={release}
+	>
+		{#if turned}
+			<canvas
+				bind:this={canvas}
+				class="pointer-events-none absolute inset-0 block size-full"
+				aria-hidden="true"
+			></canvas>
+		{:else}
+			<svg
+				viewBox="0 0 {WIDTH} {HEIGHT}"
+				class="absolute inset-0 block size-full"
+				aria-hidden="true"
+			>
+				<!-- Each run of land is one line, dashed into square dots: scripts/project.ts. -->
+				<path
+					d={DOTS}
+					fill="none"
+					stroke-width={DOT}
+					stroke-dasharray="{DOT} {PITCH - DOT}"
+					class={stylex.attrs(styles.land).class}
+				/>
+			</svg>
+		{/if}
 
-	{#each sites as site (site.key)}
-		{@const shared = site.members.length > 1}
-		{@const spot = at.get(site.key) ?? { x: site.point[0], y: site.point[1], alpha: 1 }}
-		<a
-			href={toNode(site.lead)}
-			data-place={site.key}
-			data-node={site.lead}
-			data-state={site.state}
-			data-radius={site.radius}
-			aria-label="{shared
-				? `${site.name}, ${site.members.length} nodes`
-				: nodeLabel(site.lead)}, {WORDS[site.state].toLowerCase()}"
-			title={compact
-				? `${shared ? site.name : nodeLabel(site.lead)}: ${WORDS[site.state]}`
-				: undefined}
-			class="absolute block -translate-x-1/2 -translate-y-1/2 {stylex.attrs(styles.marker).class}"
-			style:z-index={lit === site.key ? 10 : undefined}
-			style:left={share(spot.x, WIDTH)}
-			style:top={share(spot.y, HEIGHT)}
-			style:opacity={spot.alpha < 1 ? spot.alpha : undefined}
-			style:visibility={spot.alpha < 0.05 ? 'hidden' : undefined}
-			style:width={across(site.radius)}
-			style:height={across(site.radius)}
-			onpointerenter={() => open(site.key)}
-			onpointerleave={leave}
-			onfocus={() => open(site.key)}
-			onfocusout={blur}
-		>
-			{#if site.state === 'live'}
-				<span
-					data-halo
-					class="absolute inset-0 {stylex.attrs(styles.halo).class}"
-					style:animation-duration="{site.period}s"
-					style:animation-delay="{-(site.phase * site.period).toFixed(2)}s"
-				></span>
-			{/if}
-			<span
-				class="absolute inset-0 {stylex.attrs(styles.fill, site.state === 'gone' && styles.gone)
-					.class}"
-				style:opacity={site.opacity}
-			></span>
-		</a>
-
-		{#if card?.key === site.key && !compact}
-			<!-- Right after its mark, so Tab moves from a shared place's mark into its rows. -->
-			<div
-				role="tooltip"
+		{#each sites as site (site.key)}
+			{@const shared = site.members.length > 1}
+			{@const spot = at.get(site.key) ?? { x: site.point[0], y: site.point[1], alpha: 1 }}
+			<a
+				href={toNode(site.lead)}
 				data-place={site.key}
-				class="absolute top-0 left-0 z-20 {shared ? '' : 'pointer-events-none'}"
-				style:visibility={placed ? 'visible' : 'hidden'}
-				style:transform={placed ? `translate(${placed.left}px, ${placed.top}px)` : undefined}
-				bind:clientWidth={cardWidth}
-				bind:clientHeight={cardHeight}
+				data-node={site.lead}
+				data-state={site.state}
+				data-radius={site.radius}
+				aria-label="{shared
+					? `${site.name}, ${site.members.length} nodes`
+					: nodeLabel(site.lead)}, {WORDS[site.state].toLowerCase()}"
+				title={compact
+					? `${shared ? site.name : nodeLabel(site.lead)}: ${WORDS[site.state]}`
+					: undefined}
+				class="absolute block -translate-x-1/2 -translate-y-1/2 {stylex.attrs(styles.marker).class}"
+				style:z-index={lit === site.key ? 10 : undefined}
+				style:left={share(spot.x, WIDTH)}
+				style:top={share(spot.y, HEIGHT)}
+				style:opacity={spot.alpha < 1 ? spot.alpha : undefined}
+				style:visibility={spot.alpha < 0.05 ? 'hidden' : undefined}
+				style:width={across(site.radius)}
+				style:height={across(site.radius)}
 				onpointerenter={() => open(site.key)}
 				onpointerleave={leave}
+				onfocus={() => open(site.key)}
 				onfocusout={blur}
 			>
-				<PlaceCard {site} {now} />
-			</div>
-		{/if}
-	{/each}
+				{#if site.state === 'live'}
+					<span
+						data-halo
+						class="absolute inset-0 {stylex.attrs(styles.halo).class}"
+						style:animation-duration="{site.period}s"
+						style:animation-delay="{-(site.phase * site.period).toFixed(2)}s"
+					></span>
+				{/if}
+				<span
+					class="absolute inset-0 {stylex.attrs(styles.fill, site.state === 'gone' && styles.gone)
+						.class}"
+					style:opacity={site.opacity}
+				></span>
+			</a>
 
+			{#if card?.key === site.key && !compact}
+				<!-- Right after its mark, so Tab moves from a shared place's mark into its rows. -->
+				<div
+					role="tooltip"
+					data-place={site.key}
+					class="absolute top-0 left-0 z-20 {shared ? '' : 'pointer-events-none'}"
+					style:visibility={placed ? 'visible' : 'hidden'}
+					style:transform={placed ? `translate(${placed.left}px, ${placed.top}px)` : undefined}
+					bind:clientWidth={cardWidth}
+					bind:clientHeight={cardHeight}
+					onpointerenter={() => open(site.key)}
+					onpointerleave={leave}
+					onfocusout={blur}
+				>
+					<PlaceCard {site} {now} />
+				</div>
+			{/if}
+		{/each}
+	</div>
 	{#if !compact}
 		<div class="absolute top-0 right-0 z-30">
 			<Segmented options={VIEWS} bind:value={view} label="Map view" />

@@ -103,15 +103,21 @@
 	<Verdict {live} {now} {keep} />
 	<section class="flex min-w-0 flex-col {stylex.attrs(surfaces.card).class}">
 		<h2 class="sr-only">Nodes</h2>
-		<div class="grid gap-6 p-5 xl:grid-cols-[18rem_minmax(0,1fr)]">
+		<div class="grid gap-6 p-5 xl:grid-cols-[15rem_minmax(0,1fr)]">
 			<Heard {live} cluster={data.cluster}>
 				<NodeList {live} bind:pointed />
 				{#snippet pending()}<Skeleton height={LIST} />{/snippet}
 			</Heard>
+			<!-- No taller than 26.25rem, its shape kept and the room either side left empty; see
+			     spec/console/overview.md, "The map is the page's whole picture". -->
 			<div class="min-w-0">
 				<Heard {live} cluster={data.cluster}>
-					<WorldMap states={live.view.nodes} now={live.now} {pointed} />
-					{#snippet pending()}<Skeleton ratio="{WIDTH} / {HEIGHT}" />{/snippet}
+					<WorldMap states={live.view.nodes} now={live.now} {pointed} tallest="26.25rem" />
+					{#snippet pending()}
+						<div class="mx-auto" style:max-width="calc(26.25rem * {WIDTH} / {HEIGHT})">
+							<Skeleton ratio="{WIDTH} / {HEIGHT}" />
+						</div>
+					{/snippet}
 				</Heard>
 			</div>
 		</div>
