@@ -6,10 +6,18 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 import { buildDefine } from '@canmi/web/build';
+import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
+import { sentrySvelteKit } from '@sentry/sveltekit/vite';
 
 // The repository root, as the site and the status page set it: StyleX hashes a class from the
 // file's path relative to this.
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
+
+// Sentry's plugin hands its browser half the `$app/state` tracing SvelteKit 3 needs; without it
+// the SDK reaches for the removed `$app/stores` and the page never hydrates. Maps upload only with
+// a token, which the console's build does not hold yet. See spec/architecture/console.md, "Errors
+// go to Sentry, and development sends nothing".
+const upload = uploadsSourceMaps(process.env);
 const stylexPlugin = stylex({
 	useCSSLayers: true,
 	unstable_moduleResolution: { type: 'commonJS', rootDir: ROOT },
@@ -21,6 +29,14 @@ export default defineConfig({
 	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
 	plugins: [
 		tailwindcss(),
+		sentrySvelteKit(
+			pluginOptions({
+				project: 'console',
+				upload,
+				env: process.env,
+				mapsToDelete: ['.svelte-kit/output/**/*.map'],
+			}),
+		),
 		sveltekit({
 			preprocess: vitePreprocess(),
 			compilerOptions: { runes: true },
@@ -48,5 +64,9 @@ export default defineConfig({
 			},
 		},
 	],
-	build: { target: 'es2023', rollupOptions: { output: { hashCharacters: 'hex' } } },
+	build: {
+		target: 'es2023',
+		sourcemap: sourcemapSetting(upload),
+		rollupOptions: { output: { hashCharacters: 'hex' } },
+	},
 });
