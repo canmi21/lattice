@@ -4,7 +4,7 @@
 	 * offset from that center; and its drawing's scale about it. The last two come from the icon's
 	 * row in ./optics.ts, or `optics` here, and move only the drawing, through its `viewBox`, so the
 	 * box -- and any focus ring around it -- stays put. A scaled drawing keeps its stroke weight. See
-	 * spec/architecture/console.md, "An icon is drawn in three layers".
+	 * spec/console/design.md, "An icon is drawn in three layers".
 	 */
 	import { OPTICS, type IconComponent, type Optics, viewBoxOf } from './optics.ts';
 

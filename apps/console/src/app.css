@@ -26,6 +26,19 @@
 	--color-danger: var(--color-red);
 	--color-busy: var(--color-blue);
 	--color-note: var(--color-blue-ink);
+	/* The site's blue, concrete's accent, in light and dark alike: what the keyboard's ring is
+	   drawn in, by the kit's interaction.css, and a selection's ground. Mono's own are two
+	   blues and a gray. See spec/console/design.md, "Accessibility". */
+	--color-accent: oklch(0.623 0.214 259.815);
+	--color-selection: var(--color-accent);
+}
+
+/* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,
+   with white on it in light and dark alike, since the blue is the same in both. See
+   spec/console/design.md, "Accessibility". */
+::selection {
+	background-color: var(--color-selection);
+	color: oklch(1 0 0);
 }
 
 /* Over mono's own `html` rule: every region is fixed, so the document shows only its ground. */
@@ -38,7 +51,7 @@ html {
 	--font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 }
 
-/* What carries no class: the document, a selection, the scrollbars, and a table's elements, which
+/* What carries no class: the document, the scrollbars, and a table's elements, which
    are too many to class one by one. Written to lose to anything a component says. */
 @layer base {
 	/* The page does not scroll: only the console's main region does. */
@@ -55,10 +68,6 @@ html {
 		font-size: 0.875rem;
 		line-height: 1.5;
 		-webkit-font-smoothing: antialiased;
-	}
-
-	::selection {
-		background-color: var(--color-selection);
 	}
 
 	* {

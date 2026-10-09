@@ -8,8 +8,10 @@
 	import { setView } from '#lib/scope/context.js';
 	import { displayOf, viewOf } from '#lib/scope/scope.js';
 	import { sectionOf, sectionsIn } from '#lib/sections.js';
-	import Sidebar from '#lib/sidebar.svelte';
-	import TopBar from '#lib/top-bar.svelte';
+	import { trackFocusSource } from '@canmi/kit/behavior/focus-source';
+	import Sidebar from '#lib/design/sidebar.svelte';
+	import SkipLink from '#lib/design/skip-link.svelte';
+	import TopBar from '#lib/design/top-bar.svelte';
 	import { provideActions } from '#lib/ui/actions.svelte.js';
 	import { setTimeZone } from '#lib/ui/time-zone.js';
 	import '../app.css';
@@ -60,6 +62,9 @@
 
 	// On mount, not in an effect: an effect reruns on what it reads, reopening the socket.
 	onMount(() => live.start());
+	// What the last input was, so a press known to be a pointer draws no focus ring; see
+	// spec/console/design.md, "Accessibility".
+	onMount(() => trackFocusSource());
 
 	/** The page scrolls inside `main`, so a new path starts at its top as the window would. */
 	let scroller: HTMLElement | undefined = $state();
@@ -90,6 +95,7 @@
 </svelte:head>
 
 <!-- Three fixed regions, and only the page scrolls. See spec/architecture/console.md. -->
+<SkipLink />
 <Sidebar {view} current={section} {live} nearest={data.nearest} />
 <TopBar
 	{view}
@@ -99,6 +105,8 @@
 	actions={actions.current}
 />
 <main
+	id="content"
+	tabindex="-1"
 	bind:this={scroller}
 	class="fixed top-14 right-0 bottom-0 left-60 overflow-y-auto overscroll-contain"
 >

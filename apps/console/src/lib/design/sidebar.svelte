@@ -12,18 +12,19 @@
 	import BellIcon from '@tabler/icons-svelte-runes/icons/bell';
 	import GitIcon from '@tabler/icons-svelte-runes/icons/git-merge';
 	import * as stylex from '@stylexjs/stylex';
-	import { border, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { border, duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { pickUrls } from '@monoflake/sdk';
 	import { imgsrc } from '@monoflake/sdk/imgsrc';
-	import type { Live } from './live.svelte.ts';
-	import { countryOf } from './map/places.ts';
-	import { type View, within } from './scope/scope.ts';
-	import { sectionsIn, type Section } from './sections.ts';
-	import { surfaces, tone } from './style.ts';
-	import Badge from './ui/badge.svelte';
-	import Icon from './ui/icon.svelte';
-	import IconButton from './ui/icon-button.svelte';
-	import { CONTRACT } from './wire.ts';
+	import type { Live } from '../live.svelte.ts';
+	import { countryOf } from '../map/places.ts';
+	import { type View, within } from '../scope/scope.ts';
+	import { sectionsIn, type Section } from '../sections.ts';
+	import { surfaces, tone } from '../style.ts';
+	import Badge from '../ui/badge.svelte';
+	import Find from './find.svelte';
+	import Icon from './icon.svelte';
+	import IconButton from './icon-button.svelte';
+	import { CONTRACT } from '../wire.ts';
 
 	let {
 		view,
@@ -70,7 +71,7 @@
 			fontSize: text.px14,
 			fontWeight: weight.medium,
 			transitionProperty: 'color, background-color',
-			transitionDuration: '120ms',
+			transitionDuration: duration.base,
 		},
 		here: {
 			backgroundColor: { default: 'var(--color-raised)', ':hover': 'var(--color-raised)' },
@@ -98,7 +99,7 @@
 				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
 			},
 			transitionProperty: 'background-color',
-			transitionDuration: '120ms',
+			transitionDuration: duration.base,
 		},
 		/** The dot's ring, the sidebar's ground, so it reads as cut out of the avatar's edge. */
 		presence: {
@@ -115,11 +116,18 @@
 </svelte:head>
 
 <aside
-	class="fixed inset-y-0 left-0 z-30 flex w-60 flex-col {stylex.attrs(surfaces.sidebar).class}"
+	aria-label="Console"
+	class="fixed inset-y-0 left-0 z-30 flex w-60 flex-col select-none {stylex.attrs(surfaces.sidebar)
+		.class}"
 >
+	<!-- As tall as the top bar, so the two heads read as one band. -->
+	<div class="flex h-14 shrink-0 items-center px-3">
+		<Find />
+	</div>
 	<!-- A section's load starts on hover; see spec/architecture/console.md. -->
 	<nav
-		class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 pt-4"
+		aria-label="Sections"
+		class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 pt-1"
 		data-sveltekit-preload-data="hover"
 	>
 		{#each sectionsIn(view) as section (section.path)}
@@ -141,13 +149,12 @@
 		</footer>
 	{/if}
 	<div class="flex shrink-0 items-center gap-2 px-2 py-2 {stylex.attrs(styles.rule).class}">
-		<!-- The menu waits on accounts; see spec/architecture/console.md. -->
+		<!-- The menu waits on accounts, and until it opens one nothing says it does; see
+		     spec/console/design.md, "Accessibility". -->
 		<button
 			type="button"
-			aria-label="Account menu"
-			aria-haspopup="menu"
-			aria-expanded="false"
-			class="flex min-w-0 flex-1 items-center gap-2.5 px-2 py-1.5 text-left {stylex.attrs(
+			aria-label="Account, {author.name}"
+			class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 px-2 py-1.5 text-left {stylex.attrs(
 				styles.menu,
 			).class}"
 		>
@@ -162,8 +169,7 @@
 				/>
 				<!-- Whether the socket is up, as a presence dot ringed in the sidebar's own ground. -->
 				<span
-					role="img"
-					aria-label={WORD[live.mode]}
+					aria-hidden="true"
 					class="absolute -right-0.5 -bottom-0.5 size-3 rounded-full bg-current {stylex.attrs(
 						tone[TONE[live.mode]],
 						styles.presence,
@@ -190,15 +196,11 @@
 				<Icon icon={GitIcon} size={18} />
 			</IconButton>
 			<!-- Notifications wait on a feed of their own; see spec/architecture/console.md. -->
-			<IconButton
-				label="Notifications"
-				variant="framed"
-				shape="circle"
-				size="sm"
-				aria-haspopup="menu"
-			>
+			<IconButton label="Notifications" variant="framed" shape="circle" size="sm">
 				<Icon icon={BellIcon} size={18} />
 			</IconButton>
 		</span>
 	</div>
+	<!-- The dot told in words, as the state changes, for a reader who cannot see it. -->
+	<span class="sr-only" role="status">{through}</span>
 </aside>

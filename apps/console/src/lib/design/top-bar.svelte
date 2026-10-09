@@ -5,15 +5,15 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { applyTheme, currentTheme, themeCookie } from '@canmi/kit/theme';
-	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { duration, figures, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import BrightnessIcon from '@tabler/icons-svelte-runes/icons/brightness-filled';
 	import type { Snippet } from 'svelte';
-	import Switcher from './scope/switcher.svelte';
-	import IconButton from './ui/icon-button.svelte';
-	import { type View, within } from './scope/scope.ts';
-	import type { Section } from './sections.ts';
-	import { surfaces, type } from './style.ts';
-	import { offsetOf, timeZone } from './ui/time-zone.ts';
+	import IconButton from './icon-button.svelte';
+	import Switcher from './switcher.svelte';
+	import { type View, within } from '../scope/scope.ts';
+	import type { Section } from '../sections.ts';
+	import { surfaces, type } from '../style.ts';
+	import { offsetOf, timeZone } from '../ui/time-zone.ts';
 
 	let {
 		view,
@@ -54,7 +54,7 @@
 		zone: {
 			color: 'var(--color-text-muted)',
 			fontSize: text.px13,
-			fontVariantNumeric: 'tabular-nums',
+			fontVariantNumeric: figures.tabular,
 		},
 	});
 
@@ -79,7 +79,7 @@
 {/snippet}
 
 <header
-	class="fixed top-0 right-0 left-60 z-30 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-4 px-8 {stylex.attrs(
+	class="fixed top-0 right-0 left-60 z-30 grid h-14 grid-cols-[1fr_auto_1fr] items-center gap-4 px-8 select-none {stylex.attrs(
 		surfaces.bar,
 	).class}"
 >
@@ -94,24 +94,29 @@
 				>
 				{@render slash()}
 				{#if code}
-					<span class="flex min-w-0 items-baseline gap-2" aria-current="page">
+					<!-- What a reader would quote is selectable in a bar that is not; see
+					     spec/console/design.md, "What can be selected". -->
+					<span class="flex min-w-0 items-baseline gap-2 select-text" aria-current="page">
 						<span class="truncate {stylex.attrs(styles.here).class}">{detail}</span>
 						<span class={stylex.attrs(type.mono, styles.code).class}>{code}</span>
 					</span>
 				{:else}
-					<span class="truncate {stylex.attrs(styles.here, type.mono).class}" aria-current="page"
-						>{detail}</span
+					<span
+						class="truncate select-text {stylex.attrs(styles.here, type.mono).class}"
+						aria-current="page">{detail}</span
 					>
 				{/if}
 			{:else}
-				<span class={stylex.attrs(styles.here).class} aria-current="page">{section.label}</span>
+				<span class="select-text {stylex.attrs(styles.here).class}" aria-current="page"
+					>{section.label}</span
+				>
 			{/if}
 		{/if}
 	</nav>
 	<div class="flex min-w-0 items-center gap-2 justify-self-end">
 		{@render actions?.()}
 		<!-- The request's zone, as the charts write it; see spec/architecture/console.md. -->
-		<span class={stylex.attrs(styles.zone).class} title={zone}>{offsetOf(zone)}</span>
+		<span class="select-text {stylex.attrs(styles.zone).class}" title={zone}>{offsetOf(zone)}</span>
 		<IconButton label="Switch between light and dark" onclick={toggleTheme}>
 			<!-- One mark for both, mirrored in the dark so its filled half changes side. -->
 			<BrightnessIcon size={18} aria-hidden="true" class="dark:-scale-x-100" />

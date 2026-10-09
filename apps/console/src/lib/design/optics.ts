@@ -1,7 +1,7 @@
 /**
  * Each icon's optical correction, in the units of its own 24-unit grid: how far its drawing moves
  * off the center of its box, and how much it is scaled about that center. One table, so an icon is
- * corrected the same way wherever it is drawn. See spec/architecture/console.md, "An icon is drawn
+ * corrected the same way wherever it is drawn. See spec/console/design.md, "An icon is drawn
  * in three layers".
  */
 import GitMerge from '@tabler/icons-svelte-runes/icons/git-merge';

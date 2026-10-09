@@ -3,7 +3,7 @@
 	 * A button that is only an icon, its `label` its name and its hover. `ghost` has no ground of its
 	 * own and rises on hover, for a bar's own controls; `framed` is ruled and filled, for a control
 	 * set apart from what is around it. Either is square or round, and with an `href` it is a link.
-	 * See spec/architecture/console.md, "It is black and white, drawn with semantic names".
+	 * See spec/console/design.md, "It is black and white, drawn with semantic names".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -36,12 +36,11 @@
 	const styles = stylex.create({
 		base: {
 			borderWidth: 0,
-			cursor: 'pointer',
 			transitionProperty: 'color, background-color, box-shadow',
 			transitionDuration: duration.base,
 		},
 		square: { borderRadius: radius.md },
-		circle: { borderRadius: '9999px' },
+		circle: { borderRadius: radius.full },
 		sm: { width: '1.75rem', height: '1.75rem' },
 		md: { width: '2rem', height: '2rem' },
 		ghost: {
@@ -71,7 +70,8 @@
 		rel={external ? 'noopener' : undefined}
 		aria-label={label}
 		title={label}
-		class="inline-flex shrink-0 items-center justify-center {kind}">{@render children()}</a
+		class="inline-flex shrink-0 cursor-pointer items-center justify-center {kind}"
+		>{@render children()}</a
 	>
 {:else}
 	<button
@@ -79,6 +79,7 @@
 		{...rest}
 		aria-label={label}
 		title={label}
-		class="inline-flex shrink-0 items-center justify-center {kind}">{@render children()}</button
+		class="inline-flex shrink-0 cursor-pointer items-center justify-center {kind}"
+		>{@render children()}</button
 	>
 {/if}
