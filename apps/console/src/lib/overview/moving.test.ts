@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { FleetEvent } from '../server/fleet.ts';
 import type { Run } from '../server/runs.ts';
 import type { Event, Held } from '../wire.ts';
-import { current, fromHistory, fromLive, type Step, what } from './moving.ts';
+import { current, fromHistory, fromLive, lines, type Step, what } from './moving.ts';
 
 const step = (over: Partial<Step>): Step => ({
 	run: 1,
@@ -207,5 +207,50 @@ describe('what is deploying now', () => {
 		);
 		expect(now.running.map((one) => one.run)).toEqual([2, 1]);
 		expect(now.failed.map((one) => one.run)).toEqual([4, 3]);
+	});
+});
+
+describe('lines of the overview', () => {
+	const at = (minute: number) => new Date(Date.UTC(2026, 9, 9, 12, minute)).toISOString();
+	const step = (overrides: Partial<Step>): Step => ({
+		source: 'run',
+		action: 'deploy',
+		node: 'tyo',
+		app: 'relay',
+		outcome: 'succeeded',
+		started_at: at(0),
+		finished_at: at(1),
+		...overrides,
+	});
+
+	it('gathers a run of one app into one line, its nodes beside', () => {
+		const gathered = lines([
+			step({ run: 7, node: 'tyo' }),
+			step({ run: 7, node: 'gvx' }),
+			step({ run: 7, node: 'buf', outcome: 'failed', stage: 'downloading', detail: 'gone' }),
+			step({ run: 7, app: 'site', node: 'tyo', finished_at: at(3) }),
+		]);
+		expect(gathered.map((one) => [one.app, one.nodes, one.outcome])).toEqual([
+			['site', ['tyo'], 'succeeded'],
+			['relay', ['tyo', 'gvx', 'buf'], 'failed'],
+		]);
+		expect(gathered[1]).toMatchObject({ run: 7, stage: 'downloading', detail: 'gone' });
+	});
+
+	it('says a line goes while any of its steps does', () => {
+		const [line] = lines([
+			step({ run: 8 }),
+			step({ run: 8, node: 'gvx', outcome: 'running', stage: 'uploading' }),
+		]);
+		expect(line).toMatchObject({ outcome: 'running', stage: 'uploading' });
+	});
+
+	it('gathers what no run started by its source and the ten minutes it began in', () => {
+		const gathered = lines([
+			step({ source: 'upload', node: 'tyo', started_at: at(1) }),
+			step({ source: 'upload', node: 'gvx', started_at: at(2) }),
+			step({ source: 'upload', node: 'buf', started_at: at(30), finished_at: at(31) }),
+		]);
+		expect(gathered.map((one) => one.nodes)).toEqual([['buf'], ['tyo', 'gvx']]);
 	});
 });

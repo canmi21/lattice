@@ -12,10 +12,10 @@ like, and what happened last. Each is one part, top to bottom, and nothing else 
 
 ## The page answers whether anything is wrong first
 
-**A line at the top says whether anything is wrong, and it is the only part that raises its
-voice.** With nothing wrong it is quiet -- the card's own ground, a green dot, `All systems normal`.
-With something wrong it takes the color of the worst of it, washed, and names each thing, worst
-first, each a link to where it is read: nodes not heard (bad), apps not running and deploys failed
+**A line at the top says whether anything is wrong, and only its dot changes color.** It stands
+on the card's own ground whatever it says -- a whole bar washed amber read as louder than anything
+it named -- with a green dot and `All systems normal` when nothing is wrong, and otherwise a dot the
+color of the worst of it and each thing named, worst first, each a link to where it is read: nodes not heard (bad), apps not running and deploys failed
 in the last day (warn). At its right, quiet either way, is whether anything is deploying. Until the
 live store holds the nodes it says it is listening, in grey, rather than guessing. It is a live
 region, so a reader who cannot see the color is told the line as it changes.
@@ -110,16 +110,20 @@ Figures are in the shell's face -- [design.md](design.md), "Words in the sans, f
 shell's face"; the figure is a step over the body and what it is out of a step under, so one line
 reads as one figure.
 
-## What happened is one line a step
+## What happened is one line a run's app
 
 **Under the map, two lists side by side: Activity, what is deploying and what finished last, and
-Failures, what failed last.** A step is one line -- a dot for how it went, the app, the node, what
-it is doing or how it ended, and how long ago -- and links to its run, or to its node's events
-where no run started it. A failure's reason is on its hover and on the run's page, never written
-out in the list, since three reasons written out filled the old panel. A success says so with its
-dot alone, its word in grey; only what is going or went wrong is said in color. **A skip is not
-activity**: a node a run had nothing for is left out, or a deploy to one app fills the list with
-every node it skipped.
+Failures, what failed in the last week.** A line is a run's placements of one app, however many
+nodes it went to -- a deploy to eight nodes is one line, not eight -- and what no run started, an
+upload or a panel's action, is gathered by who started it and the ten minutes it began in. A line
+is a dot for how it went, green done, blue going, red failed if any of its nodes failed; the app by
+its name, never its code; a flag a country it went to, three at most and the rest counted, `+2`,
+every node by name on the flags' hover; where it is or where it stopped, a quiet word -- the stage,
+blue while it goes -- and nothing at all for a success, whose dot says it; and how long ago, short
+and in the shell's face, `15m`, `8h`, `2d`. A line links to its run, or to its node's events where
+no run started it, and a failure's reason is on its hover. With nothing to list, what there is not
+is said in the middle of the card -- `No failures this week`. A failure older than a week is the
+deployments page's, not the overview's; the line at the top counts the last day's.
 
 ## Charts are their pages'
 

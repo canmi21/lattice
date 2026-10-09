@@ -1,8 +1,8 @@
 <script lang="ts">
 	/**
-	 * Whether anything is wrong, said first and in one line: quiet when nothing is, and otherwise
-	 * each thing that is, linked to where it is read. The only part of the overview that raises its
-	 * voice. See spec/console/overview.md, "The page answers whether anything is wrong first".
+	 * Whether anything is wrong, said first and in one line on the card's own ground: the dot takes
+	 * the color of the worst of it, and each thing wrong is named, linked to where it is read. See
+	 * spec/console/overview.md, "The page answers whether anything is wrong first".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -10,7 +10,7 @@
 	import { PLACES } from '../map/places.ts';
 	import { liveness } from '../node.ts';
 	import { scoped } from '../scope/context.ts';
-	import { surfaces, tone, wash } from '../style.ts';
+	import { surfaces, tone } from '../style.ts';
 	import type { Now } from './moving.ts';
 
 	let {
@@ -88,10 +88,7 @@
 <!-- Told as it changes, for a reader who cannot see its color. -->
 <div
 	role="status"
-	class="flex min-h-12 items-center gap-3 px-5 py-3 {stylex.attrs(
-		styles.bar,
-		wrong.length ? wash[level] : surfaces.card,
-	).class}"
+	class="flex min-h-12 items-center gap-3 px-5 py-3 {stylex.attrs(styles.bar, surfaces.card).class}"
 >
 	<span
 		aria-hidden="true"

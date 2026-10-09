@@ -48,13 +48,14 @@ function stepOf(node: string, event: Event): Step {
 
 /**
  * The runs' running placements and the running events no run owns, `apart`, then the
- * `failures` most recent failed of either and the `finished` most recent that did not fail.
+ * `failures` most recent failed of either and the `finished` most recent that did not fail: enough
+ * steps that, a run's placements gathered into one line, the overview's lists still fill.
  */
 export function fromHistory(
 	runs: Run[],
 	apart: FleetEvent[] = [],
-	failures = 5,
-	finished = 8,
+	failures = 40,
+	finished = 80,
 ): Step[] {
 	const steps: Step[] = runs.flatMap((run) =>
 		run.placements.map(
@@ -136,7 +137,7 @@ function latest(a: Step, b: Step): number {
 }
 
 /** `seed` overtaken by `live` wherever both hold a step: a snapshot's event is the newer. */
-export function current(seed: Step[], live: Step[], failures = 5, finished = 8): Now {
+export function current(seed: Step[], live: Step[], failures = 40, finished = 80): Now {
 	const held = new Map<string, Step>();
 	for (const step of seed) held.set(keyOf(step), step);
 	for (const step of live) {
@@ -180,4 +181,59 @@ export function what(step: Pick<Step, 'action' | 'source'>): string {
 	if (step.source === 'panel' || step.source === 'run') return said;
 	if (step.source === 'upload') return `${said} of an upload`;
 	return `${said} by ${step.source}`;
+}
+
+/** A run's placements of one app as one line, however many nodes it went to. */
+export interface Line {
+	key: string;
+	app: string;
+	/** The run it belongs to; none for what no run started, gathered by its source and moment. */
+	run?: number;
+	/** Its nodes, in the order their steps came. */
+	nodes: string[];
+	/** Going while any step goes; failed if any failed; else what the rest ended as. */
+	outcome: 'running' | 'failed' | 'succeeded';
+	/** Where it is, or where it stopped. */
+	stage?: string;
+	/** Why it failed, from the first step that did. */
+	detail?: string;
+	/** When it last moved. */
+	at: string;
+}
+
+const TEN_MINUTES = 600_000;
+
+/** `steps` gathered a line a run's app, newest first. See spec/console/overview.md. */
+export function lines(steps: Step[]): Line[] {
+	const gathered = new Map<string, Step[]>();
+	for (const step of steps) {
+		// What no run started is gathered by who started it and when, to the ten minutes: one
+		// upload's or one panel action's placements land within moments of each other.
+		const key =
+			step.run === undefined
+				? `${step.source} ${step.app} ${Math.floor(Date.parse(step.started_at) / TEN_MINUTES)}`
+				: `run ${step.run} ${step.app}`;
+		gathered.set(key, [...(gathered.get(key) ?? []), step]);
+	}
+	return [...gathered]
+		.map(([key, group]): Line => {
+			const going = group.find((one) => one.outcome === 'running');
+			const failed = group.find((one) => one.outcome === 'failed');
+			const telling = going ?? failed;
+			const first = group[0] as Step;
+			return {
+				key,
+				app: first.app,
+				...(first.run === undefined ? {} : { run: first.run }),
+				nodes: [...new Set(group.map((one) => one.node))],
+				outcome: going ? 'running' : failed ? 'failed' : 'succeeded',
+				...(telling?.stage ? { stage: telling.stage } : {}),
+				...(failed?.detail ? { detail: failed.detail } : {}),
+				at: group
+					.map((one) => one.finished_at ?? one.started_at)
+					.toSorted()
+					.at(-1) as string,
+			};
+		})
+		.toSorted((a, b) => Date.parse(b.at) - Date.parse(a.at));
 }

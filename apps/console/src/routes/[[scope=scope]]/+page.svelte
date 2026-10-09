@@ -13,7 +13,7 @@
 	import Activity from '#lib/overview/activity.svelte';
 	import Figures from '#lib/overview/figures.svelte';
 	import NodeList from '#lib/overview/node-list.svelte';
-	import { current, fromLive } from '#lib/overview/moving.js';
+	import { current, fromLive, lines } from '#lib/overview/moving.js';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { shows } from '#lib/scope/scope.js';
@@ -42,7 +42,15 @@
 				fromLive(live.view.nodes).filter((step) => keep(step.app)),
 			),
 	);
-	const recent = $derived(now ? [...now.running.flatMap((group) => group.steps), ...now.done] : []);
+	/** What is going and what finished last, a line a run's app. */
+	const recent = $derived(
+		now ? lines([...now.running.flatMap((group) => group.steps), ...now.done]) : [],
+	);
+	/** What failed in the last week, a line a run's app; older is the deployments page's. */
+	const WEEK = 7 * 86_400_000;
+	const failed = $derived(
+		now ? lines(now.failed).filter((line) => live.now - Date.parse(line.at) < WEEK) : [],
+	);
 
 	/** Whether the view holds anything yet: a run, or an app on a node; unknown counts as yes. */
 	const held = $derived(
@@ -71,10 +79,10 @@
 		<Card title="Activity">
 			{#if now}
 				<Activity
-					steps={recent}
+					lines={recent}
 					now={live.now}
 					label="What is deploying and what finished last, newest first"
-					empty="Nothing has deployed yet."
+					empty="Nothing has deployed yet"
 				/>
 			{:else}
 				<Skeleton height={LIST} />
@@ -83,10 +91,10 @@
 		<Card title="Failures">
 			{#if now}
 				<Activity
-					steps={now.failed}
+					lines={failed}
 					now={live.now}
-					label="The latest failures, newest first"
-					empty="No recent failures."
+					label="What failed this week, newest first"
+					empty="No failures this week"
 				/>
 			{:else}
 				<Skeleton height={LIST} />
