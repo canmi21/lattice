@@ -69,7 +69,8 @@ dots are what is drawn.
 
 ## A place's card says what the list does not
 
-**Pointing at a place opens a card of rows, a name and a value each**: uptime, role, apps,
+**Pointing at a place opens a card of rows, a name and a value each**: uptime, role, apps running
+of listed as `15/15`,
 and two rings with their figures, the processor's share busy and the memory in use written in `G`
 to one decimal. Uptime is its two largest units with no space inside one, `3d 2h`, and a node not
 heard says so in red in its place. No state and no last-heard clock: the dot in the list and the

@@ -51,7 +51,7 @@ describe('a place card on the server', () => {
 		}
 		expect(body).toContain('3d 0h');
 		expect(body).toContain('Not heard');
-		expect(body).toContain('9 of 9');
+		expect(body).toContain('9/9');
 		expect(body).toContain('0.5G');
 		// The code is the key, never the name; it is said only to assistive technology.
 		expect(body).not.toMatch(/>(tyo|nrt|hnd)</);

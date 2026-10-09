@@ -97,7 +97,7 @@
 		<!-- A word, in the sans; every other row is a figure, in the shell's face. -->
 		{ROLES[member.role]}
 	{:else if row === 'Apps'}
-		{member.apps ? `${member.apps.running} of ${member.apps.total}` : '–'}
+		{member.apps ? `${member.apps.running}/${member.apps.total}` : '–'}
 	{:else if row === 'CPU'}
 		{#if cpuOf(member) === undefined}–{:else}<Gauge
 				share={(member.cpu ?? 0) / 100}
