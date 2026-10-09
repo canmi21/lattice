@@ -24,3 +24,43 @@ export function arrive(node: HTMLElement): void {
 		{ autoAlpha: 1, y: 0, duration: 0.16, ease: 'power2.out', clearProps: 'transform' },
 	);
 }
+
+/** How far a level of the sidebar travels as it gives way, in pixels. */
+const STEP = 24;
+
+/**
+ * The sidebar moving between levels: `ghost`, a copy of the level left, slides off toward the side
+ * it is left by and is removed, and `panel`, the level now drawn, arrives from the other. `way` is
+ * 1 going deeper, so the old goes left and the new comes from the right, and -1 coming back up.
+ */
+export function pass(ghost: HTMLElement, panel: HTMLElement, way: 1 | -1): void {
+	if (stilled()) {
+		ghost.remove();
+		return;
+	}
+	gsap
+		.timeline()
+		.to(
+			ghost,
+			{
+				x: -STEP * way,
+				autoAlpha: 0,
+				duration: 0.14,
+				ease: 'power2.in',
+				onComplete: () => ghost.remove(),
+			},
+			0,
+		)
+		.fromTo(
+			panel,
+			{ x: STEP * way, autoAlpha: 0 },
+			{
+				x: 0,
+				autoAlpha: 1,
+				duration: 0.18,
+				ease: 'power2.out',
+				clearProps: 'transform,opacity,visibility',
+			},
+			0.06,
+		);
+}

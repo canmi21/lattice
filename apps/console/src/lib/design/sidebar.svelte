@@ -8,6 +8,8 @@
 	 * spec/architecture/console.md.
 	 */
 	import { dev } from '$app/env';
+	import { page } from '$app/state';
+	import { untrack } from 'svelte';
 	import { author } from '@canmi/me/identity';
 	import { SOURCE } from '@canmi/me/urls';
 	import BellIcon from '@tabler/icons-svelte-runes/icons/bell';
@@ -25,6 +27,7 @@
 	import Find from './find.svelte';
 	import Icon from './icon.svelte';
 	import IconButton from './icon-button.svelte';
+	import { pass } from './motion.ts';
 	import { CONTRACT } from '../wire.ts';
 
 	let { level, live, nearest }: { level: Level; live: Live; nearest: string | undefined } =
@@ -52,6 +55,61 @@
 			.join(', '),
 	);
 
+	/**
+	 * Whether `href` is the page being read, query and all: a click there goes nowhere, and one from
+	 * deeper -- a run under Deployments, a later page of Events -- goes back to it. See
+	 * spec/console/navigation.md, "A page's own entry goes nowhere".
+	 */
+	function isHere(href: string): boolean {
+		const to = new URL(href, page.url.href);
+		return to.pathname === page.url.pathname && to.search === page.url.search;
+	}
+
+	function stay(event: MouseEvent, href: string) {
+		const plain = event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey;
+		if (plain && !event.altKey && isHere(href)) event.preventDefault();
+	}
+
+	/**
+	 * The level drawn, and on a move to a deeper or a shallower one a copy of the old left over it to
+	 * slide away as the new arrives. Taken before the DOM changes, played after.
+	 */
+	let panel: HTMLElement | undefined = $state();
+	const identity = $derived(`${level.depth} ${level.up?.href ?? ''} ${level.name ?? ''}`);
+	let shown = { identity: untrack(() => identity), depth: untrack(() => level.depth) };
+	const leaving: { next?: { ghost: HTMLElement; way: 1 | -1 } } = {};
+	$effect.pre(() => {
+		const next = identity;
+		const depth = level.depth;
+		untrack(() => {
+			if (next === shown.identity) return;
+			if (panel && depth !== shown.depth) {
+				const ghost = panel.cloneNode(true) as HTMLElement;
+				ghost.inert = true;
+				ghost.setAttribute('aria-hidden', 'true');
+				Object.assign(ghost.style, {
+					position: 'absolute',
+					top: `${panel.offsetTop}px`,
+					left: `${panel.offsetLeft}px`,
+					width: `${panel.offsetWidth}px`,
+				});
+				leaving.next = { ghost, way: depth > shown.depth ? 1 : -1 };
+			}
+			shown = { identity: next, depth };
+		});
+	});
+	$effect(() => {
+		void identity;
+		untrack(() => {
+			const { next } = leaving;
+			leaving.next = undefined;
+			if (!next || !panel) return;
+			// Not `after`, which the Workers types beside the DOM's take for HTMLRewriter's.
+			panel.parentNode?.insertBefore(next.ghost, panel.nextSibling);
+			pass(next.ghost, panel, next.way);
+		});
+	});
+
 	const styles = stylex.create({
 		disc: { backgroundColor: 'var(--color-raised)' },
 		link: {
@@ -73,13 +131,9 @@
 			backgroundColor: { default: 'var(--color-raised)', ':hover': 'var(--color-raised)' },
 			color: { default: 'var(--color-text-strong)', ':hover': 'var(--color-text-strong)' },
 		},
-		/** The way back up: quieter than a page, since it leaves the level rather than opens one. */
+		/** The way back up: a page's size and hover, and never raised, since it is never open. */
 		back: {
-			borderRadius: radius.md,
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-			fontSize: text.px13,
-			transitionProperty: 'color',
-			transitionDuration: duration.base,
 		},
 		/** The level's own name, over its pages. */
 		title: {
@@ -141,37 +195,40 @@
 	<!-- A page's load starts on hover; see spec/architecture/console.md. -->
 	<nav
 		aria-label={level.name ?? 'Sections'}
-		class="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-3 pt-1"
+		class="relative flex-1 overflow-x-hidden overflow-y-auto px-3 pb-3 pt-1"
 		data-sveltekit-preload-data="hover"
 	>
-		{#if level.up}
-			<a
-				href={level.up.href}
-				class="-mt-0.5 flex h-7 items-center gap-2.5 px-3 {stylex.attrs(styles.back).class}"
-			>
-				<!-- On the pages' icon column, as the field's is. -->
-				<Icon icon={BackIcon} size={16} class="mx-px" />
-				{level.up.label}
-			</a>
-			<div class="flex min-w-0 items-baseline gap-2 px-3 pt-2 pb-1.5">
-				<span class="truncate {stylex.attrs(styles.title).class}">{level.name}</span>
-				{#if level.code}
-					<span class="shrink-0 {stylex.attrs(type.mono, styles.code).class}">{level.code}</span>
-				{/if}
-			</div>
-		{/if}
-		{#each level.items as item (item.key)}
-			{@const here = item.key === level.current}
-			<a
-				href={item.href}
-				aria-current={here ? 'page' : undefined}
-				class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, here && styles.here)
-					.class}"
-			>
-				<item.icon size={18} stroke={1.75} />
-				{item.label}
-			</a>
-		{/each}
+		<div bind:this={panel} class="flex flex-col gap-1">
+			{#if level.up}
+				<a
+					href={level.up.href}
+					class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, styles.back).class}"
+				>
+					<Icon icon={BackIcon} size={18} stroke={1.75} />
+					{level.up.label}
+				</a>
+				<div class="flex min-w-0 items-baseline gap-2 px-3 pt-2 pb-1.5">
+					<span class="truncate {stylex.attrs(styles.title).class}">{level.name}</span>
+					{#if level.code}
+						<span class="shrink-0 {stylex.attrs(type.mono, styles.code).class}">{level.code}</span>
+					{/if}
+				</div>
+			{/if}
+			{#each level.items as item (item.key)}
+				{@const here = item.key === level.current}
+				<!-- `page` where it is the page, `true` where the page is somewhere under it. -->
+				<a
+					href={item.href}
+					aria-current={here ? (isHere(item.href) ? 'page' : 'true') : undefined}
+					onclick={(event) => stay(event, item.href)}
+					class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, here && styles.here)
+						.class}"
+				>
+					<item.icon size={18} stroke={1.75} />
+					{item.label}
+				</a>
+			{/each}
+		</div>
 	</nav>
 	{#if live.view.refused !== undefined}
 		<footer class="flex shrink-0 px-6 pb-3">

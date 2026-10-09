@@ -36,6 +36,8 @@ export interface Crumb {
 }
 
 export interface Level {
+	/** How deep in the tree: a view's root is 0, a node or an app inside it 1. */
+	readonly depth: number;
 	/** The level's name, at the head of its pages; absent at a view's root. */
 	readonly name?: string;
 	readonly code?: string;
@@ -95,6 +97,7 @@ export function levelOf({ url, view, node, app, run }: Where): Level {
 		}));
 		const name = nameOf(node).full;
 		return {
+			depth: 1,
 			name,
 			code: node,
 			items,
@@ -119,6 +122,7 @@ export function levelOf({ url, view, node, app, run }: Where): Level {
 		const name = displayOf(app);
 		const code = name === app ? undefined : app;
 		return {
+			depth: 1,
 			name,
 			code,
 			items,
@@ -150,7 +154,7 @@ export function levelOf({ url, view, node, app, run }: Where): Level {
 						{ label: section.label, href: within(view, section.path) },
 						{ label: `#${run}`, mono: true },
 					];
-	return { items, current: section?.path, trail, section };
+	return { depth: 0, items, current: section?.path, trail, section };
 }
 
 /** The `<title>`: the one name the page is about. See spec/architecture/console.md. */

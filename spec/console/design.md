@@ -171,4 +171,7 @@ author chooses the animation library per project -- the site and the apps around
 parts rather than a component's springs, moves with GSAP. Every animation in the shell starts in
 `src/lib/design/motion.ts`, whose `stilled()` answers `prefers-reduced-motion` once for all of them,
 and true on the server, which draws no motion. A surface that opens -- the view's menu -- arrives
-from a step above where it rests, in 160 ms.
+from a step above where it rests, in 160 ms. A level of the sidebar giving way to the next leaves by sliding a step
+toward the side it is left by while the next arrives from the other, 140 ms out and 180 ms in,
+overlapped; the copy it slides away is inert and hidden from assistive technology, and is removed
+when it has gone -- [navigation.md](navigation.md).
