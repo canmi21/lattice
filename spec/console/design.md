@@ -2,7 +2,8 @@
 
 The console's own look, kept apart from what it does --
 [../architecture/console.md](../architecture/console.md). It covers the shell, the sidebar and the
-top bar, and the parts they are built from, all in `apps/console/src/lib/design/`. **The pages are
+top bar, and the parts they are built from, all in `apps/console/src/lib/design/`; where the reader
+is, which the shell draws, is [navigation.md](navigation.md). **The pages are
 not in it yet**: they were put together to bring the data through, and each is redrawn, and its
 rules written here, as it is taken up. Until then nothing on a page is a precedent for the shell.
 

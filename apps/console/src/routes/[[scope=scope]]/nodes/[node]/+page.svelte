@@ -9,11 +9,10 @@
 	import NodeEvents from '#lib/nodes/node-events.svelte';
 	import NodeHeader from '#lib/nodes/node-header.svelte';
 	import NodeOverview from '#lib/nodes/node-overview.svelte';
-	import { TABS, hrefOf } from '#lib/nodes/view.js';
+	import { hrefOf } from '#lib/nodes/view.js';
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import Segmented, { RANGES } from '#lib/ui/segmented.svelte';
 	import Skeleton from '#lib/ui/skeleton.svelte';
-	import Tabs from '#lib/ui/tabs.svelte';
 	import Unread from '#lib/unread.svelte';
 	import type { PageProps } from './$types';
 
@@ -31,12 +30,6 @@
 	const server = $derived(read.value?.ok ? read.value.data : undefined);
 	const machine = $derived(machineFor(held.view.nodes[data.name], server));
 	const row = $derived(nodeRow(data.name, held.view.nodes[data.name], server, clock.now));
-	const tabs = $derived(
-		TABS.map((tab) => ({
-			...tab,
-			href: hrefOf({ ...data.view, tab: tab.key, before: undefined }),
-		})),
-	);
 	/** A table's header and eight 44 px rows, before the read says how many it holds. */
 	const TABLE = 9 * 44;
 	const ranges = $derived(
@@ -56,10 +49,8 @@
 	<Unread what="The machine" failure={read.value.failure} />
 {/if}
 
-<!-- A tab is a link whose load streams, started on hover; see spec/architecture/console.md. -->
-<div data-sveltekit-preload-data="hover">
-	<Tabs {tabs} current={data.view.tab} label="{data.name}'s views" />
-
+<!-- The page open is the sidebar's; see spec/console/navigation.md. -->
+<div>
 	{#if data.view.tab === 'overview' && data.overview}
 		<div class="flex flex-col gap-4">
 			<NodeOverview

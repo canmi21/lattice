@@ -43,7 +43,8 @@ from the nodes it returns as promises SvelteKit streams, and the page awaits eac
 drawn, so a click shows the new page's layout, headings and cards in the same frame and each card
 fills as its read lands. The server renders that layout whole -- the first response is the page,
 never an empty shell -- and a chart that cannot be drawn on the server is drawn by the browser
-inside a card the server already placed. A tab is a link like any other and obeys the same rule.
+inside a card the server already placed. A level's page in the sidebar is a link like any other and
+obeys the same rule -- [../console/navigation.md](../console/navigation.md).
 
 **A node is shown by its city, and its code is the key.** What the console writes for a node is a
 display name, its city and its country -- `Tokyo, Japan`, `Raleigh, US`, the United States and the

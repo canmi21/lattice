@@ -10,7 +10,8 @@
 	import type { Snippet } from 'svelte';
 	import IconButton from './icon-button.svelte';
 	import Switcher from './switcher.svelte';
-	import { type View, within } from '../scope/scope.ts';
+	import type { Crumb } from '../levels.ts';
+	import type { View } from '../scope/scope.ts';
 	import type { Section } from '../sections.ts';
 	import { surfaces, type } from '../style.ts';
 	import { offsetOf, timeZone } from '../ui/time-zone.ts';
@@ -18,15 +19,14 @@
 	let {
 		view,
 		section,
-		detail,
-		code,
+		trail,
 		actions,
 	}: {
 		view: View;
+		/** The root's section the page sits under, which the switcher keeps across views. */
 		section?: Section;
-		detail?: string;
-		/** The key beside a `detail` that is a display name, as a node's city takes its code. */
-		code?: string;
+		/** Where the page is, from the level's trail; see spec/console/navigation.md. */
+		trail: readonly Crumb[];
 		actions?: Snippet;
 	} = $props();
 
@@ -87,31 +87,23 @@
 		<Switcher {view} {section} />
 	</div>
 	<nav aria-label="Breadcrumb" class="flex max-w-[40vw] min-w-0 items-center gap-2">
-		{#if section}
-			{#if detail}
-				<a href={within(view, section.path)} class="shrink-0 {stylex.attrs(styles.crumb).class}"
-					>{section.label}</a
-				>
-				{@render slash()}
-				{#if code}
-					<!-- What a reader would quote is selectable in a bar that is not; see
-					     spec/console/design.md, "What can be selected". -->
-					<span class="flex min-w-0 items-baseline gap-2 select-text" aria-current="page">
-						<span class="truncate {stylex.attrs(styles.here).class}">{detail}</span>
-						<span class={stylex.attrs(type.mono, styles.code).class}>{code}</span>
-					</span>
-				{:else}
-					<span
-						class="truncate select-text {stylex.attrs(styles.here, type.mono).class}"
-						aria-current="page">{detail}</span
-					>
-				{/if}
+		{#each trail as crumb, index (index)}
+			{#if index > 0}{@render slash()}{/if}
+			{#if crumb.href}
+				<a href={crumb.href} class="shrink-0 {stylex.attrs(styles.crumb).class}">{crumb.label}</a>
 			{:else}
-				<span class="select-text {stylex.attrs(styles.here).class}" aria-current="page"
-					>{section.label}</span
-				>
+				<!-- What a reader would quote is selectable in a bar that is not; see
+				     spec/console/design.md, "What can be selected". -->
+				<span class="flex min-w-0 items-baseline gap-2 select-text" aria-current="page">
+					<span class="truncate {stylex.attrs(styles.here, crumb.mono && type.mono).class}"
+						>{crumb.label}</span
+					>
+					{#if crumb.code}
+						<span class={stylex.attrs(type.mono, styles.code).class}>{crumb.code}</span>
+					{/if}
+				</span>
 			{/if}
-		{/if}
+		{/each}
 	</nav>
 	<div class="flex min-w-0 items-center gap-2 justify-self-end">
 		{@render actions?.()}

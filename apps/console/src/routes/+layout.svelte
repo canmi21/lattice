@@ -4,10 +4,9 @@
 	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { Live, provideLive } from '#lib/live.svelte.js';
-	import { nameOf } from '#lib/map/places.js';
 	import { setView } from '#lib/scope/context.js';
-	import { displayOf, viewOf } from '#lib/scope/scope.js';
-	import { sectionOf, sectionsIn } from '#lib/sections.js';
+	import { levelOf, titleOf } from '#lib/levels.js';
+	import { viewOf } from '#lib/scope/scope.js';
 	import { trackFocusSource } from '@canmi/kit/behavior/focus-source';
 	import Sidebar from '#lib/design/sidebar.svelte';
 	import SkipLink from '#lib/design/skip-link.svelte';
@@ -72,20 +71,16 @@
 		if (from?.url.pathname !== to?.url.pathname) scroller?.scrollTo({ top: 0 });
 	});
 
-	/** None for a section the view does not show, as Nodes in Services, whose page is a 404. */
-	const section = $derived.by(() => {
-		const one = sectionOf(page.url.pathname);
-		return one && sectionsIn(view).includes(one) ? one : undefined;
+	/** Where the reader is, which the sidebar, the trail and the title are drawn from. */
+	const where = $derived({
+		url: page.url,
+		view,
+		node: page.params.node,
+		app: page.params.app,
+		run: page.params.run,
 	});
-	/** A node or an app by its display name, its code beside it; see spec/architecture/console.md. */
-	const node = $derived(page.params.node);
-	const app = $derived(page.params.app);
-	const detail = $derived(node ? nameOf(node).full : app ? displayOf(app) : page.params.run);
-	const code = $derived(node ?? app);
-	/** The one name the page is about, and nothing around it. See spec/architecture/console.md. */
-	const name = $derived(
-		page.params.run ? `#${page.params.run}` : (code ?? detail ?? section?.label ?? 'Console'),
-	);
+	const level = $derived(levelOf(where));
+	const name = $derived(titleOf(level, where));
 </script>
 
 <svelte:head>
@@ -96,14 +91,8 @@
 
 <!-- Three fixed regions, and only the page scrolls. See spec/architecture/console.md. -->
 <SkipLink />
-<Sidebar {view} current={section} {live} nearest={data.nearest} />
-<TopBar
-	{view}
-	{section}
-	{detail}
-	code={detail === code ? undefined : code}
-	actions={actions.current}
-/>
+<Sidebar {level} {live} nearest={data.nearest} />
+<TopBar {view} section={level.section} trail={level.trail} actions={actions.current} />
 <main
 	id="content"
 	tabindex="-1"

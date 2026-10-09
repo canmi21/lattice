@@ -1,7 +1,8 @@
 <script lang="ts">
 	/**
-	 * Where the console goes: the sections the view shows, the one being read held raised; and at the
-	 * foot the account -- one button for the menu that waits on accounts, holding the avatar with a
+	 * Where the console goes: the pages of the level being read, the open one held raised, and inside
+	 * a node or an app the way back up above them -- spec/console/navigation.md; and at the foot the
+	 * account -- one button for the menu that waits on accounts, holding the avatar with a
 	 * dot for whether the socket is up, the name, and the relay's country -- beside a link to the
 	 * commit and the button notifications will open. Fixed down the left edge; see
 	 * spec/architecture/console.md.
@@ -10,6 +11,7 @@
 	import { author } from '@canmi/me/identity';
 	import { SOURCE } from '@canmi/me/urls';
 	import BellIcon from '@tabler/icons-svelte-runes/icons/bell';
+	import BackIcon from '@tabler/icons-svelte-runes/icons/chevron-left';
 	import GitIcon from '@tabler/icons-svelte-runes/icons/git-merge';
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -17,21 +19,15 @@
 	import { imgsrc } from '@monoflake/sdk/imgsrc';
 	import type { Live } from '../live.svelte.ts';
 	import { countryOf } from '../map/places.ts';
-	import { type View, within } from '../scope/scope.ts';
-	import { sectionsIn, type Section } from '../sections.ts';
-	import { surfaces, tone } from '../style.ts';
+	import type { Level } from '../levels.ts';
+	import { surfaces, tone, type } from '../style.ts';
 	import Badge from '../ui/badge.svelte';
 	import Find from './find.svelte';
 	import Icon from './icon.svelte';
 	import IconButton from './icon-button.svelte';
 	import { CONTRACT } from '../wire.ts';
 
-	let {
-		view,
-		current,
-		live,
-		nearest,
-	}: { view: View; current: Section | undefined; live: Live; nearest: string | undefined } =
+	let { level, live, nearest }: { level: Level; live: Live; nearest: string | undefined } =
 		$props();
 
 	const COMMIT = import.meta.env.VITE_COMMIT_HASH;
@@ -76,6 +72,24 @@
 		here: {
 			backgroundColor: { default: 'var(--color-raised)', ':hover': 'var(--color-raised)' },
 			color: { default: 'var(--color-text-strong)', ':hover': 'var(--color-text-strong)' },
+		},
+		/** The way back up: quieter than a page, since it leaves the level rather than opens one. */
+		back: {
+			borderRadius: radius.md,
+			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			fontSize: text.px13,
+			transitionProperty: 'color',
+			transitionDuration: duration.base,
+		},
+		/** The level's own name, over its pages. */
+		title: {
+			color: 'var(--color-text-strong)',
+			fontSize: text.px14,
+			fontWeight: weight.semibold,
+		},
+		code: {
+			color: 'var(--color-text-muted)',
+			fontSize: text.px12,
 		},
 		account: {
 			color: 'var(--color-text-strong)',
@@ -124,22 +138,38 @@
 	<div class="flex h-14 shrink-0 items-center px-3">
 		<Find />
 	</div>
-	<!-- A section's load starts on hover; see spec/architecture/console.md. -->
+	<!-- A page's load starts on hover; see spec/architecture/console.md. -->
 	<nav
-		aria-label="Sections"
+		aria-label={level.name ?? 'Sections'}
 		class="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-3 pt-1"
 		data-sveltekit-preload-data="hover"
 	>
-		{#each sectionsIn(view) as section (section.path)}
-			{@const here = section === current}
+		{#if level.up}
 			<a
-				href={within(view, section.path)}
+				href={level.up.href}
+				class="-mt-0.5 flex h-7 items-center gap-2.5 px-3 {stylex.attrs(styles.back).class}"
+			>
+				<!-- On the pages' icon column, as the field's is. -->
+				<Icon icon={BackIcon} size={16} class="mx-px" />
+				{level.up.label}
+			</a>
+			<div class="flex min-w-0 items-baseline gap-2 px-3 pt-2 pb-1.5">
+				<span class="truncate {stylex.attrs(styles.title).class}">{level.name}</span>
+				{#if level.code}
+					<span class="shrink-0 {stylex.attrs(type.mono, styles.code).class}">{level.code}</span>
+				{/if}
+			</div>
+		{/if}
+		{#each level.items as item (item.key)}
+			{@const here = item.key === level.current}
+			<a
+				href={item.href}
 				aria-current={here ? 'page' : undefined}
 				class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, here && styles.here)
 					.class}"
 			>
-				<section.icon size={18} stroke={1.75} />
-				{section.label}
+				<item.icon size={18} stroke={1.75} />
+				{item.label}
 			</a>
 		{/each}
 	</nav>

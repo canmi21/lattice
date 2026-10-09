@@ -22,7 +22,7 @@ export interface View {
 	before?: number;
 }
 
-export function viewOf(query: URLSearchParams): View {
+export function viewOf(query: Pick<URLSearchParams, 'get'>): View {
 	const tab = TABS.find(({ key }) => key === query.get('tab'))?.key ?? 'overview';
 	const range = RANGES.find((key) => key === query.get('range')) ?? '1h';
 	const before = Number(query.get('before'));

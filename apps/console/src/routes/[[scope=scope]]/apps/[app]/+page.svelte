@@ -2,6 +2,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { page } from '$app/state';
 	import { drifts, latest, lines, merge, placements, total } from '#lib/apps/apps.js';
+	import { appViewOf } from '#lib/apps/view.js';
 	import DatabasePanel from '#lib/apps/database-panel.svelte';
 	import HistoryTable from '#lib/apps/history-table.svelte';
 	import RolloutTag from '#lib/apps/rollout-tag.svelte';
@@ -28,6 +29,8 @@
 	let { data }: PageProps = $props();
 
 	const zone = timeZone();
+	/** The page open, which the sidebar lists; see spec/console/navigation.md. */
+	const tab = $derived(appViewOf(page.url.searchParams).tab);
 	const { node: toNode } = scoped();
 
 	// The cluster kept while another span is read; both dropped for another app.
@@ -100,7 +103,7 @@
 	<p class="p-4 {stylex.attrs(surfaces.empty, type.soft).class}">
 		No node runs {displayOf(data.app)}.
 	</p>
-{:else}
+{:else if tab === 'overview'}
 	{#if !reads.value}
 		<div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
 			{#each TILES as label (label)}<StatTile {label} pending="trend" />{/each}
@@ -165,7 +168,7 @@
 			href={`${page.url.pathname}/health`}
 		/>
 	{/if}
-
+{:else if tab === 'usage'}
 	<UsageCharts
 		app={data.app}
 		order={data.order}
@@ -174,7 +177,7 @@
 		until={data.span.until}
 		reveal={data.range}
 	/>
-
+{:else}
 	<Card title="Deploy history" flush>
 		{#if history}
 			<HistoryTable events={history.events} />
