@@ -72,18 +72,20 @@ dots are what is drawn.
 and two rings with their figures, the processor's share busy and the memory in use written in `G`
 to one decimal. Uptime is its two largest units with no space inside one, `3d 2h`, and a node not
 heard says so in red in its place. No state and no last-heard clock: the dot in the list and the
-mark's color already say whether a node is heard. The card's title is the place's name, after its
-country's flag, drawn by Twemoji -- flat, as the console is, where the system's emoji font is not --
-from `@twemoji/svg`, the maintained fork's package, whose graphics are CC-BY 4.0 by Twitter and its
-contributors; only the flags of the countries a node stands in are imported, and the build writes
-each into the page, being small. A node alone
-named by its country adds its city at the right, `Gävle`. **A shared place is named once and its
-nodes are columns** of the same rows, each headed by what tells it from the others there --
-`Tokyo`, `Narita`, `Haneda` -- never by its code, which is the key and not a name, said only to
-assistive technology; each head links to its node. The page's own table rules and padding are taken
-off the card's table. A row of each node's round trip to the database's primary waits on a
-measurement -- [../issues/console.md](../issues/console.md), "A node's latency to the database's
-primary is measured nowhere".
+mark's color already say whether a node is heard. The card's title is the place's name and nothing
+beside it -- no city for a node named by its country, no flag, which is the list's. **A shared
+place is named once and its nodes follow one under another**, a hairline between, each headed by
+what tells it from the others there -- `Tokyo`, `Narita`, `Haneda` -- never by its code, which is
+the key and not a name, said only to assistive technology; each head links to its node. One under
+another keeps the card narrow however many share a place; side by side it grew as wide as the map.
+A row of each node's round trip to the database's primary waits on a measurement --
+[../issues/console.md](../issues/console.md), "A node's latency to the database's primary is
+measured nowhere".
+
+**A country's flag stands before each place's name in the list**, drawn by Twemoji -- flat, as the
+console is, where the system's emoji font is not -- from `@twemoji/svg`, the maintained fork's
+package, whose graphics are CC-BY 4.0 by Twitter and its contributors; only the flags of the
+countries a node stands in are imported, and the build writes each into the page, being small.
 
 ## The figures are a line and a drawing each
 

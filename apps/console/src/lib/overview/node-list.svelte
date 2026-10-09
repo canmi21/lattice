@@ -1,14 +1,15 @@
 <script lang="ts">
 	/**
 	 * Every place beside the map, a line each under quiet headings: a dot for whether its nodes are
-	 * heard, its name whole, how many nodes stand there where it is more than one, how busy its
-	 * processors are and how much memory is in use. The rest of a place -- its apps, each node by
-	 * code -- is the map's card, which pointing at a line opens. A node's line links to it, a shared
-	 * place's to the nodes. See spec/console/overview.md, "The map is the page's whole picture".
+	 * heard, its country's flag, its name whole, how many nodes stand there where it is more than
+	 * one, how busy its processors are and how much memory is in use. The rest of a place is the
+	 * map's card, which pointing at a line opens. A node's line links to it, a shared place's to the
+	 * nodes. See spec/console/overview.md, "The map is the page's whole picture".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import type { Live } from '../live.svelte.ts';
+	import Flag from '../map/flag.svelte';
 	import { nameOf } from '../map/places.ts';
 	import { liveness, readings } from '../node.ts';
 	import { CODES } from '../nodes/facts.ts';
@@ -111,7 +112,8 @@
 							place.heard ? styles.heard : tone.bad,
 						).class}"
 					></span>
-					<span class="flex min-w-0 items-baseline gap-2">
+					<span class="flex min-w-0 items-center gap-2">
+						<Flag code={lead} size={14} />
 						<span class="truncate {stylex.attrs(styles.name).class}">{place.name}</span>
 						{#if shared}
 							<span class="shrink-0 {stylex.attrs(styles.count).class}"
