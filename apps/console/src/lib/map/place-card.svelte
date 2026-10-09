@@ -132,7 +132,9 @@
 	<dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
 		{#each ROWS as row (row)}
 			<dt class={stylex.attrs(styles.muted).class}>{row}</dt>
-			<dd class={stylex.attrs(styles.value).class}>{@render value(member, row)}</dd>
+			<dd class={stylex.attrs(styles.value, row !== 'Role' && type.shell).class}>
+				{@render value(member, row)}
+			</dd>
 		{/each}
 	</dl>
 {/snippet}
