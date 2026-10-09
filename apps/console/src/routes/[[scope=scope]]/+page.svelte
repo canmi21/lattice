@@ -1,8 +1,8 @@
 <script lang="ts">
 	/**
 	 * The view at a glance, in three parts: whether anything is wrong, the whole of it on the map
-	 * with its figures under it, and what happened last beside what failed. Charts are the pages'
-	 * that own them, Deployments' and Nodes'. See spec/console/overview.md.
+	 * with its figures under it, and the last day, a line a node. Charts are the pages' that own
+	 * them, Deployments' and Nodes'. See spec/console/overview.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -11,11 +11,10 @@
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
 	import WorldMap from '#lib/map/world-map.svelte';
 	import Heard from '#lib/nodes/heard.svelte';
-	import Activity from '#lib/overview/activity.svelte';
 	import Figures from '#lib/overview/figures.svelte';
 	import NodeList from '#lib/overview/node-list.svelte';
-	import { current, fromLive, lines } from '#lib/overview/moving.js';
-	import Stopped from '#lib/overview/stopped.svelte';
+	import { current, fromLive, merged } from '#lib/overview/moving.js';
+	import Timeline from '#lib/overview/timeline.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
@@ -23,7 +22,6 @@
 	import { surfaces } from '#lib/style.js';
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
-	import Segmented from '#lib/ui/segmented.svelte';
 	import Silent from '#lib/ui/silent.svelte';
 	import Skeleton from '#lib/ui/skeleton.svelte';
 	import Unread from '#lib/unread.svelte';
@@ -46,15 +44,8 @@
 				fromLive(live.view.nodes).filter((step) => keep(step.app)),
 			),
 	);
-	/** Everything, going, failed and finished, a line a run, newest first. */
-	const recent = $derived(
-		now ? lines([...now.running.flatMap((group) => group.steps), ...now.failed, ...now.done]) : [],
-	);
-	/** What failed in the last week, a line a run; older is the deployments page's. */
-	const WEEK = 7 * 86_400_000;
-	const failed = $derived(
-		now ? lines(now.failed).filter((line) => live.now - Date.parse(line.at) < WEEK) : [],
-	);
+	/** Every step known, the day's history and the live store's, which the timeline draws. */
+	const day = $derived(seed.value ? merged(seed.value, fromLive(live.view.nodes)) : []);
 
 	/** Whether the view holds anything: a run, or an app on a node; unknown counts as yes. */
 	const holds = (read: Awaited<typeof data.cluster>, deploys: Awaited<typeof data.deploys>) =>
@@ -68,10 +59,12 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
-	/** Which of the deployments the card lists. */
-	let showing: 'all' | 'failed' = $state('all');
-
 	const styles = stylex.create({
+		/** The legend's words, beside the marks they name. */
+		legend: { color: 'var(--color-text-muted)', fontSize: text.px12 },
+		done: { backgroundColor: 'color-mix(in srgb, var(--color-text) 55%, transparent)' },
+		going: { backgroundColor: 'var(--color-busy)' },
+		failed: { backgroundColor: 'var(--color-danger)' },
 		more: {
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 			fontSize: text.px13,
@@ -80,8 +73,8 @@
 		},
 	});
 
-	/** A step's row and the list's own padding, before the runs land. */
-	const LIST = 10 * 28;
+	/** The place list's and the timeline's height before their reads land. */
+	const LIST = 9 * 28;
 	/** The node the database is primary on, once read; each card's latency is to it. */
 	const primary = new Landed(
 		() => data.primary,
@@ -92,57 +85,32 @@
 </script>
 
 {#snippet lists()}
-	<div class="grid gap-4 xl:grid-cols-2">
-		<Card title="Deployments" flush>
-			{#snippet aside()}
-				<div class="flex items-center gap-3">
-					<Segmented
-						label="Which deployments"
-						bind:value={showing}
-						options={[
-							{ key: 'all', label: 'All' },
-							{ key: 'failed', label: failed.length ? `Failed ${failed.length}` : 'Failed' },
-						]}
-					/>
-					<a href={to('/deployments')} class={stylex.attrs(styles.more).class}>View all</a>
-				</div>
-			{/snippet}
-			<!-- As tall as its ten lines whichever is shown, so switching moves nothing below. -->
-			<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
-				{#if !now}
-					<Skeleton height={LIST} />
-				{:else if showing === 'all'}
-					<Activity
-						lines={recent}
-						now={live.now}
-						label="Every deployment, newest first"
-						empty="Nothing has deployed yet"
-					/>
-				{:else}
-					<Activity
-						lines={failed}
-						now={live.now}
-						label="What failed this week, newest first"
-						empty="No failures this week"
-					/>
-				{/if}
-			</div>
-		</Card>
-		<Card title="Not running" flush>
-			{#snippet aside()}
-				<!-- As tall as the switch beside the other card's title, so the two titles line up. -->
-				<a href={to('/apps')} class="flex h-[33px] items-center {stylex.attrs(styles.more).class}"
-					>View all</a
+	<Card title="Last 24 hours" flush>
+		{#snippet aside()}
+			<div class="flex items-center gap-4">
+				<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
+					<span class="h-3 w-0.5 rounded-[1px] {stylex.attrs(styles.done).class}"></span>deployed
+				</span>
+				<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
+					<span class="h-3 w-0.5 rounded-[1px] {stylex.attrs(styles.going).class}"></span>deploying
+				</span>
+				<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
+					<span class="size-2 rounded-full {stylex.attrs(styles.failed).class}"></span>failed
+				</span>
+				<a
+					href={to('/deployments')}
+					class="flex h-[33px] items-center {stylex.attrs(styles.more).class}">View all</a
 				>
-			{/snippet}
-			<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
-				<Heard {live} cluster={data.cluster}>
-					<Stopped {live} {keep} />
-					{#snippet pending()}<Skeleton height={LIST} />{/snippet}
-				</Heard>
 			</div>
-		</Card>
-	</div>
+		{/snippet}
+		<div class="px-5 pb-4">
+			{#if seed.value}
+				<Timeline {live} steps={day} {keep} nodes={data.nodes} />
+			{:else}
+				<Skeleton height={LIST} />
+			{/if}
+		</div>
+	</Card>
 {/snippet}
 
 <PageHeader title="Overview" />

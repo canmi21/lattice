@@ -8,7 +8,7 @@ and the question an operator opens it with was the third thing on its right.
 ## Three parts, in the order a reader asks
 
 **The overview answers three questions and stops**: whether anything is wrong, what the whole looks
-like, and what happened last. Each is one part, top to bottom, and nothing else is on the page.
+like, and what the day has been. Each is one part, top to bottom, and nothing else is on the page.
 
 ## The page answers whether anything is wrong first
 
@@ -126,38 +126,27 @@ and the median is the figure a deploy time means. Figures are in the shell's fac
 [design.md](design.md), "Words in the sans, figures in the shell's face"; the figure is a step over
 the body and what it is out of a step under, so one line reads as one figure.
 
-## What happened is one line a run
+## The day is a line a node
 
-**Under the map, at the left of two cards side by side, Deployments lists what happened, a line a
-run, with `All` and `Failed` on its title's right** -- the failed count beside the word -- **and
-`View all` to the deployments page.** Two lists side by side, Activity and Failures, each a line a
-run's app, were the card until 2026-10-09: the failures' half stood mostly empty, the same app's
-runs repeated down the other, and neither said how long a run took or what it built. A line is a run
-however many apps and nodes it went to, and what no run started, an upload or a panel's action, is
-one app's, gathered by who started it and the ten minutes it began in. Across a line, in columns
-fixed from the left so they read down the card: a dot for how it went, green done, blue going, red
-failed if any of it failed; its apps by name, never their codes, those that failed first, two named
-and the rest counted, `+3`; a flag a country it went to, three at most and the rest counted, every
-node by name on the flags' hover; where it is or where it stopped, a quiet word -- the stage, blue
-while it goes -- or, once it is done, how long it took, `41s`, `3m 5s`, in the shell's face; the
-commit its run built, seven characters; then, in the room left, why it failed or what was done by
-hand, `Redeploy`; and how long ago at the end, `15m`, `8h`, `2d`. A line links to its run, or to its
-node's events where no run started it. `All` is everything, newest first, ten lines; `Failed` is the
-last week's failures, ten at most, and older are the deployments page's -- the line at the top
-counts the last day's. The card keeps ten lines' height either way, so switching moves nothing
-below, and with nothing to list says so in its middle, `No failures this week`. Decided with the
-author on 2026-10-09.
-
-## What is not running stands beside what happened
-
-**At the right of Deployments, Not running lists the apps the view holds that are not running, a
-line an app**, however many nodes it stands stopped on, with `View all` to the apps: a dot, red
-where it should run and quiet where it was held on purpose, the app by its name, a flag a country it
-is stopped in, every node by name on the flags' hover, and `held` where every node held it. Those
-that should run come first. It names what the line at the top counts -- `3 apps not running` -- and
-with none says `Every app is running` in its middle. The two cards stand one row apart, Deployments
-alone at full width having left its successes' lines mostly empty, and their titles share one
-height, the switch's. Decided with the author on 2026-10-09.
+**Under the map, the last 24 hours are one card, a line a node, time running left to right**, the
+way the map above lays the nodes out in space. Each line is headed by the node's flag and the part
+of its place that tells it from the others there -- `Tokyo`, `Narita`, `Haneda`, as the place's card
+heads them -- amber while it is leaving and red when it is gone; along it, every step the node took
+that did something: a quiet tick where a deploy finished, as wide as it took where that shows, a
+blue one running on to now while it goes, and a red dot where it failed. A skip draws nothing. At
+its end, how many of the node's apps should run and do not, `2 down`, red, each named on its hover
+with those held on purpose; `1 held`, quiet, where only held ones stand stopped. One run's marks
+stand one above another across the lines, so a rollout reads down the card -- the canary first, the
+rest after -- and pointing at a mark dims every other run's. A mark's hover says the app, how it
+went, when and how long it took, and why where it failed; it links to its run, or to the node's
+events where no run started it. The hours are ticked on an axis under the lines, `24h`, `18h`,
+`12h`, `6h`, `now`, and never ruled through them, where a rule read as one more mark. The legend and
+`View all`, to the deployments page, sit on the title's right. In a view without nodes the lines are
+its eight busiest apps instead. It took the place on 2026-10-09 of two cards, the latest runs as
+lines beside the apps not running, which repeated one app's runs down the card and left the other
+mostly empty: the history is the deployments page's, and the overview's is the shape of the day. The
+load carries every step of the last day for it beside the verdict's; see `fromHistory`'s `since`.
+Decided with the author on 2026-10-09.
 
 ## Charts are their pages'
 

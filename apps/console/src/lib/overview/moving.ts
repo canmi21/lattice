@@ -51,14 +51,16 @@ function stepOf(node: string, event: Event): Step {
 
 /**
  * The runs' running placements and the running events no run owns, `apart`, then the
- * `failures` most recent failed of either and the `finished` most recent that did not fail: enough
- * steps that, a run's placements gathered into one line, the overview's lists still fill.
+ * `failures` most recent failed of either and the `finished` most recent that did not fail, and
+ * every step that started at `since` or later besides: enough for the verdict, and the whole of
+ * the day the timeline draws.
  */
 export function fromHistory(
 	runs: Run[],
 	apart: FleetEvent[] = [],
 	failures = 40,
 	finished = 80,
+	since = Number.POSITIVE_INFINITY,
 ): Step[] {
 	const steps: Step[] = runs.flatMap((run) =>
 		run.placements.map(
@@ -80,11 +82,13 @@ export function fromHistory(
 	steps.push(...latestApart(apart.map((event) => stepOf(event.node, event))));
 	const failed = steps.filter((step) => step.outcome === 'failed').toSorted(latest);
 	const done = steps.filter(isDone).toSorted(latest);
-	return [
+	const kept = new Set([
 		...steps.filter((step) => step.outcome === 'running'),
 		...failed.slice(0, failures),
 		...done.slice(0, finished),
-	];
+	]);
+	const recent = steps.filter((step) => !kept.has(step) && Date.parse(step.started_at) >= since);
+	return [...kept, ...recent];
 }
 
 /**
@@ -141,14 +145,19 @@ function latest(a: Step, b: Step): number {
 }
 
 /** `seed` overtaken by `live` wherever both hold a step: a snapshot's event is the newer. */
-export function current(seed: Step[], live: Step[], failures = 40, finished = 80): Now {
+export function merged(seed: Step[], live: Step[]): Step[] {
 	const held = new Map<string, Step>();
 	for (const step of seed) held.set(keyOf(step), step);
 	for (const step of live) {
 		const kept = held.get(keyOf(step));
 		if (!kept || kept.id === undefined || (step.id ?? 0) > kept.id) held.set(keyOf(step), step);
 	}
-	const steps = [...held.values()];
+	return [...held.values()];
+}
+
+/** What is going, failed and finished, of `seed` and `live` together; see `merged`. */
+export function current(seed: Step[], live: Step[], failures = 40, finished = 80): Now {
+	const steps = merged(seed, live);
 	const groups = new Map<string, Group>();
 	for (const step of steps.filter((one) => one.outcome === 'running')) {
 		const key = step.run === undefined ? `node ${step.node}` : `run ${step.run}`;
@@ -185,70 +194,4 @@ export function what(step: Pick<Step, 'action' | 'source'>): string {
 	if (step.source === 'panel' || step.source === 'run') return said;
 	if (step.source === 'upload') return `${said} of an upload`;
 	return `${said} by ${step.source}`;
-}
-
-/** A run as one line, however many apps and nodes it went to; or one thing done by hand. */
-export interface Line {
-	key: string;
-	/** The run it belongs to; none for what no run started, gathered by its source and moment. */
-	run?: number;
-	/** Its apps, those that failed first, then in the order their steps came. */
-	apps: string[];
-	/** What was done, where no run started it: `Redeploy`, `Deploy of an upload`. */
-	what?: string;
-	/** The commit its run built. */
-	commit?: string;
-	/** Its nodes, in the order their steps came. */
-	nodes: string[];
-	/** Going while any step goes; failed if any failed; else what the rest ended as. */
-	outcome: 'running' | 'failed' | 'succeeded';
-	/** Where it is, or where it stopped. */
-	stage?: string;
-	/** Why it failed, from the first step that did. */
-	detail?: string;
-	/** When it last moved. */
-	at: string;
-	/** Milliseconds from its first start to its last finish, once nothing of it goes. */
-	duration?: number;
-}
-
-const TEN_MINUTES = 600_000;
-
-/** `steps` gathered a line a run, newest first. See spec/console/overview.md. */
-export function lines(steps: Step[]): Line[] {
-	const gathered = new Map<string, Step[]>();
-	for (const step of steps) {
-		// What no run started is gathered by who started it and when, to the ten minutes: one
-		// upload's or one panel action's placements land within moments of each other.
-		const key =
-			step.run === undefined
-				? `${step.source} ${step.app} ${Math.floor(Date.parse(step.started_at) / TEN_MINUTES)}`
-				: `run ${step.run}`;
-		gathered.set(key, [...(gathered.get(key) ?? []), step]);
-	}
-	return [...gathered]
-		.map(([key, group]): Line => {
-			const going = group.find((one) => one.outcome === 'running');
-			const failed = group.find((one) => one.outcome === 'failed');
-			const telling = going ?? failed;
-			const first = group[0] as Step;
-			const apps = [...new Set(group.map((one) => one.app))];
-			const broke = new Set(group.filter((one) => one.outcome === 'failed').map((one) => one.app));
-			const ends = group.map((one) => Date.parse(one.finished_at ?? one.started_at));
-			const start = Math.min(...group.map((one) => Date.parse(one.started_at)));
-			const commit = group.find((one) => one.commit)?.commit;
-			return {
-				key,
-				...(first.run === undefined ? { what: what(first) } : { run: first.run }),
-				apps: [...apps.filter((app) => broke.has(app)), ...apps.filter((app) => !broke.has(app))],
-				...(commit ? { commit } : {}),
-				nodes: [...new Set(group.map((one) => one.node))],
-				outcome: going ? 'running' : failed ? 'failed' : 'succeeded',
-				...(telling?.stage ? { stage: telling.stage } : {}),
-				...(failed?.detail ? { detail: failed.detail } : {}),
-				at: new Date(Math.max(...ends)).toISOString(),
-				...(going ? {} : { duration: Math.max(...ends) - start }),
-			};
-		})
-		.toSorted((a, b) => Date.parse(b.at) - Date.parse(a.at));
 }
