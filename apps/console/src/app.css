@@ -24,7 +24,7 @@
 	   not. See spec/console/design.md, "Hover and choice are one wash at two strengths". */
 	--wash-ink: 0;
 	--wash: 0.05;
-	--color-hover: oklch(var(--wash-ink) 0 0 / calc(var(--wash) * 0.5));
+	--color-hover: oklch(var(--wash-ink) 0 0 / calc(var(--wash) * 0.7));
 	--color-selected: oklch(var(--wash-ink) 0 0 / var(--wash));
 	--color-line-faint: var(--color-paper-hover);
 	--color-line: oklch(0 0 0 / 0.08);

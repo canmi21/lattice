@@ -88,15 +88,15 @@ leaves the palette as it is. Decided with the author on 2026-10-09.
 
 ## Hover and choice are one wash at two strengths
 
-**What the pointer is over and what is chosen are the text's own color laid thin, the one at half
-the other.** A theme sets two values in `app.css`, the wash's ink -- black in the light, white in
-the dark -- and its full strength, 5 percent in the light and 7 in the dark; `--color-selected` is
-the full strength and `--color-hover` half of it, so the two tiers keep one ratio in both themes
-and a third tier is a third share, never a third gray. A chosen option sits a step off its frame
-and no more, where mono's 10 and 13 percent read as grey, and where the sidebar's solid
-`paper-hover` stood a whole gray step off the dark's black. Near black a few percent is a large
-step, the eye reading lightness by ratio, so the dark's strength is tuned by eye and not by
-symmetry. The sidebar's links, the segmented control, the account's button, the bar's icons and
+**What the pointer is over and what is chosen are the text's own color laid thin, the one at seven
+tenths of the other.** A theme sets two values in `app.css`, the wash's ink -- black in the light,
+white in the dark -- and its full strength, 5 percent in the light and 7 in the dark;
+`--color-selected` is the full strength and `--color-hover` seven tenths of it, so the two tiers
+keep one ratio in both themes and a third tier is a third share, never a third gray. A chosen option
+sits a step off its frame and no more, where mono's 10 and 13 percent read as grey, and where the
+sidebar's solid `paper-hover` stood a whole gray step off the dark's black. Near black a few percent
+is a large step, the eye reading lightness by ratio, so the dark's strength is tuned by eye and not
+by symmetry. The sidebar's links, the segmented control, the account's button, the bar's icons and
 the overview's rows all take these two. Decided with the author on 2026-10-09.
 
 ## Words in the sans, figures in the shell's face
