@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<title>%sveltekit.status% Error</title>
+		<!--
+			What SvelteKit sends when even the console's frame failed and routes/+error.svelte has
+			nowhere to stand: the same page, as static HTML that needs nothing else to load. Its
+			colors are the console's and its address @canmi/me's support box, written out. See
+			spec/console/design.md, "An error is the site's page, in the console's frame".
+		-->
+		<style>
+			:root {
+				color-scheme: light dark;
+				--ground: oklch(0.985 0 0);
+				--text: oklch(0.178 0 0);
+				--muted: oklch(0.387 0 0);
+				--line: oklch(0 0 0 / 0.08);
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--ground: oklch(0 0 0);
+					--text: oklch(0.937 0 0);
+					--muted: oklch(0.706 0 0);
+					--line: oklch(1 0 0 / 0.09);
+				}
+			}
+			body {
+				margin: 0;
+				background: var(--ground);
+				color: var(--text);
+				font-family: ui-sans-serif, system-ui, sans-serif;
+			}
+			main {
+				position: relative;
+				display: flex;
+				min-height: 100dvh;
+				align-items: center;
+				justify-content: center;
+				padding: 0 1.5rem;
+			}
+			.pair {
+				display: flex;
+				align-items: center;
+			}
+			h1 {
+				margin: 0;
+				padding-right: 1.5rem;
+				border-right: 1px solid var(--line);
+				font-size: 1.5rem;
+				font-weight: 500;
+				line-height: 3.0625rem;
+			}
+			.said {
+				margin: 0;
+				padding-left: 1.5rem;
+				font-size: 0.875rem;
+				line-height: 3.0625rem;
+			}
+			.offer {
+				position: absolute;
+				inset-inline: 0;
+				bottom: 4rem;
+				margin: 0;
+				text-align: center;
+				font-size: 0.8125rem;
+				color: var(--muted);
+			}
+			a {
+				color: var(--text);
+				text-underline-offset: 0.2em;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<div class="pair">
+				<h1 id="status">%sveltekit.status%</h1>
+				<p class="said" id="said">Something went wrong</p>
+			</div>
+			<p class="offer">
+				<a href="" onclick="location.reload(); return false">Try again</a>, or email
+				<a href="mailto:support@canmi.net">support@canmi.net</a>
+			</p>
+		</main>
+		<script>
+			// The protocol's name in the tab, as @canmi/web/error names it, and the 404's own words.
+			const status = document.getElementById('status').textContent.trim();
+			const named = { 404: 'Not Found', 500: 'Internal Server Error', 502: 'Bad Gateway', 503: 'Service Unavailable' };
+			document.title = `${status} ${named[status] ?? 'Error'}`;
+			if (status === '404') document.getElementById('said').textContent = 'This page could not be found';
+		</script>
+	</body>
+</html>
