@@ -98,7 +98,13 @@
 				<span class="my-1 h-5 w-16 {stylex.attrs(styles.placeholder).class}" aria-busy="true"
 				></span>
 			{:else}
-				<span class="flex items-baseline gap-1.5 whitespace-nowrap">
+				<!-- What it is out of sits against the figure, `102/105`, as the card writes it; a word
+				     such as `24h` stands a step apart. -->
+				<span
+					class="flex items-baseline whitespace-nowrap {rest?.startsWith('/')
+						? 'gap-0.5'
+						: 'gap-1.5'}"
+				>
 					<span class={stylex.attrs(type.shell, styles.figure).class}>{figure}</span>
 					{#if rest}<span class={stylex.attrs(type.shell, styles.rest).class}>{rest}</span>{/if}
 				</span>
@@ -132,11 +138,11 @@
 		{@render cell(
 			'Nodes',
 			known ? String(heard.filter((one) => one.shown === 'live').length) : undefined,
-			`/ ${CODES.length}`,
+			`/${CODES.length}`,
 			pips,
 		)}
 	{/if}
-	{@render cell('Apps', known ? String(apps.running) : undefined, `/ ${apps.total}`, running)}
+	{@render cell('Apps', known ? String(apps.running) : undefined, `/${apps.total}`, running)}
 	{#await deploys}
 		{@render cell('Deploys', undefined, undefined)}
 		{@render cell('Deploy time', undefined, undefined)}

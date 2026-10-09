@@ -15,6 +15,7 @@
 	import Figures from '#lib/overview/figures.svelte';
 	import NodeList from '#lib/overview/node-list.svelte';
 	import { current, fromLive, lines } from '#lib/overview/moving.js';
+	import Stopped from '#lib/overview/stopped.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
@@ -91,41 +92,57 @@
 </script>
 
 {#snippet lists()}
-	<Card title="Deployments" flush>
-		{#snippet aside()}
-			<div class="flex items-center gap-3">
-				<Segmented
-					label="Which deployments"
-					bind:value={showing}
-					options={[
-						{ key: 'all', label: 'All' },
-						{ key: 'failed', label: failed.length ? `Failed ${failed.length}` : 'Failed' },
-					]}
-				/>
-				<a href={to('/deployments')} class={stylex.attrs(styles.more).class}>View all</a>
+	<div class="grid gap-4 xl:grid-cols-2">
+		<Card title="Deployments" flush>
+			{#snippet aside()}
+				<div class="flex items-center gap-3">
+					<Segmented
+						label="Which deployments"
+						bind:value={showing}
+						options={[
+							{ key: 'all', label: 'All' },
+							{ key: 'failed', label: failed.length ? `Failed ${failed.length}` : 'Failed' },
+						]}
+					/>
+					<a href={to('/deployments')} class={stylex.attrs(styles.more).class}>View all</a>
+				</div>
+			{/snippet}
+			<!-- As tall as its ten lines whichever is shown, so switching moves nothing below. -->
+			<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
+				{#if !now}
+					<Skeleton height={LIST} />
+				{:else if showing === 'all'}
+					<Activity
+						lines={recent}
+						now={live.now}
+						label="Every deployment, newest first"
+						empty="Nothing has deployed yet"
+					/>
+				{:else}
+					<Activity
+						lines={failed}
+						now={live.now}
+						label="What failed this week, newest first"
+						empty="No failures this week"
+					/>
+				{/if}
 			</div>
-		{/snippet}
-		<!-- As tall as its ten lines whichever is shown, so switching moves nothing below. -->
-		<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
-			{#if !now}
-				<Skeleton height={LIST} />
-			{:else if showing === 'all'}
-				<Activity
-					lines={recent}
-					now={live.now}
-					label="Every deployment, newest first"
-					empty="Nothing has deployed yet"
-				/>
-			{:else}
-				<Activity
-					lines={failed}
-					now={live.now}
-					label="What failed this week, newest first"
-					empty="No failures this week"
-				/>
-			{/if}
-		</div>
-	</Card>
+		</Card>
+		<Card title="Not running" flush>
+			{#snippet aside()}
+				<!-- As tall as the switch beside the other card's title, so the two titles line up. -->
+				<a href={to('/apps')} class="flex h-[33px] items-center {stylex.attrs(styles.more).class}"
+					>View all</a
+				>
+			{/snippet}
+			<div class="flex flex-col px-3 pb-3" style:min-height="{LIST}px">
+				<Heard {live} cluster={data.cluster}>
+					<Stopped {live} {keep} />
+					{#snippet pending()}<Skeleton height={LIST} />{/snippet}
+				</Heard>
+			</div>
+		</Card>
+	</div>
 {/snippet}
 
 <PageHeader title="Overview" />

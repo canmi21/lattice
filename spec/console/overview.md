@@ -117,35 +117,47 @@ countries a node stands in are imported, and the build writes each into the page
 ## The figures are a line and a drawing each
 
 **Each of the four figures is a one-word name, then the figure and what it is out of on one line,
-and a small drawing of it at its right**: `Nodes`, `8 / 8`, a pip a node, blue heard and red not;
-`Apps`, `102 / 105`, a ring of those running; `Deploys`, `23 24h`, a ring, green, of those that
-succeeded; `Deploy time`, `58s p95 26m`, the last deploys' durations as a line. A run of words was
-what made the strip read badly -- `Median deploy, 30 d`, `100% succeeded` -- so a name is one word or
-two, the window is a figure beside the count, and the median is the figure a deploy time means.
-Figures are in the shell's face -- [design.md](design.md), "Words in the sans, figures in the
-shell's face"; the figure is a step over the body and what it is out of a step under, so one line
-reads as one figure.
+and a small drawing of it at its right**: `Nodes`, `8/8`, a pip a node, blue heard and red not;
+`Apps`, `102/105`, its total against it as the place's card writes it, a ring of those running;
+`Deploys`, `23 24h`, a ring, green, of those that succeeded; `Deploy time`, `58s p95 26m`, the last
+deploys' durations as a line. A run of words was what made the strip read badly -- `Median deploy,
+30 d`, `100% succeeded` -- so a name is one word or two, the window is a figure beside the count,
+and the median is the figure a deploy time means. Figures are in the shell's face --
+[design.md](design.md), "Words in the sans, figures in the shell's face"; the figure is a step over
+the body and what it is out of a step under, so one line reads as one figure.
 
 ## What happened is one line a run
 
-**Under the map, one card, Deployments, lists what happened, a line a run, with `All` and `Failed`
-on its title's right** -- the failed count beside the word -- **and `View all` to the deployments
-page.** Two lists side by side, Activity and Failures, each a line a run's app, were the card until
-2026-10-09: the failures' half stood mostly empty, the same app's runs repeated down the other, and
-neither said how long a run took or what it built. A line is a run however many apps and nodes it
-went to, and what no run started, an upload or a panel's action, is one app's, gathered by who
-started it and the ten minutes it began in. Across a line, in columns fixed from the left so they
-read down the card: a dot for how it went, green done, blue going, red failed if any of it failed;
-its apps by name, never their codes, those that failed first, two named and the rest counted, `+3`;
-a flag a country it went to, three at most and the rest counted, every node by name on the flags'
-hover; where it is or where it stopped, a quiet word -- the stage, blue while it goes -- or, once it
-is done, how long it took, `41s`, `3m 5s`, in the shell's face; the commit its run built, seven
-characters; then, in the room left, why it failed or what was done by hand, `Redeploy`; and how long
-ago at the end, `15m`, `8h`, `2d`. A line links to its run, or to its node's events where no run
-started it. `All` is everything, newest first, ten lines; `Failed` is the last week's failures, ten
-at most, and older are the deployments page's -- the line at the top counts the last day's. The card
-keeps ten lines' height either way, so switching moves nothing below, and with nothing to list says
-so in its middle, `No failures this week`. Decided with the author on 2026-10-09.
+**Under the map, at the left of two cards side by side, Deployments lists what happened, a line a
+run, with `All` and `Failed` on its title's right** -- the failed count beside the word -- **and
+`View all` to the deployments page.** Two lists side by side, Activity and Failures, each a line a
+run's app, were the card until 2026-10-09: the failures' half stood mostly empty, the same app's
+runs repeated down the other, and neither said how long a run took or what it built. A line is a run
+however many apps and nodes it went to, and what no run started, an upload or a panel's action, is
+one app's, gathered by who started it and the ten minutes it began in. Across a line, in columns
+fixed from the left so they read down the card: a dot for how it went, green done, blue going, red
+failed if any of it failed; its apps by name, never their codes, those that failed first, two named
+and the rest counted, `+3`; a flag a country it went to, three at most and the rest counted, every
+node by name on the flags' hover; where it is or where it stopped, a quiet word -- the stage, blue
+while it goes -- or, once it is done, how long it took, `41s`, `3m 5s`, in the shell's face; the
+commit its run built, seven characters; then, in the room left, why it failed or what was done by
+hand, `Redeploy`; and how long ago at the end, `15m`, `8h`, `2d`. A line links to its run, or to its
+node's events where no run started it. `All` is everything, newest first, ten lines; `Failed` is the
+last week's failures, ten at most, and older are the deployments page's -- the line at the top
+counts the last day's. The card keeps ten lines' height either way, so switching moves nothing
+below, and with nothing to list says so in its middle, `No failures this week`. Decided with the
+author on 2026-10-09.
+
+## What is not running stands beside what happened
+
+**At the right of Deployments, Not running lists the apps the view holds that are not running, a
+line an app**, however many nodes it stands stopped on, with `View all` to the apps: a dot, red
+where it should run and quiet where it was held on purpose, the app by its name, a flag a country it
+is stopped in, every node by name on the flags' hover, and `held` where every node held it. Those
+that should run come first. It names what the line at the top counts -- `3 apps not running` -- and
+with none says `Every app is running` in its middle. The two cards stand one row apart, Deployments
+alone at full width having left its successes' lines mostly empty, and their titles share one
+height, the switch's. Decided with the author on 2026-10-09.
 
 ## Charts are their pages'
 
