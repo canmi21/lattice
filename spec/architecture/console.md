@@ -85,22 +85,28 @@ is a small ring or bar filled to the share, the figure beside it short, and the 
 (`975.5 MiB of 23.4 GiB`) on hover; a table cell never carries a sentence a glance cannot read.
 
 **Every time is written in the reader's zone**, which Cloudflare names on the request, set once in
-the layout and read by every chart, so the server and the browser write the same text and the
-page does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is
+the layout and read by every chart, so the server and the browser write the same text and the page
+does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is
 projected when the console is built**, flat and as a grid of dots, so neither the Worker nor the
 browser carries a projection or a world's topology -- only the dots it drew. A globe is offered
 beside it, the same dots turned round by the browser on a canvas and loaded only when asked for --
-[../console/overview.md](../console/overview.md), "The globe is the flat map turned round". On both, a node's mark
-says how much it runs and how busy it is: its size says how much machine stands at its place -- the
-memory of every node there together, up to 2 GiB, under 8, or 8 and more, so one large machine and many
-small ones read alike -- its depth steps with the apps running on it from faint to solid, and a halo breathes around it faster as its CPU
-climbs -- still when the reader asks for reduced motion. A node has two states on the map, and its whole mark takes the state's color: blue when it
-is heard, red when it is gone. Late is not a state but a node between two snapshots, and is drawn
-as heard. The
-smallest step is two of the land's dots across, so a mark reads as part of the same grid. No line is drawn between nodes,
-and no name: a node's code and figures appear in a card on hover. **A mark is a place, not a machine**: nodes in one
-place -- Tokyo's three -- are one mark, its depth from the apps they run together, its breath from
-the busiest of them, red if any is gone, and its card listing each node.
+[../console/overview.md](../console/overview.md), "The globe is the flat map turned round". On both,
+a node's mark says how much it runs and how busy it is: its size says how much machine stands at its
+place -- the memory of every node there together, up to 2 GiB, under 8, or 8 and more, so one large
+machine and many small ones read alike -- its depth steps with the apps running on it from faint to
+solid, and a halo breathes around it faster as its CPU climbs -- still when the reader asks for
+reduced motion. **A node has three states on the map, the relay's `state` and never the browser's
+clock**, and its whole mark takes the state's color: blue when it is heard -- `live`, and `late`, a
+node between two snapshots -- amber when it said it is leaving -- `upgrading` or `restarting`, back
+within its `within` -- and red when it is gone. `waiting`, a peer a relay just started has not heard
+yet, is drawn neutral and never red. A place takes the worst of its nodes, gone over leaving over
+heard. The card says `Upgrading` or `Restarting` where it said the uptime, and the line at the top
+counts a node leaving apart from one gone -- platform's `spec/architecture/relay.md`, "A node says
+it is leaving before it goes". Decided with the author on 2026-10-09. The smallest step is two of
+the land's dots across, so a mark reads as part of the same grid. No line is drawn between nodes,
+and no name: a node's code and figures appear in a card on hover. **A mark is a place, not a
+machine**: nodes in one place -- Tokyo's three -- are one mark, its depth from the apps they run
+together, its breath from the busiest of them, red if any is gone, and its card listing each node.
 
 **Developing it reads the real nodes.** Each node's binding is declared `remote`, so `vite dev`
 reaches the same VPC services the deployed Worker does, with the read token in a `.dev.vars` written
