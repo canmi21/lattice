@@ -77,12 +77,6 @@
 		word: { fontFamily: 'var(--font-sans)' },
 		muted: { color: 'var(--color-text-muted)' },
 		value: { color: 'var(--color-text)', textAlign: 'right' },
-		/** A hairline between two nodes of a shared place, none above the first. */
-		apart: {
-			borderTopWidth: { default: '1px', ':first-child': '0' },
-			borderTopStyle: 'solid',
-			borderTopColor: 'var(--color-line-faint)',
-		},
 		head: {
 			color: 'var(--color-text-strong)',
 			fontWeight: weight.medium,
@@ -144,22 +138,48 @@
 		<span class={stylex.attrs(styles.title).class}>{nameOf(lone.code).full}</span>
 		{@render rows(lone)}
 	{:else}
-		<!-- A node under another, so the card stays narrow however many share the place. -->
-		<ul class="flex flex-col">
-			{#each site.members as member (member.code)}
-				<li
-					class="flex flex-col gap-1 py-2 first:pt-0.5 last:pb-0 {stylex.attrs(styles.apart).class}"
-				>
-					<a
-						href={toNode(member.code)}
-						data-row={member.code}
-						aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
-						class="self-start {stylex.attrs(styles.head).class}"
-						>{partOf(member.code)}, {countryOf(member.code)}</a
+		<!-- One table: the rows named once at the left, a little apart, and the place's nodes as
+		     close columns headed by their cities, the country in the corner over the names. The
+		     console's table rules and padding are for a page's tables, not a card's. -->
+		<table class="w-auto">
+			<thead>
+				<tr>
+					<th
+						scope="col"
+						class="border-0 p-0 pr-5 text-left font-normal {stylex.attrs(styles.muted).class}"
+						>{countryOf(site.members[0]?.code ?? site.key)}</th
 					>
-					{@render rows(member)}
-				</li>
-			{/each}
-		</ul>
+					{#each site.members as member (member.code)}
+						<th scope="col" class="border-0 py-0.5 pr-0 pl-3 text-right font-normal">
+							<a
+								href={toNode(member.code)}
+								data-row={member.code}
+								aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
+								class={stylex.attrs(styles.head).class}>{partOf(member.code)}</a
+							>
+						</th>
+					{/each}
+				</tr>
+			</thead>
+			<tbody>
+				{#each ROWS as row (row)}
+					<tr>
+						<th
+							scope="row"
+							class="border-0 p-0 py-0.5 pr-5 text-left font-normal {stylex.attrs(styles.muted)
+								.class}">{row}</th
+						>
+						{#each site.members as member (member.code)}
+							<td
+								class="border-0 py-0.5 pr-0 pl-3 whitespace-nowrap {stylex.attrs(
+									styles.value,
+									row !== 'Role' && type.shell,
+								).class}">{@render value(member, row)}</td
+							>
+						{/each}
+					</tr>
+				{/each}
+			</tbody>
+		</table>
 	{/if}
 </div>

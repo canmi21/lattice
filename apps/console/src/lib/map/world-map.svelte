@@ -47,6 +47,8 @@
 	} = $props();
 
 	const { node: toNode } = scoped();
+	const millisecondsOf = (seconds: number | undefined) =>
+		seconds === undefined ? undefined : seconds * 1000;
 
 	const WORDS: Record<Shown, string> = { live: 'Live', gone: 'Gone' };
 	const VIEWS = [
@@ -81,7 +83,11 @@
 					heard: held?.heard_at,
 					booted: machine?.booted,
 					primary: primary === code,
-					latency: primary === undefined ? undefined : held?.snapshot.round_trip_ms?.[primary],
+					// Seconds on the wire, milliseconds on the page.
+					latency:
+						primary === undefined
+							? undefined
+							: millisecondsOf(held?.snapshot.round_trip?.[primary]),
 					point: POINTS[code],
 				};
 			}),

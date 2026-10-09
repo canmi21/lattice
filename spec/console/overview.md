@@ -74,15 +74,19 @@ and two rings with their figures, the processor's share busy and the memory in u
 to one decimal. Uptime is its two largest units with no space inside one, `3d 2h`, and a node not
 heard says so in red in its place. No state and no last-heard clock: the dot in the list and the
 mark's color already say whether a node is heard. The card's title is the place's name and nothing
-beside it -- no city for a node named by its country, no flag, which is the list's. **A shared
-place has no title over its nodes**: they follow one under another, a hairline between, each headed
-by what tells it from the others there and its country, written as every place's name is --
-`Narita, Japan` -- never by its code, which is the key and not a name, said only to assistive
-technology; each head links to its node. One under
-another keeps the card narrow however many share a place; side by side it grew as wide as the map.
+beside it -- no city for a node named by its country, no flag, which is the list's. **A shared place is one table, read across**: the rows' names once at the left, a little apart,
+and the place's nodes as close columns, each headed by what tells it from the others there --
+`Tokyo`, `Narita`, `Haneda` -- with the country in the corner over the names, `Japan`, and no title
+above. One under another made the card as tall as the map, side by side with the names repeated
+made it as wide; the names once at the left keep it to both. A node's code is never its head --
+the code is the key and not a name, said only to assistive technology -- and each head links to
+its node.
+
 **The last row is latency, each node's round trip to the database's primary**, as its relay
 times its ping to that node's -- platform's `spec/architecture/relay.md`, "The round trip to each
-neighbor" -- a tenth of a millisecond under ten and whole above, `0.4ms`, `151ms`. The primary
+neighbor" -- carried in seconds, as every duration is, and written by the page in milliseconds, a
+tenth under ten and whole above, `0.4ms`, `151ms`: the wire keeps the one rule and the page wraps
+it for a reader, as it wraps a node's code in its city. The primary
 says `Primary` in its own row rather than a zero, and a node its relay has not timed lately says
 `–`, which is not the same as slow. Which node is primary the page reads once, from the `primary`
 proxy's health through the nearest node that answers, since the proxy runs on every node and

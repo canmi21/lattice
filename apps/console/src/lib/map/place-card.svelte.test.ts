@@ -30,7 +30,7 @@ const site = (members: Member[], overrides: Partial<Site> = {}): Site => ({
 });
 
 describe('a place card on the server', () => {
-	it('lists the nodes of a shared place one under another, each by its city and country', () => {
+	it('reads a shared place across: rows named at the left, a close column a city', () => {
 		const members = [
 			member('tyo', { role: 'core', apps: { running: 9, total: 9 }, cpu: 1.8 }),
 			member('nrt', { cpu: 3.96, booted: NOW / 1000 - 3 * 86_400 }),
@@ -39,16 +39,15 @@ describe('a place card on the server', () => {
 		const { body } = render(PlaceCard, {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
-		// No title over them: each node's head says where it is.
-		expect(body).toMatch(/data-site="tokyo">(?:\s|<!--[^>]*-->)*<ul/);
-		expect(body).toContain('>Narita, Japan</a>');
-		expect(body).not.toContain('<img');
+		// The country in the corner, over the rows' names; no title above the table.
+		expect(body).toMatch(/<th scope="col"[^>]*>Japan<\/th>/);
+		expect(body).not.toContain('Tokyo, Japan<');
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
 		}
-		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}, Japan</a>`);
-		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM']) {
-			expect(body.match(new RegExp(`>${row}</dt>`, 'g'))).toHaveLength(3);
+		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}</a>`);
+		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency']) {
+			expect(body.match(new RegExp(`>${row}</th>`, 'g'))).toHaveLength(1);
 		}
 		expect(body).toContain('3d 0h');
 		expect(body).toContain('Not heard');
@@ -64,7 +63,7 @@ describe('a place card on the server', () => {
 		expect(body).toContain('Sweden, European Union');
 		// The name is the country's and the union's; the card adds no city to it.
 		expect(body).not.toContain('Gävle');
-		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM']) {
+		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency']) {
 			expect(body).toContain(`>${row}</dt>`);
 		}
 		expect(body).toContain('1.5%');
