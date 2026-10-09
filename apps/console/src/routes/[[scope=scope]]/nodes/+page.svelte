@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { untrack } from 'svelte';
+	import { page } from '$app/state';
 	import Card from '#lib/card.svelte';
+	import Heatmap from '#lib/chart/heatmap.svelte';
 	import { percent } from '#lib/chart/numbers.js';
 	import StatTile from '#lib/chart/stat-tile.svelte';
 	import { live } from '#lib/live.svelte.js';
@@ -12,6 +14,7 @@
 	import { nodeRow, type NodeRow } from '#lib/nodes/machine.js';
 	import NodesTable from '#lib/nodes/nodes-table.svelte';
 	import { LIVENESS } from '#lib/nodes/words.js';
+	import FleetCharts from '#lib/overview/fleet-charts.svelte';
 	import Badge from '#lib/ui/badge.svelte';
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
@@ -62,9 +65,12 @@
 		return total ? read.reduce((sum, one) => sum + one.used, 0) / total : undefined;
 	});
 	const unread = $derived(Object.keys(machines.value?.failures ?? {}).length);
+	/** Rows of 24 px, an axis and a scale; see src/lib/chart/heatmap.svelte. */
+	const HEAT = CODES.length * 24 + 50;
+	const percentOf = (value: number) => `${Math.round(value)}%`;
 </script>
 
-<PageHeader title="Nodes">
+<PageHeader title="Nodes" range={data.range} query={page.url.search}>
 	{#snippet meta()}
 		<Heard live={held} cluster={data.cluster}>
 			{#each counts as { state, count } (state)}
@@ -124,4 +130,22 @@
 			<div class="px-5 pb-5"><Skeleton height={ROWS} /></div>
 		{/snippet}
 	</Heard>
+</Card>
+
+<FleetCharts fleet={data.fleet} since={data.span.since} until={data.span.until} span={data.range} />
+
+<Card title="CPU by the hour">
+	{#await data.heat}
+		<Skeleton height={HEAT} chart />
+	{:then heat}
+		<Heatmap
+			rows={heat.rows}
+			times={heat.times}
+			values={heat.values}
+			low={0}
+			high={100}
+			format={percentOf}
+			label="CPU per node per hour, the last 24 hours"
+		/>
+	{/await}
 </Card>

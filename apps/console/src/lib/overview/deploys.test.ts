@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Node } from '../server/nodes.ts';
 import type { Placement, Run } from '../server/runs.ts';
-import { byNode, daily, dayKey, figures, marks } from './deploys.ts';
+import { byNode, figures, marks } from './deploys.ts';
 
 const NOW = Date.parse('2026-10-06T12:00:00Z');
 const HOUR = 3_600_000;
@@ -36,25 +36,6 @@ function run(
 }
 
 describe('runs counted for the Overview', () => {
-	it('names the day a moment falls on in the zone asked', () => {
-		const late = Date.parse('2026-10-06T23:30:00Z');
-		expect(dayKey(late, 'UTC')).toBe('2026-10-06');
-		expect(dayKey(late, 'Asia/Tokyo')).toBe('2026-10-07');
-		expect(dayKey(late, 'America/New_York')).toBe('2026-10-06');
-	});
-
-	it('counts runs per day in the reader zone, today last and an empty day as zero', () => {
-		const runs = [
-			run(1, '2026-10-06T10:00:00Z'),
-			run(2, '2026-10-05T16:00:00Z'), // Oct 6 in Tokyo
-			run(3, '2026-10-04T10:00:00Z'),
-		];
-		const tokyo = daily(runs, NOW, 'Asia/Tokyo', 3);
-		expect(tokyo.labels).toEqual(['Oct 4', 'Oct 5', 'Oct 6']);
-		expect(tokyo.runs).toEqual([1, 0, 2]);
-		expect(daily(runs, NOW, 'UTC', 3).runs).toEqual([1, 1, 1]);
-	});
-
 	it('tallies each node by outcome, leaving out what is still running or too old', () => {
 		const runs = [
 			run(1, '2026-10-06T10:00:00Z', {}, [

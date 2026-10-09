@@ -48,9 +48,14 @@ function stepOf(node: string, event: Event): Step {
 
 /**
  * The runs' running placements and the running events no run owns, `apart`, then the
- * `failures` most recent failed of either.
+ * `failures` most recent failed of either and the `finished` most recent that did not fail.
  */
-export function fromHistory(runs: Run[], apart: FleetEvent[] = [], failures = 5): Step[] {
+export function fromHistory(
+	runs: Run[],
+	apart: FleetEvent[] = [],
+	failures = 5,
+	finished = 8,
+): Step[] {
 	const steps: Step[] = runs.flatMap((run) =>
 		run.placements.map(
 			({ node, app, action, outcome, stage, detail, started_at, finished_at }) => ({
@@ -69,8 +74,19 @@ export function fromHistory(runs: Run[], apart: FleetEvent[] = [], failures = 5)
 	);
 	steps.push(...latestApart(apart.map((event) => stepOf(event.node, event))));
 	const failed = steps.filter((step) => step.outcome === 'failed').toSorted(latest);
-	return [...steps.filter((step) => step.outcome === 'running'), ...failed.slice(0, failures)];
+	const done = steps.filter(isDone).toSorted(latest);
+	return [
+		...steps.filter((step) => step.outcome === 'running'),
+		...failed.slice(0, failures),
+		...done.slice(0, finished),
+	];
 }
+
+/**
+ * A step that has ended having done something: succeeded, or whatever host adds since. A skip is
+ * a node a run had nothing for, which is no activity; see spec/console/overview.md.
+ */
+const isDone = (step: Step) => !['running', 'failed', 'skipped'].includes(step.outcome);
 
 /** Every event each node's snapshot holds. */
 export function fromLive(nodes: Readonly<Record<string, Held>>): Step[] {
@@ -110,6 +126,8 @@ export interface Now {
 	running: Group[];
 	/** The most recent failed steps, newest first. */
 	failed: Step[];
+	/** The most recent steps that ended having done something, newest first. */
+	done: Step[];
 }
 
 /** Newest first, by when it finished or else when it started. */
@@ -118,7 +136,7 @@ function latest(a: Step, b: Step): number {
 }
 
 /** `seed` overtaken by `live` wherever both hold a step: a snapshot's event is the newer. */
-export function current(seed: Step[], live: Step[], failures = 5): Now {
+export function current(seed: Step[], live: Step[], failures = 5, finished = 8): Now {
 	const held = new Map<string, Step>();
 	for (const step of seed) held.set(keyOf(step), step);
 	for (const step of live) {
@@ -146,7 +164,8 @@ export function current(seed: Step[], live: Step[], failures = 5): Now {
 		(a, b) => first(b.steps) - first(a.steps) || (b.run ?? 0) - (a.run ?? 0),
 	);
 	const failed = steps.filter((one) => one.outcome === 'failed').toSorted(latest);
-	return { running, failed: failed.slice(0, failures) };
+	const done = steps.filter(isDone).toSorted(latest);
+	return { running, failed: failed.slice(0, failures), done: done.slice(0, finished) };
 }
 
 const first = (steps: Step[]) => Math.min(...steps.map((step) => Date.parse(step.started_at)));

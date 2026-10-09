@@ -1,46 +1,10 @@
 /**
- * The runs as the Overview counts them: per day in the reader's zone, per node by outcome, the
- * headline figures, and the moments drawn down the fleet's charts. Shaped on the server from
- * src/lib/server/runs.ts.
+ * The runs as the console counts them: per node by outcome, the overview's headline figures, and
+ * the moments drawn down the fleet's charts. Shaped on the server from src/lib/server/runs.ts.
  */
-import { tickLabel, UTC } from '../chart/series.ts';
 import { aggregates, type Run } from '../server/runs.ts';
 
 const DAY = 86_400_000;
-const keys = new Map<string, Intl.DateTimeFormat>();
-
-/** The day `at`, in milliseconds, falls on in `zone`, as `YYYY-MM-DD`. */
-export function dayKey(at: number, zone: string): string {
-	let writer = keys.get(zone);
-	if (!writer) {
-		const shape = { year: 'numeric', month: '2-digit', day: '2-digit' } as const;
-		writer = new Intl.DateTimeFormat('en-US', { ...shape, timeZone: zone });
-		keys.set(zone, writer);
-	}
-	const part = Object.fromEntries(writer.formatToParts(at).map((one) => [one.type, one.value]));
-	return `${part.year}-${part.month}-${part.day}`;
-}
-
-export interface Daily {
-	/** `Oct 6`, oldest first, ending today. */
-	labels: string[];
-	runs: number[];
-}
-
-/** Runs started on each of the last `days` days in `zone`, today last, an empty day as zero. */
-export function daily(of: Run[], now: number, zone: string, days = 30): Daily {
-	const today = Date.parse(`${dayKey(now, zone)}T00:00:00Z`);
-	const label = tickLabel(DAY, UTC);
-	const span = Array.from({ length: days }, (_, back) => today - (days - 1 - back) * DAY);
-	const index = new Map(span.map((at, place) => [new Date(at).toISOString().slice(0, 10), place]));
-	const runs = span.map(() => 0);
-	for (const run of of) {
-		const at = index.get(dayKey(Date.parse(run.first_start), zone));
-		if (at !== undefined) runs[at] = (runs[at] ?? 0) + 1;
-	}
-	return { labels: span.map((at) => label(new Date(at))), runs };
-}
-
 export interface Outcomes {
 	nodes: string[];
 	succeeded: number[];

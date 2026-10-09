@@ -1,21 +1,24 @@
 <script lang="ts">
+	/**
+	 * The view at a glance, in three parts: whether anything is wrong, the whole of it on the map
+	 * with its figures under it, and what happened last beside what failed. Charts are the pages'
+	 * that own them, Deployments' and Nodes'. See spec/console/overview.md.
+	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { page } from '$app/state';
+	import { border } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Card from '#lib/card.svelte';
-	import BarChart from '#lib/chart/bar-chart.svelte';
-	import Heatmap from '#lib/chart/heatmap.svelte';
-	import StackedBar from '#lib/chart/stacked-bar.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
-	import { nodeLabel, PLACES } from '#lib/map/places.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
 	import WorldMap from '#lib/map/world-map.svelte';
 	import Heard from '#lib/nodes/heard.svelte';
-	import FleetCharts from '#lib/overview/fleet-charts.svelte';
-	import NowPanel from '#lib/overview/now-panel.svelte';
-	import Tiles from '#lib/overview/tiles.svelte';
+	import Activity from '#lib/overview/activity.svelte';
+	import Figures from '#lib/overview/figures.svelte';
+	import { current, fromLive } from '#lib/overview/moving.js';
+	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { shows } from '#lib/scope/scope.js';
-	import { type } from '#lib/style.js';
+	import { surfaces } from '#lib/style.js';
+	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Silent from '#lib/ui/silent.svelte';
 	import Skeleton from '#lib/ui/skeleton.svelte';
@@ -27,18 +30,20 @@
 	const live = liveOf();
 	const keep = (app: string) => shows(data.view, app);
 
-	/** Every node failed, which is a failure to read rather than a quiet month. */
-	const unreadOf = (missing: unknown[]) =>
-		missing.length === Object.keys(PLACES).length ? 'No node answered.' : undefined;
-	const percent = (value: number) => `${Math.round(value)}%`;
-	/** Every read's silent nodes, said once at the top rather than under each chart. */
-	const silent = $derived(
-		Promise.all([data.fleet, data.deploys, data.heat]).then((reads) => [
-			...new Map(
-				reads.flatMap((read) => read?.missing ?? []).map((one) => [one.node, one]),
-			).values(),
-		]),
+	/** The runs' steps once they land, overtaken by the live store's as the nodes report. */
+	const seed = new Landed(
+		() => data.moving,
+		() => data.view,
 	);
+	const now = $derived(
+		seed.value &&
+			current(
+				seed.value,
+				fromLive(live.view.nodes).filter((step) => keep(step.app)),
+			),
+	);
+	const recent = $derived(now ? [...now.running.flatMap((group) => group.steps), ...now.done] : []);
+
 	/** Whether the view holds anything yet: a run, or an app on a node; unknown counts as yes. */
 	const held = $derived(
 		Promise.all([data.cluster, data.deploys]).then(
@@ -50,142 +55,88 @@
 				),
 		),
 	);
-	/** Rows of 24 px, an axis and a scale; see src/lib/chart/heatmap.svelte. */
-	const HEAT = Object.keys(PLACES).length * 24 + 50;
-	/** Rows of 28 px and the axis under them; see src/lib/chart/stacked-bar.svelte. */
-	const PLACED = Object.keys(PLACES).length * 28 + 26;
+	/** A step's row and the list's own padding, before the runs land. */
+	const LIST = 6 * 36;
+
+	const styles = stylex.create({
+		/** The figures under the map, or beside it from Tailwind's `lg` up, a hairline between. */
+		column: {
+			borderStyle: 'solid',
+			borderColor: 'var(--color-line)',
+			borderTopWidth: { default: border.hairlinePx, '@media (min-width: 64rem)': '0' },
+			borderLeftWidth: { default: '0', '@media (min-width: 64rem)': border.hairlinePx },
+			borderRightWidth: '0',
+			borderBottomWidth: '0',
+		},
+	});
 </script>
 
-{#snippet now()}
-	<Card title="Now">
-		{#await data.moving}
-			<Skeleton height={160} />
-		{:then seed}
-			<NowPanel {live} {seed} {keep} />
-		{/await}
-	</Card>
-{/snippet}
-
-{#snippet deploys()}
-	<section class="flex flex-col gap-3">
-		<h2 class={stylex.attrs(type.heading).class}>Deploys</h2>
-		<Card title="Deploys per day">
-			{#await data.deploys}
-				<Skeleton height={200} chart />
-			{:then deploys}
-				<BarChart
-					categories={deploys.daily.labels}
-					series={[
-						{
-							key: 'runs',
-							label: 'Runs',
-							color: 'var(--color-series-8)',
-							values: deploys.daily.runs,
-						},
-					]}
-					height={200}
-					error={unreadOf(deploys.missing)}
-					label="Runs started per day, the last 30 days"
+{#snippet lists()}
+	<div class="grid gap-4 xl:grid-cols-2">
+		<Card title="Activity">
+			{#if now}
+				<Activity
+					steps={recent}
+					now={live.now}
+					label="What is deploying and what finished last, newest first"
+					empty="Nothing has deployed yet."
 				/>
-			{/await}
-		</Card>
-		<div class="grid gap-4 {data.heat ? 'xl:grid-cols-2' : ''}">
-			<Card title="Placements by node">
-				{#await data.deploys}
-					<Skeleton height={PLACED} chart />
-				{:then { outcomes, missing }}
-					<StackedBar
-						categories={outcomes.nodes.map((node) => nodeLabel(node, 'lead'))}
-						orientation="horizontal"
-						series={[
-							{
-								key: 'succeeded',
-								label: 'Succeeded',
-								color: 'var(--color-good)',
-								values: outcomes.succeeded,
-							},
-							{
-								key: 'failed',
-								label: 'Failed',
-								color: 'var(--color-danger)',
-								values: outcomes.failed,
-							},
-							{
-								key: 'skipped',
-								label: 'Skipped',
-								color: 'var(--color-text-faint)',
-								values: outcomes.skipped,
-							},
-						]}
-						error={unreadOf(missing)}
-						label="Placements per node by outcome, the last 30 days"
-					/>
-				{/await}
-			</Card>
-			{#if data.heat}
-				<Card title="CPU by the hour">
-					{#await data.heat}
-						<Skeleton height={HEAT} chart />
-					{:then heat}
-						<Heatmap
-							rows={heat.rows}
-							times={heat.times}
-							values={heat.values}
-							low={0}
-							high={100}
-							format={percent}
-							label="CPU per node per hour, the last 24 hours"
-						/>
-					{/await}
-				</Card>
+			{:else}
+				<Skeleton height={LIST} />
 			{/if}
-		</div>
-	</section>
+		</Card>
+		<Card title="Failures">
+			{#if now}
+				<Activity
+					steps={now.failed}
+					now={live.now}
+					label="The latest failures, newest first"
+					empty="No recent failures."
+				/>
+			{:else}
+				<Skeleton height={LIST} />
+			{/if}
+		</Card>
+	</div>
 {/snippet}
 
-<PageHeader title="Overview" range={data.fleet ? data.range : undefined} query={page.url.search} />
+<PageHeader title="Overview" />
 
-{#await silent then nodes}<Silent {nodes} />{/await}
+{#await data.deploys then { missing }}<Silent nodes={missing} />{/await}
 
 {#await data.cluster then read}
 	{#if !read.ok}<Unread what="The cluster" failure={read.failure} />{/if}
 {/await}
 
-<!-- The nodes and their charts are All's and Infra's; see spec/architecture/console.md. -->
-{#if data.fleet}
-	<Tiles {live} cluster={data.cluster} deploys={data.deploys} {keep} />
-
-	<div class="grid gap-4 xl:grid-cols-3">
-		<div class="flex min-w-0 xl:col-span-2 [&>section]:flex-1">
-			<Card title="Nodes">
-				<Heard {live} cluster={data.cluster}>
-					<WorldMap states={live.view.nodes} now={live.now} />
-					{#snippet pending()}<Skeleton ratio="{WIDTH} / {HEIGHT}" />{/snippet}
-				</Heard>
-			</Card>
+<!-- The nodes are All's and Infra's; see spec/architecture/console.md. -->
+{#if data.nodes}
+	<Verdict {live} {now} {keep} />
+	<section
+		class="grid min-w-0 lg:grid-cols-[minmax(0,1fr)_15rem] {stylex.attrs(surfaces.card).class}"
+	>
+		<h2 class="sr-only">Nodes</h2>
+		<div class="min-w-0 p-5">
+			<Heard {live} cluster={data.cluster}>
+				<WorldMap states={live.view.nodes} now={live.now} />
+				{#snippet pending()}<Skeleton ratio="{WIDTH} / {HEIGHT}" />{/snippet}
+			</Heard>
 		</div>
-		{@render now()}
-	</div>
-
-	{#if data.fleet}
-		<FleetCharts
-			fleet={data.fleet}
-			since={data.span.since}
-			until={data.span.until}
-			span={data.range}
-		/>
-	{/if}
-
-	{@render deploys()}
+		<div class={stylex.attrs(styles.column).class}>
+			<Figures {live} deploys={data.deploys} {keep} stacked />
+		</div>
+	</section>
+	{@render lists()}
 {:else}
 	<!-- The empty state's own height, as either may follow. -->
 	{#await held}
 		<Skeleton height={192} />
 	{:then any}
 		{#if any}
-			<Tiles {live} cluster={data.cluster} deploys={data.deploys} {keep} nodes={false} />
-			{@render now()}
-			{@render deploys()}
+			<Verdict {live} {now} {keep} nodes={false} />
+			<section class={stylex.attrs(surfaces.card).class}>
+				<Figures {live} deploys={data.deploys} {keep} nodes={false} />
+			</section>
+			{@render lists()}
 		{:else}
 			<Empty view={data.view} />
 		{/if}

@@ -61,7 +61,7 @@ const keeper = (outcome: string, detail: string, id: number) => ({
 });
 
 describe('what is deploying now', () => {
-	it('seeds from the runs: every running placement and the latest failures', () => {
+	it('seeds from the runs: every running placement, the latest failures and finishes', () => {
 		const runs = [
 			{
 				run: 9,
@@ -88,6 +88,7 @@ describe('what is deploying now', () => {
 		expect(seed.map((one) => [one.run, one.node, one.outcome])).toEqual([
 			[9, 'tyo', 'running'],
 			[8, 'buf', 'failed'],
+			[9, 'gvx', 'succeeded'],
 		]);
 		expect(seed[1]?.stage).toBe('loading');
 	});

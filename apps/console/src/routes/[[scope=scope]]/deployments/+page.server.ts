@@ -1,3 +1,4 @@
+import { byNode } from '#lib/overview/deploys.js';
 import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { ALL } from '#lib/server/fleet.js';
@@ -25,6 +26,8 @@ export const load: PageServerLoad = (event) => {
 			aggregates: aggregates(
 				read.runs.filter((run) => now - Date.parse(run.first_start) < DAYS * 86_400_000),
 			),
+			// Came from the overview; see spec/console/overview.md, "Charts are their pages'".
+			outcomes: byNode(read.runs, ALL, now - DAYS * 86_400_000),
 		})),
 	};
 };

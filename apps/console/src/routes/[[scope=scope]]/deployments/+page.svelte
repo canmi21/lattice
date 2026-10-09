@@ -10,6 +10,7 @@
 	import Queue from '#lib/deployments/queue.svelte';
 	import { stirring } from '#lib/deployments/stir.js';
 	import { live } from '#lib/live.svelte.js';
+	import { nodeLabel } from '#lib/map/places.js';
 	import Empty from '#lib/scope/empty.svelte';
 	import type { Node } from '#lib/server/nodes.js';
 	import { surfaces, type } from '#lib/style.js';
@@ -60,6 +61,8 @@
 	]);
 	/** The table's header and eight 44 px rows, before the read says how many it holds. */
 	const TABLE = 9 * 44;
+	/** Rows of 28 px and the axis under them; see src/lib/chart/stacked-bar.svelte. */
+	const PLACED = $derived(data.nodes.length * 28 + 26);
 </script>
 
 <PageHeader title="Deployments" />
@@ -85,17 +88,51 @@
 		{/if}
 	</div>
 
-	<Card title="Runs per day">
-		{#if read.value}
-			<StackedBar
-				categories={bars.categories}
-				series={bars.series}
-				label="Runs per day over the last {data.days} days, by state"
-			/>
-		{:else}
-			<Skeleton height={BARS} chart />
-		{/if}
-	</Card>
+	<div class="grid gap-4 xl:grid-cols-2">
+		<Card title="Runs per day">
+			{#if read.value}
+				<StackedBar
+					categories={bars.categories}
+					series={bars.series}
+					label="Runs per day over the last {data.days} days, by state"
+				/>
+			{:else}
+				<Skeleton height={BARS} chart />
+			{/if}
+		</Card>
+		<Card title="Placements by node, {data.days} days">
+			{#if read.value}
+				{@const { outcomes } = read.value}
+				<StackedBar
+					categories={outcomes.nodes.map((node) => nodeLabel(node, 'lead'))}
+					orientation="horizontal"
+					series={[
+						{
+							key: 'succeeded',
+							label: 'Succeeded',
+							color: 'var(--color-good)',
+							values: outcomes.succeeded,
+						},
+						{
+							key: 'failed',
+							label: 'Failed',
+							color: 'var(--color-danger)',
+							values: outcomes.failed,
+						},
+						{
+							key: 'skipped',
+							label: 'Skipped',
+							color: 'var(--color-text-faint)',
+							values: outcomes.skipped,
+						},
+					]}
+					label="Placements per node by outcome, the last {data.days} days"
+				/>
+			{:else}
+				<Skeleton height={PLACED} chart />
+			{/if}
+		</Card>
+	</div>
 
 	<section class="flex min-w-0 flex-col">
 		<Tabs
