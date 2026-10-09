@@ -157,6 +157,12 @@ keeper's recreate of host -- under its node, each saying what it is; the latest 
 alike. A run is one way a node changes, and the operator watching a rollout by hand saw nothing
 until 2026-10-08.
 
+**A run took as long as its placements that did work**: from the first start to the last finish of
+those that succeeded or failed, never a skip. A skip -- placed elsewhere, built again by a later
+run, unchanged -- ends the moment host writes it, and host writes it whenever it reaches the run: a
+node that missed a run's notice and caught up a day later stretched five runs of a 17-second deploy
+to 24 hours each, and the overview's p95 with them, on 2026-10-09.
+
 **What CI is building, what it built, and where each node is with it** are one view: a run queued,
 building, built or failed on GitHub; then on each node, the artifact downloaded, loaded, started,
 checked healthy, or failed at one of those, or skipped for its architecture or its placements. The

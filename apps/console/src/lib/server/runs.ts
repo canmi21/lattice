@@ -91,9 +91,12 @@ function summarize(run: number, events: FleetEvent[]): Run {
 		.map(placed)
 		.sort((a, b) => a.app.localeCompare(b.app) || a.node.localeCompare(b.node));
 	const count = (outcome: string) => placements.filter((p) => p.outcome === outcome).length;
-	const starts = placements.map((p) => ms(p.started_at));
-	const finishes = placements.flatMap((p) => (p.finished_at ? [ms(p.finished_at)] : []));
-	const first = Math.min(...starts);
+	const first = Math.min(...placements.map((p) => ms(p.started_at)));
+	// How long it took is the placements that did work: a skip is written whenever host gets to
+	// it, a day late on a node that caught up. See spec/architecture/console.md, "The pipeline".
+	const worked = placements.filter((p) => p.outcome !== 'skipped');
+	const finishes = worked.flatMap((p) => (p.finished_at ? [ms(p.finished_at)] : []));
+	const began = worked.length ? Math.min(...worked.map((p) => ms(p.started_at))) : undefined;
 	const last = finishes.length ? Math.max(...finishes) : undefined;
 	const running = count('running');
 	return {
@@ -108,7 +111,7 @@ function summarize(run: number, events: FleetEvent[]): Run {
 		running,
 		first_start: new Date(first).toISOString(),
 		last_finish: last === undefined ? undefined : new Date(last).toISOString(),
-		duration: last === undefined || running > 0 ? undefined : last - first,
+		duration: last === undefined || began === undefined || running > 0 ? undefined : last - began,
 	};
 }
 

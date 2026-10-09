@@ -91,6 +91,31 @@ describe('group', () => {
 	const { runs: found, apart } = group(FIXTURE);
 	const by = (run: number) => found.find((r) => r.run === run);
 
+	it('times a run by the placements that did work, not a skip written a day late', () => {
+		const run = (n: number) => ({ kind: 'run', run: n, commit: 'aaa' });
+		const [late] = group([
+			at('tyo', {
+				source: run(9),
+				started_at: '2026-10-08T07:25:00Z',
+				finished_at: '2026-10-08T07:25:17Z',
+			}),
+			at('rdu', {
+				source: run(9),
+				outcome: 'skipped',
+				started_at: '2026-10-08T07:24:59Z',
+				finished_at: '2026-10-08T07:24:59Z',
+			}),
+			at('buf', {
+				source: run(9),
+				outcome: 'skipped',
+				started_at: '2026-10-09T08:01:00Z',
+				finished_at: '2026-10-09T08:01:00Z',
+			}),
+		]).runs;
+		expect(late?.duration).toBe(17_000);
+		expect(late?.first_start).toBe('2026-10-08T07:24:59.000Z');
+	});
+
 	it('puts uploads and panel actions apart and orders runs newest first', () => {
 		expect(apart.map((e) => e.source.kind)).toEqual(['upload', 'panel']);
 		expect(found.map((r) => r.run)).toEqual([43, 42, 41]);
