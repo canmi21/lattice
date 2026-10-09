@@ -42,11 +42,12 @@ the system, and it is this layer's":
 
 [../architecture/console.md](../architecture/console.md), "The console's server never waits on
 data; it only draws", has the console's server read only what the platform's backend holds. These
-still fan out across the nodes from the Worker, each to become one read of the nearest relay, in
-platform's `spec/issues/relay.md`, "What the relay holds for the console":
+still fan out across the nodes from the Worker, each to become one read of the nearest relay:
 
 - **The runs**: `fleetEvents`, every node's last 500 events, grouped in the Worker -- the
-  overview's deploy figures, activity and failures, Deployments and a run's page.
+  overview's deploy figures, activity and failures, Deployments and a run's page -- become the
+  relay's `/runs`, platform's `spec/architecture/relay.md`, "The runs, mirrored on every relay's
+  disk".
 - **The fleet's readings**: `fleetNow` and `fleetSeries` on Nodes.
 - **The database's primary**: `primaryOf`, which asks each node's proxy in turn.
 
