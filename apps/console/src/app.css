@@ -46,6 +46,8 @@
 	--color-surface: var(--color-page);
 	--color-line: oklch(1 0 0 / 0.09);
 	--shadow-card: none;
+	/* A chosen option a step brighter than mono's 13 percent, which read as grey on the dark. */
+	--color-selected: oklch(1 0 0 / 0.18);
 }
 
 /* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,

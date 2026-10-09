@@ -23,14 +23,15 @@ region, so a reader who cannot see the color is told the line as it changes.
 ## The map is the page's whole picture
 
 **The nodes are one card: a list of them on the left, the map on the right, and the view's figures
-along its foot.** The list is a line a place, dense -- 28 pixels a line, the type a step under the
-page's -- a dot in the map's blue, or red when a node there is not heard, the place's name and no
-code, and one figure, the one a switch above the list picks: how busy the processors are, how much
-of the memory is in use, or how many apps run, a share always to one decimal so the column lines
-up. **Nodes sharing a name are one line**, its count beside the name and a chevron that opens it to
-a line a node, told apart there by code alone; the place's figure is its nodes' together -- the
-mean of their processors, their memory and their apps summed. Pointing at a line opens that place's
-card on the map, and a node's line is a link to the node. The figures -- nodes heard, apps running, deploys in the last day and how
+along its foot.** The list is a line a place under two quiet headings, `Location` and `CPU`, in
+place of any switch: a dot in the map's blue, or red when a node there is not heard, the place's
+name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3 nodes`, one line
+and never a fold -- and how busy its processors are, their mean to one decimal always so the column
+lines up. Dense: 28 pixels a line, the type a step under the page's. Everything else about a place
+-- its memory, its apps, each of its nodes by code -- is the map's card, which pointing at a line
+opens; a node's line links to the node, and a shared place's to the nodes. A switch of figures
+above the list, and a shared place that folded open to a line a node, were each tried on 2026-10-09
+and taken out as more machinery than a glance needs. The figures -- nodes heard, apps running, deploys in the last day and how
 long one takes -- are a strip under both, a hairline between each: figures, not tiles, with no ring
 and no sparkline, since the line above already says whether a figure is wrong. The map stays as it
 is drawn -- [../architecture/console.md](../architecture/console.md), "A figure is drawn before it is
