@@ -84,7 +84,11 @@ dark -- rather than a gray of its own, so it sits as lightly on any ground and n
 brighter than both sides of it. Mono, the palette the console takes its grays from, has the
 opposite: a card a step darker than a white ground in the light, and in the dark a solid gray rule
 that glowed around every card; the console names its grounds the other way round in `app.css` and
-leaves the palette as it is. Decided with the author on 2026-10-09.
+leaves the palette as it is. **A chosen option sits a step off its frame and no more** -- black at
+5 percent in the light, white at 7 percent in the dark, each about as far from the card as the
+other -- where mono's 10 and 13 read as grey; near black a few percent is a large step, the eye
+reading lightness by ratio, so the dark's value is tuned by eye and not by symmetry. Decided with
+the author on 2026-10-09.
 
 ## A page is named once, in the top bar
 

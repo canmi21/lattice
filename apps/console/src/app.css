@@ -19,7 +19,9 @@
 	--color-sunken: var(--color-page);
 	--color-surface: var(--color-paper);
 	--color-raised: var(--color-paper-hover);
-	--color-selected: var(--color-native-selected);
+	/* A chosen option a step off its frame and no more: 5 percent black here, 7 percent white in the
+	   dark, each about as far from the card as the other; mono's 10 and 13 read as grey. */
+	--color-selected: oklch(0 0 0 / 0.05);
 	--color-line-faint: var(--color-paper-hover);
 	--color-line: oklch(0 0 0 / 0.08);
 	--shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 1px 3px oklch(0 0 0 / 0.02);
@@ -46,8 +48,7 @@
 	--color-surface: var(--color-page);
 	--color-line: oklch(1 0 0 / 0.09);
 	--shadow-card: none;
-	/* A chosen option a step quieter than mono's 13 percent, which stood out too far on the dark. */
-	--color-selected: oklch(1 0 0 / 0.1);
+	--color-selected: oklch(1 0 0 / 0.07);
 }
 
 /* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,
