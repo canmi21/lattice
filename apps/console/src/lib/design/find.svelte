@@ -33,11 +33,11 @@
 	type="button"
 	aria-label="Find"
 	aria-keyshortcuts="Meta+K Control+K"
-	class="flex h-8 w-full cursor-pointer items-center gap-2 px-2.5 text-left {stylex.attrs(
+	class="flex h-8 w-full cursor-pointer items-center gap-2 px-3 text-left {stylex.attrs(
 		styles.field,
 	).class}"
 >
-	<Icon icon={SearchIcon} size={16} />
+	<Icon icon={SearchIcon} size={16} class="mx-px" />
 	<span class="min-w-0 flex-1 truncate">Find…</span>
 	<kbd class="px-1.5 leading-5 {stylex.attrs(styles.key).class}">⌘K</kbd>
 </button>

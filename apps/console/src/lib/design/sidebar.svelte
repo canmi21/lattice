@@ -127,7 +127,7 @@
 	<!-- A section's load starts on hover; see spec/architecture/console.md. -->
 	<nav
 		aria-label="Sections"
-		class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-3 pb-3 pt-1"
+		class="flex flex-1 flex-col gap-1 overflow-y-auto px-3 pb-3 pt-1"
 		data-sveltekit-preload-data="hover"
 	>
 		{#each sectionsIn(view) as section (section.path)}
@@ -148,13 +148,13 @@
 			<Badge tone="warn">Relay contract {live.view.refused}, console {CONTRACT}</Badge>
 		</footer>
 	{/if}
-	<div class="flex shrink-0 items-center gap-2 px-2 py-2 {stylex.attrs(styles.rule).class}">
+	<div class="flex shrink-0 items-center gap-2 px-3 py-2 {stylex.attrs(styles.rule).class}">
 		<!-- The menu waits on accounts, and until it opens one nothing says it does; see
 		     spec/console/design.md, "Accessibility". -->
 		<button
 			type="button"
 			aria-label="Account, {author.name}"
-			class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 px-2 py-1.5 text-left {stylex.attrs(
+			class="flex min-w-0 flex-1 cursor-pointer items-center gap-2.5 px-1 py-1.5 text-left {stylex.attrs(
 				styles.menu,
 			).class}"
 		>
@@ -183,7 +183,7 @@
 				{/if}
 			</span>
 		</button>
-		<span class="mr-1 flex shrink-0 items-center gap-1.5">
+		<span class="flex shrink-0 items-center gap-1.5">
 			<!-- The commit this console was built from, opened where it was made. -->
 			<IconButton
 				label="Built from {COMMIT}"

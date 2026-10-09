@@ -61,7 +61,16 @@ as one band without a rule between them, and it holds one control: `Find…` dra
 its shortcut, `⌘K`, beside the word. The view being read stays at the top bar's left, beside the
 page it narrows -- the head is not a second place to choose it. What `Find` opens is the site's
 search, its behavior taken into the author's library without the site's look and drawn here in the
-console's; until then the field opens nothing.
+console's; until then the field opens nothing. **It finds within the view being read**: with
+Platform chosen at the top bar's left it searches the platform's layer and nothing else, Services
+the services', and All every layer at once, so the switcher narrows what is found as it narrows what
+is shown.
+
+**The sidebar keeps one edge and one column.** Every region's box -- the field, a section's link,
+the account's button -- starts and ends on the same gutter, `0.75rem` in from the sidebar's sides,
+and every icon inside them, the avatar included, is centered on one column, so the eye runs down
+the left without a step. The sections' links are spaced apart by `0.25rem`, enough that the raised
+one never reads as touching the next.
 
 ## Icons
 
