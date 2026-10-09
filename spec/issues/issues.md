@@ -26,7 +26,7 @@ which areas exist and which entries are worth reaching for first.
 | ------------------------ | ------- | -------------------------------------------------------------------- |
 | [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
-| [site.md](site.md)       | 17      | routing, rendering, the article page, the tests, the license surface |
+| [site.md](site.md)       | 25      | routing, rendering, the article page, the tests, the license surface |
 | [cms.md](cms.md)         | 4       | what the CMS cannot yet offer, and what it cannot reach              |
 | [plan.md](plan.md)       | 3       | what the milestones leave open                                       |
 | [video.md](video.md)     | 4       | what the video pipeline has not settled                              |
@@ -129,6 +129,14 @@ reasons.
 - The structured graph stops at what today's data says
 - An application has no way to stand apart from the infrastructure it is built on
 - OpenPanel reports an anchor followed on the site as a view of its own
+- What can be selected is decided by the page around a component, not by the component
+- A portalled surface escapes every page's choice of what can be selected
+- The search dialog's keycaps can be selected
+- The article page's controls can be selected
+- The licenses and error pages' chrome can be selected
+- A card's date cannot be selected, while the article's own date can
+- A field under the home page's `select-none` may not take typing in Safari
+- The user-select entry in the CSS issues describes CSS that is now a class
 
 ### [cms.md](cms.md)
 

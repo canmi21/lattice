@@ -338,3 +338,100 @@ with it, and none of the platform's leaks into it.
 It records the hash in the path, so one article read through its table of contents counts as
 several views. Whether to rewrite its events or leave it until the site keeps one service is
 undecided; the arrangement it concerns is [../analytics.md](../analytics.md).
+
+## What can be selected is decided by the page around a component, not by the component
+
+The console's three rules -- chrome is not selectable, a control never is, what a reader would quote
+is -- are [../console/design.md](../console/design.md), "What can be selected", and the site follows
+none of them yet. It sets `select-none` in three places only: the home page's `<main>`
+(`apps/site/src/routes/+page.svelte:147`), the article rail (`libs/prose/src/shell.svelte:50`) and
+the article's meta row (`apps/site/src/lib/article/article.svelte:435`). Everything else inherits
+from those or from nothing, so the answer for one component depends on the page it lands on: the
+home page turns selection off and reopens fourteen sentences one at a time, the article page leaves
+all of it on but the rail and the row, and the licenses and error pages do nothing. Measured on
+2026-10-08 by reading the markup and its ancestors.
+
+**What deciding it would cost.** Each control carrying its own rule, as the console's do, instead of
+a page deciding for everything under it; the entries below are the departures that one change would
+close, and each is worth a browser check after it.
+
+## A portalled surface escapes every page's choice of what can be selected
+
+Bits UI portals the search dialog, the modals, the translator-note popover and the menus to
+`<body>`, outside any `<main>`, so the home page's `select-none` reaches none of them:
+`apps/site/src/lib/search/dialog.svelte`, `apps/site/src/lib/components/modal.svelte:92-121`,
+`libs/prose/src/body.svelte:360-370`, `apps/site/src/lib/components/menu-content.svelte:48`. Their
+controls -- the result rows, a modal's close button, the popover's -- are selectable on every page,
+while the same kind of control on the home page is not.
+
+**What deciding it would cost.** Rules on the portalled surfaces themselves, since no ancestor of
+theirs is the page's.
+
+## The search dialog's keycaps can be selected
+
+The `kbd` hints in the dialog's footer (`apps/site/src/lib/search/dialog.svelte:462-471`) and its
+result buttons (`:418`) are selectable, the plainest break of "a control never is": a drag across
+the hint row takes `↑↓ move ↵ open esc close` as text. The group titles (`:~405`) are a judgment
+call, a title a reader might quote.
+
+**What deciding it would cost.** `select-none` on the hint row and the rows, kept off the group
+titles if they count as quotable.
+
+## The article page's controls can be selected
+
+Outside the rail nothing on the article page is `select-none`, so its controls are text to a drag:
+the code block's copy button and collapsible title row
+(`libs/prose/src/blocks/code-block.svelte:361`, `:435`), the footnotes' fold toggle with its "Show N
+more" (`apps/site/src/lib/article/footnotes.svelte:364`), the heading anchor
+(`libs/prose/src/anchor-button.svelte:66`), the action bar holding reading progress and the theme
+toggle (`libs/prose/src/action-bar.svelte:39`), and the video player's control bar, settings menu
+and time readout (`libs/prose/src/components/video-chrome.svelte`, `video-controls.svelte:672`,
+`video-settings.svelte:243-300`).
+
+**What deciding it would cost.** A rule per control; the action bar and the player's bar are chrome
+as well as controls, so `select-none` at their roots.
+
+## The licenses and error pages' chrome can be selected
+
+The licenses pages' breadcrumb navs (`apps/site/src/routes/licenses/+page.svelte:137`,
+`licenses/[license]/+page.svelte:88`, `licenses/pkgs/+page.svelte:99`,
+`licenses/pkgs/[registry]/+page.svelte:85`,
+`licenses/pkgs/[registry]/[...package]/+page.svelte:200`) and their action rows (`:193`, `:109`,
+`:103`, `:235`) carry no `select-none`, where the article's equivalent rail does; the error page's
+report button drawn as a link inside a sentence (`apps/site/src/lib/error/offer.svelte:77`) is
+selectable too.
+
+**What deciding it would cost.** `select-none` on those navs and rows; the inline button is a
+control inside prose, the case most worth deciding explicitly.
+
+## A card's date cannot be selected, while the article's own date can
+
+The home list's card leaves its `<time>` unselectable on purpose
+(`libs/prose/src/card.svelte:79-91`, its comment says so), while the article page reopens the same
+date with `select-text` (`apps/site/src/lib/article/article.svelte:440`). A date is something a
+reader quotes, so one of the two is wrong, and the comment's reason has to be weighed against that.
+The meta row's word and read counts (`article.svelte:441-466`) are unselectable, which the rules are
+silent on.
+
+**What deciding it would cost.** Which way the card goes, and whether counts are quotable.
+
+## A field under the home page's `select-none` may not take typing in Safari
+
+The newsletter's email input sits under the home `<main>`'s `select-none` with nothing reopening it
+(`apps/site/src/lib/newsletter/newsletter.svelte`, near `:400`). WebKit has been known to let an
+ancestor's `-webkit-user-select: none` stop an input from taking a caret; not tested here, so this
+is inferred, and the rule that a field's text is always selectable assumes it is not so.
+
+**What deciding it would cost.** A check in Safari, then `select-text` on fields under a
+`select-none` ancestor if it fails.
+
+## The user-select entry in the CSS issues describes CSS that is now a class
+
+[css.md](css.md), "The gate compares a list, and a list is not a test", records `.article-rail,
+.meta { user-select: none }` moving into the visual layer; both are now Tailwind's `select-none` in
+the markup (`libs/prose/src/shell.svelte:50`, `apps/site/src/lib/article/article.svelte:435`), so
+the entry describes a state the code no longer has. Its point -- that the migration's snapshot does
+not compare `user-select` -- still stands.
+
+**What deciding it would cost.** Rewriting that entry against the code as it is, or closing it if
+the point moves to where the selectability rule lands.
