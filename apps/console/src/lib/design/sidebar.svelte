@@ -153,12 +153,15 @@
 			fontSize: text.px12,
 			color: 'var(--color-text-muted)',
 		},
-		/** The whole account is the menu's button, raised on hover as a section's link is. */
+		/**
+		 * The whole account is the menu's button, raised on hover to the chosen link's wash: it has
+		 * no siblings to stand apart from, only the bare ground. See spec/console/design.md.
+		 */
 		menu: {
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
+				':hover': 'var(--color-selected)',
 			},
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,

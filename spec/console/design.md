@@ -97,7 +97,10 @@ sits a step off its frame and no more, where mono's 10 and 13 percent read as gr
 sidebar's solid `paper-hover` stood a whole gray step off the dark's black. Near black a few percent
 is a large step, the eye reading lightness by ratio, so the dark's strength is tuned by eye and not
 by symmetry. The sidebar's links, the segmented control, the account's button, the bar's icons and
-the overview's rows all take these two. Decided with the author on 2026-10-09.
+the overview's rows all take these two. **A control with no siblings hovers at the full strength**
+-- the sidebar's account button, alone at its foot, has no chosen neighbor to stay below, so its
+hover takes `--color-selected` rather than reading faint against the bare ground. Decided with the
+author on 2026-10-09.
 
 ## Words in the sans, figures in the shell's face
 
