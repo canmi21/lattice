@@ -14,7 +14,7 @@
 	import { scoped } from '../scope/context.ts';
 	import { tone, type, type Tone } from '../style.ts';
 	import type { State } from '../wire.ts';
-	import { countryOf, nameOf, PLACES, ROLES, type Member, type Site } from './places.ts';
+	import { countryOf, nameOf, partOf, ROLES, type Member, type Site } from './places.ts';
 
 	let { site, now }: { site: Site; now: number } = $props();
 
@@ -22,11 +22,6 @@
 	const GIB = 2 ** 30;
 
 	const shared = $derived(site.members.length > 1);
-	/** What tells a node from the others at its place: `Narita`, of `Tokyo, Narita`. */
-	function partOf(code: string): string {
-		const place = PLACES[code as keyof typeof PLACES]?.place ?? code;
-		return place.includes(', ') ? (place.split(', ').at(-1) ?? place) : place;
-	}
 	const lone = $derived(shared ? undefined : site.members[0]);
 
 	const cpuOf = (member: Member) =>

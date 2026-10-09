@@ -136,6 +136,12 @@ export function countryOf(code: string): string {
 	return PLACES[code as Node]?.country ?? code;
 }
 
+/** What tells a node from the others at its place: `Narita`, of `Tokyo, Narita`. */
+export function partOf(code: string): string {
+	const place = PLACES[code as Node]?.place ?? code;
+	return place.includes(', ') ? (place.split(', ').at(-1) ?? place) : place;
+}
+
 /**
  * The display name and the code in one string, where only text can be written -- an option, a
  * title, a chart's names: `Tokyo, Japan (tyo)`, or `Tokyo (tyo)` with `lead` where room is short.

@@ -62,11 +62,16 @@ every zone reads one way, never as a city's name or Intl's `GMT`; its name is on
 as one band without a rule between them, and it holds one control: `Find…` drawn as a field, with
 its shortcut, `⌘K`, beside the word. The view being read stays at the top bar's left, beside the
 page it narrows -- the head is not a second place to choose it. What `Find` opens is the site's
-search, its behavior taken into the author's library without the site's look and drawn here in the
-console's; until then the field opens nothing. **It finds within the view being read**: with
-Platform chosen at the top bar's left it searches the platform's layer and nothing else, Services
-the services', and All every layer at once, so the switcher narrows what is found as it narrows what
-is shown.
+search, its behavior taken into the author's library -- `@canmi/kit`'s shortcut, which opens it from
+anywhere on `⌘K` or `Ctrl K` and closes it on the same keys from its own field, and its list cursor,
+which the arrows, Home, End and Enter drive as a combobox -- and drawn here in the console's look.
+It finds the view's pages, its nodes where the view shows them, each by the part of its place that
+tells it from the others there, `Narita, Japan`, and found by the whole place too, and the apps the
+view holds, by name or code; a name that starts with what is typed comes first, then a word in it,
+then a code, then anything holding it, under the headings Pages, Nodes and Apps. Enter opens the one
+the cursor is on. **It finds within the view being read**: with Platform chosen at the top bar's
+left it searches the platform's layer and nothing else, Services the services', and All every layer
+at once, so the switcher narrows what is found as it narrows what is shown.
 
 **The sidebar keeps one edge and one column.** Every region's box -- the field, a section's link,
 the account's button -- starts and ends on the same gutter, `0.75rem` in from the sidebar's sides,
