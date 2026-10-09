@@ -2,22 +2,14 @@
 
 import type { Theme } from '@canmi/kit/theme';
 import type { BuildEnv } from '@canmi/web/build';
+import type { Stamped } from '@canmi/web/error';
 import type { LocaleCode } from '#lib/locale/index.js';
 
 declare global {
 	namespace App {
-		interface Error {
+		/** Which side failed, absent where nothing did; lib's spec/web/error.md. */
+		interface Error extends Stamped {
 			message: string;
-			/**
-			 * Which side failed, and **absent when nothing did**.
-			 *
-			 * `handleError` stamps only an unexpected error; an `error()` keeps its own body. So
-			 * no stamp means an answer rather than a failure -- a 404 is a 404 whichever side
-			 * worked it out. One gap: an error surfaced through `__data.json`
-			 * arrives as a status and a string and loses this, which draws the page with the
-			 * code -- the right fallback, since the status is the part that survived.
-			 */
-			origin?: 'server' | 'client';
 		}
 		interface Locals {
 			locale?: { code: LocaleCode; language_tag: string };

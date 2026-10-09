@@ -1,6 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 import type { BuildEnv } from '@canmi/web/build';
+import type { Stamped } from '@canmi/web/error';
 import type { Read } from '#lib/server/read.ts';
 import type { Cluster } from '#lib/wire.ts';
 
@@ -9,6 +10,10 @@ declare global {
 	interface ImportMetaEnv extends BuildEnv {}
 
 	namespace App {
+		/** Which side failed, absent where nothing did; see lib's spec/web/error.md. */
+		interface Error extends Stamped {
+			message: string;
+		}
 		interface PageData {
 			/** What every page's server load streams of the cluster; see src/routes/+layout.svelte. */
 			cluster?: Promise<Read<Cluster>>;

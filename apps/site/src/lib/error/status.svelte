@@ -57,6 +57,7 @@
 <script lang="ts">
 	import * as m from '@canmi/messages';
 	import type { LocaleCode } from '#lib/locale/index.js';
+	import { statusText } from '@canmi/web/error';
 	import Offer from './offer.svelte';
 
 	/**
@@ -66,23 +67,6 @@
 	 * A failure with no number is a different page; see client.svelte.
 	 */
 	let { status, locale }: { status: number; locale: LocaleCode } = $props();
-
-	// Left in English on purpose. These are the protocol's own names for its statuses, and a
-	// reader who meets `404` meets `Not Found` with it everywhere else on the web. The title
-	// carries the pair whatever the page is answering in; the sentence is the part for a person.
-	const STATUS_TEXT: Record<number, string> = {
-		400: 'Bad Request',
-		401: 'Unauthorized',
-		403: 'Forbidden',
-		404: 'Not Found',
-		405: 'Method Not Allowed',
-		410: 'Gone',
-		429: 'Too Many Requests',
-		500: 'Internal Server Error',
-		502: 'Bad Gateway',
-		503: 'Service Unavailable',
-		504: 'Gateway Timeout',
-	};
 
 	/**
 	 * The sentence is this site's, in the reader's language, and never `page.error.message`.
@@ -96,7 +80,8 @@
 	const message = $derived(
 		status === 404 ? m['error.not-found']({}, { locale }) : m['error.unexpected']({}, { locale }),
 	);
-	const titleText = $derived(STATUS_TEXT[status] ?? 'Error');
+	// The protocol's name, in English whatever the page answers in; lib's spec/web/error.md.
+	const titleText = $derived(statusText(status));
 
 	/** An absence rather than a failure: there is nothing to report, so the offer is shorter. */
 	const missing = $derived(status === 404);

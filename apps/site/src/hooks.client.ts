@@ -4,6 +4,7 @@ import { takeParameter } from '@canmi/web/referer';
 import { prepareBrowserRuntime } from '@canmi/web/compat';
 import { URLS } from '@monoflake/sdk';
 import { initClient } from '@canmi/web/sentry/client';
+import { stamp } from '@canmi/web/error';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { registerAnalytics } from '#lib/analytics.js';
 import { registerClientStrategy } from '#lib/locale/paraglide.js';
@@ -17,17 +18,8 @@ registerAnalytics();
 initClient({ dsn: URLS.external.sentry.site, dev });
 
 export const init: ClientInit = prepareBrowserRuntime;
-/**
- * Every unexpected error that happens in the browser, stamped as this side's.
- *
- * Every error reaches here since SvelteKit 3, but only an unknown one -- thrown by code, rather
- * than by `error()` or by SvelteKit itself -- is stamped; the rest keep the status and message
- * they came with. So an `origin` is the page's signal that something broke rather than that a
- * question was answered. See app.d.ts and routes/+error.svelte.
- */
-export const handleError = handleErrorWithSentry(({ kind }) =>
-	kind === 'unknown' ? { origin: 'client' as const } : undefined,
-);
+/** Every unexpected error in the browser, stamped as this side's; lib's spec/web/error.md. */
+export const handleError = handleErrorWithSentry(stamp('client'));
 
 function cleanLanguageParameter(): void {
 	takeParameter('lang');

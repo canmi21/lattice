@@ -8,6 +8,7 @@
 	import { levelOf, titleOf } from '#lib/levels.js';
 	import { viewOf } from '#lib/scope/scope.js';
 	import { trackFocusSource } from '@canmi/kit/behavior/focus-source';
+	import { CLIENT_TITLE, pageOf, statusText } from '@canmi/web/error';
 	import Sidebar from '#lib/design/sidebar.svelte';
 	import SkipLink from '#lib/design/skip-link.svelte';
 	import TopBar from '#lib/design/top-bar.svelte';
@@ -78,15 +79,23 @@
 	});
 
 	/** Where the reader is, which the sidebar, the trail and the title are drawn from. */
+	// An error's page drills into nothing: a node, app or run the address names may not exist.
 	const where = $derived({
 		url: page.url,
 		view,
-		node: page.params.node,
-		app: page.params.app,
-		run: page.params.run,
+		node: page.error ? undefined : page.params.node,
+		app: page.error ? undefined : page.params.app,
+		run: page.error ? undefined : page.params.run,
 	});
 	const level = $derived(levelOf(where));
-	const name = $derived(titleOf(level, where));
+	/** An error's page is named as the protocol names its status, or the failure it has none for. */
+	const name = $derived(
+		page.error
+			? pageOf(page.error) === 'client'
+				? CLIENT_TITLE
+				: `${page.status} ${statusText(page.status)}`
+			: titleOf(level, where),
+	);
 </script>
 
 <svelte:head>

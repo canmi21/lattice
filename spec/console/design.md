@@ -102,6 +102,19 @@ the overview's rows all take these two. **A control with no siblings hovers at t
 hover takes `--color-selected` rather than reading faint against the bare ground. Decided with the
 author on 2026-10-09.
 
+## An error is the site's page, in the console's frame
+
+**A page that fails is drawn as the site draws one, inside the console's sidebar and bar**, so a
+reader who met it still has every way on. Which of two pages it is and the protocol's name for a
+status are `@canmi/web/error`'s, shared with the site -- lib's `spec/web/error.md` -- and each hook
+stamps an unexpected error through it, beside Sentry's. The look and the words are the console's
+own: the site's layout -- the status, a hairline, a sentence for a person on one line in the middle,
+and the way out at the foot -- in the console's tokens, and its English sentences written in place,
+since the console speaks no other language: `This page could not be found`, `Something went wrong`,
+and for a browser that broke, with no status, `This page crashed in the browser. Describing what you
+were doing helps`. The way out is the site's: Sentry's report form and the support address. The tab
+is named `404 Not Found`, or `Unexpected Client Behavior`. Decided with the author on 2026-10-09.
+
 ## Words in the sans, figures in the shell's face
 
 **What a reader reads as words is in the sans; what they read as a figure is in the shell's face.**

@@ -3,6 +3,7 @@ import { building, dev } from '$app/env';
 import { fillTheme, themeOf } from '@canmi/kit/theme';
 import { normalizedLocation, URLS } from '@monoflake/sdk';
 import { serverHandles } from '@canmi/web/sentry/server';
+import { stamp } from '@canmi/web/error';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { articleRailScript } from '@canmi/prose/rail';
@@ -276,6 +277,4 @@ export const handle = sequence(
 );
 
 /** The same stamp from the other side; see hooks.client.ts. */
-export const handleError = handleErrorWithSentry(({ kind }) =>
-	kind === 'unknown' ? { origin: 'server' as const } : undefined,
-);
+export const handleError = handleErrorWithSentry(stamp('server'));

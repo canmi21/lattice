@@ -29,6 +29,7 @@
 <script lang="ts">
 	import type { LocaleCode } from '#lib/locale/index.js';
 	import * as m from '@canmi/messages';
+	import { CLIENT_TITLE } from '@canmi/web/error';
 	import Offer from './offer.svelte';
 
 	/**
@@ -43,10 +44,8 @@
 </script>
 
 <svelte:head>
-	<!-- Title Case and English, because that is how the pages with a status code spell theirs:
-	     `Not Found`, `Internal Server Error`. This is the same kind of name for a failure the
-	     protocol has none for, and the tab is the only place it appears. -->
-	<title>Unexpected Client Behavior</title>
+	<!-- The name for the failure the protocol has none for; lib's spec/web/error.md, "Two pages". -->
+	<title>{CLIENT_TITLE}</title>
 </svelte:head>
 
 <main class="flex min-h-screen items-center justify-center px-6">

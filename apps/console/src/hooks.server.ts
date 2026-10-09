@@ -3,6 +3,7 @@ import { dev } from '$app/env';
 import { fillTheme } from '@canmi/kit/theme';
 import { EXTERNAL } from '@canmi/me/urls';
 import { serverHandles } from '@canmi/web/sentry/server';
+import { stamp } from '@canmi/web/error';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { handle as edge, isRoute } from '#lib/server/edge.js';
@@ -22,4 +23,5 @@ const pages = sequence(
 export const handle: Handle = (input) =>
 	isRoute(input.event.url.pathname) ? edge(input.event.request, env) : pages(input);
 
-export const handleError = handleErrorWithSentry();
+/** An unexpected error stamped as the server's; see lib's spec/web/error.md. */
+export const handleError = handleErrorWithSentry(stamp('server'));
