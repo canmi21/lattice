@@ -16,7 +16,7 @@
 	import { PersistQueryClientProvider } from '@tanstack/svelte-query-persist-client';
 	import { advance, readTrail, writeTrail } from '#lib/article/trail.js';
 	import { leaveArrival } from '@canmi/kit/behavior/arrival';
-	import { installFocusSourceTracker } from '#lib/client/focus-source.js';
+	import { trackFocusSource } from '@canmi/kit/behavior/focus-source';
 	import { goTo, keepPlace, placeOf } from '#lib/client/scroll.js';
 	import { followPointerKind, warmWhatThePointerRests } from '#lib/client/warm.svelte.js';
 	import SearchDialog from '#lib/search/dialog.svelte';
@@ -118,7 +118,7 @@
 		settleBrevity();
 	});
 
-	$effect(() => installFocusSourceTracker());
+	$effect(() => trackFocusSource());
 
 	/**
 	 * StyleX's development stylesheet, linked behind a declaration of the layers above it.
