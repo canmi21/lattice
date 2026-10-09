@@ -22,9 +22,11 @@ All, Infra, Platform, Services   Overview, Nodes (Infra and All), Deployments, A
 
 **Entering a level replaces the sidebar with it.** The sidebar lists the pages of the level being
 read and no other: inside a node it is that node's pages, headed by the way back -- a chevron and
-the list it was entered from, `Nodes` -- then the node's name with its code beside it. The way back
-is a page's own size, icon and hover, and is never raised, since it is never the page open: it
-reads as one more thing to press, not a note above the list. **The move has a direction**: going
+the name of the list it was entered from, `Nodes`, and nothing else. The way back is laid out as
+one more page, its size, its icon column and its type, with no ground of its own, hovered or not,
+since it is never the page open; only its color answers the pointer. **The sidebar never names
+the level it shows**: the page in the main region says what it is about, in its own title, and
+the trail in the top bar says where it is, so a name over the sidebar's pages would be a third. **The move has a direction**: going
 deeper, the level left slides off to the left as the new one arrives from the right, and coming
 back up the two go the other way, so the reader feels which way they went -- the motion is
 [design.md](design.md), "Motion is GSAP". A move between two levels of one depth, or between views,

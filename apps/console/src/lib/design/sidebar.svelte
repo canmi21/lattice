@@ -22,7 +22,7 @@
 	import type { Live } from '../live.svelte.ts';
 	import { countryOf } from '../map/places.ts';
 	import type { Level } from '../levels.ts';
-	import { surfaces, tone, type } from '../style.ts';
+	import { surfaces, tone } from '../style.ts';
 	import Badge from '../ui/badge.svelte';
 	import Find from './find.svelte';
 	import Icon from './icon.svelte';
@@ -131,19 +131,13 @@
 			backgroundColor: { default: 'var(--color-raised)', ':hover': 'var(--color-raised)' },
 			color: { default: 'var(--color-text-strong)', ':hover': 'var(--color-text-strong)' },
 		},
-		/** The way back up: a page's size and hover, and never raised, since it is never open. */
+		/** The way back up: laid out as a page, with no ground of its own, hovered or not. */
 		back: {
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-		},
-		/** The level's own name, over its pages. */
-		title: {
-			color: 'var(--color-text-strong)',
 			fontSize: text.px14,
-			fontWeight: weight.semibold,
-		},
-		code: {
-			color: 'var(--color-text-muted)',
-			fontSize: text.px12,
+			fontWeight: weight.medium,
+			transitionProperty: 'color',
+			transitionDuration: duration.base,
 		},
 		account: {
 			color: 'var(--color-text-strong)',
@@ -202,17 +196,11 @@
 			{#if level.up}
 				<a
 					href={level.up.href}
-					class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.link, styles.back).class}"
+					class="flex h-9 items-center gap-2.5 px-3 {stylex.attrs(styles.back).class}"
 				>
 					<Icon icon={BackIcon} size={18} stroke={1.75} />
 					{level.up.label}
 				</a>
-				<div class="flex min-w-0 items-baseline gap-2 px-3 pt-2 pb-1.5">
-					<span class="truncate {stylex.attrs(styles.title).class}">{level.name}</span>
-					{#if level.code}
-						<span class="shrink-0 {stylex.attrs(type.mono, styles.code).class}">{level.code}</span>
-					{/if}
-				</div>
 			{/if}
 			{#each level.items as item (item.key)}
 				{@const here = item.key === level.current}
