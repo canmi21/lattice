@@ -26,6 +26,7 @@ export const surfaces = stylex.create({
 		borderStyle: 'solid',
 		borderColor: 'var(--color-line)',
 		borderRadius: radius.xl,
+		boxShadow: 'var(--shadow-card)',
 	},
 	/** A slot with nothing in it yet, said plainly rather than filled. */
 	empty: {

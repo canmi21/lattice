@@ -74,6 +74,18 @@ and every icon inside them, the avatar included, is centered on one column, so t
 the left without a step. The sections' links are spaced apart by `0.25rem`, enough that the raised
 one never reads as touching the next.
 
+## A card is lifted, not outlined
+
+**A card stands off its ground by its own ground first and its rule last.** In the light the ground
+is a step grey and a card white on it, with a shadow too faint to read as one; in the dark the
+ground is black and a card a step above it, with no shadow, which the dark cannot show. The card's
+rule is a share of the text's own color -- black at 8 percent in the light, white at 9 percent in the
+dark -- rather than a gray of its own, so it sits as lightly on any ground and never reads as a line
+brighter than both sides of it. Mono, the palette the console takes its grays from, has the
+opposite: a card a step darker than a white ground in the light, and in the dark a solid gray rule
+that glowed around every card; the console names its grounds the other way round in `app.css` and
+leaves the palette as it is. Decided with the author on 2026-10-09.
+
 ## A page is named once, in the top bar
 
 **A page's name is the top bar's trail and nowhere else on the screen.** The page itself carries no

@@ -11,13 +11,18 @@
 
 /* Mono's light and dark values under the names the console draws with; Nord keeps the series. */
 :root {
-	--color-ground: var(--color-paper);
-	--color-sunken: var(--color-paper);
-	--color-surface: var(--color-page);
+	/* In the light a card is white on a ground a step grey, lifted by a shadow too faint to see as
+	   one; in the dark the ground is black and a card a step above it. A card's rule is a share of
+	   the text's own color rather than a gray of its own, so it sits as lightly on any ground. See
+	   spec/console/design.md, "A card is lifted, not outlined". */
+	--color-ground: var(--color-page);
+	--color-sunken: var(--color-page);
+	--color-surface: var(--color-paper);
 	--color-raised: var(--color-paper-hover);
 	--color-selected: var(--color-native-selected);
 	--color-line-faint: var(--color-paper-hover);
-	--color-line: var(--color-border);
+	--color-line: oklch(0 0 0 / 0.08);
+	--shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 1px 3px oklch(0 0 0 / 0.02);
 	--color-line-strong: var(--color-border-strong);
 	--color-text-faint: var(--color-text-soft);
 	--color-primary: var(--color-accent);
@@ -31,6 +36,16 @@
 	   blues and a gray. See spec/console/design.md, "Accessibility". */
 	--color-accent: oklch(0.623 0.214 259.815);
 	--color-selection: var(--color-accent);
+}
+
+/* Mono's dark, under the same names: the ground black, a card one step up, its rule a whisper of
+   white, and no shadow, which the dark cannot show. */
+.dark {
+	--color-ground: var(--color-paper);
+	--color-sunken: var(--color-paper);
+	--color-surface: var(--color-page);
+	--color-line: oklch(1 0 0 / 0.09);
+	--shadow-card: none;
 }
 
 /* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,
