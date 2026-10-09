@@ -40,13 +40,13 @@ describe('a place card on the server', () => {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
 		// No title over them: each node's head says where it is.
-		expect(body).not.toMatch(/>\s*Tokyo, Japan\s*</);
-		expect(body).toMatch(/>Narita<span[^>]*> – Japan<\/span>/);
+		expect(body).toMatch(/data-site="tokyo">(?:\s|<!--[^>]*-->)*<ul/);
+		expect(body).toContain('>Narita, Japan</a>');
 		expect(body).not.toContain('<img');
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
 		}
-		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}<span`);
+		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}, Japan</a>`);
 		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM']) {
 			expect(body.match(new RegExp(`>${row}</dt>`, 'g'))).toHaveLength(3);
 		}

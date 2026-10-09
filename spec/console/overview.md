@@ -76,8 +76,8 @@ heard says so in red in its place. No state and no last-heard clock: the dot in 
 mark's color already say whether a node is heard. The card's title is the place's name and nothing
 beside it -- no city for a node named by its country, no flag, which is the list's. **A shared
 place has no title over its nodes**: they follow one under another, a hairline between, each headed
-by what tells it from the others there and its country after a dash -- `Narita – Japan`, the
-country quieter -- never by its code, which is the key and not a name, said only to assistive
+by what tells it from the others there and its country, written as every place's name is --
+`Narita, Japan` -- never by its code, which is the key and not a name, said only to assistive
 technology; each head links to its node. One under
 another keeps the card narrow however many share a place; side by side it grew as wide as the map.
 A row of each node's round trip to the database's primary waits on a measurement --

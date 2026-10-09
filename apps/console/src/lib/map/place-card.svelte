@@ -3,7 +3,7 @@
 	 * What a mark's card says of its place, as rows of a name and a value: how long it has been up,
 	 * its role, the apps it runs, and two rings, how busy its processor is and how much memory is in
 	 * use, written in `G`. A shared place's nodes follow one under another with no title over them,
-	 * each headed by what tells it from the others there and its country -- `Narita – Japan` --
+	 * each headed by what tells it from the others there and its country -- `Narita, Japan` --
 	 * never its code, and each head a link to its node. The map places the card; this draws it. See
 	 * spec/console/overview.md, "A place's card says what the list does not".
 	 */
@@ -65,8 +65,6 @@
 		title: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
 		muted: { color: 'var(--color-text-muted)' },
 		value: { color: 'var(--color-text)', fontVariantNumeric: 'tabular-nums', textAlign: 'right' },
-		/** The country after a shared place's node, quieter than the city that leads. */
-		country: { color: 'var(--color-text-muted)', fontWeight: weight.normal },
 		/** A hairline between two nodes of a shared place, none above the first. */
 		apart: {
 			borderTopWidth: { default: '1px', ':first-child': '0' },
@@ -137,9 +135,7 @@
 						data-row={member.code}
 						aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
 						class="self-start {stylex.attrs(styles.head).class}"
-						>{partOf(member.code)}<span class={stylex.attrs(styles.country).class}
-							>{` – ${countryOf(member.code)}`}</span
-						></a
+						>{partOf(member.code)}, {countryOf(member.code)}</a
 					>
 					{@render rows(member)}
 				</li>
