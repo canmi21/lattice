@@ -24,8 +24,9 @@ region, so a reader who cannot see the color is told the line as it changes.
 
 **The nodes are one card: a list of them on the left, the map on the right, and the view's figures
 along its foot.** The list is a line a place under quiet headings, `Location`, `CPU` and `RAM`, in
-place of any switch: a dot in the map's blue, or red when a node there is not heard, the place's
-name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3 nodes`, one line
+place of any switch: the country's flag with a dot on its corner, in the map's blue or red when a
+node there is not heard, ringed in the card's own ground as the account's avatar wears its presence,
+the place's name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3 nodes`, one line
 and never a fold -- how busy its processors are, their mean as a percent, and the memory its nodes
 use together, in GiB written `G` -- `2.6G` -- each to one decimal always, in a column of its own
 right-aligned, so the figures line up. Dense: 28 pixels a line, the type a step under the page's.
