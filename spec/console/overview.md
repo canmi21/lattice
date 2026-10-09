@@ -26,24 +26,33 @@ region, so a reader who cannot see the color is told the line as it changes.
 along its foot.** The list is a line a place under quiet headings, `Location`, `CPU` and `RAM`, in
 place of any switch: the country's flag with a dot on its corner, in the map's blue or red when a
 node there is not heard, ringed in the card's own ground as the account's avatar wears its presence,
-the place's name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3 nodes`, one line
-and never a fold -- how busy its processors are, their mean as a percent, and the memory its nodes
-use together, in GiB written `G` -- `2.6G` -- each to one decimal always, in a column of its own
-right-aligned, so the figures line up. Dense: 28 pixels a line, the type a step under the page's.
-Everything else about a place -- its apps, each of its nodes by code -- is the map's card, which pointing at a line
-opens; a node's line links to the node, and a shared place's to the nodes. A switch of figures
-above the list, and a shared place that folded open to a line a node, were each tried on 2026-10-09
-and taken out as more machinery than a glance needs. The figures -- nodes heard, apps running, deploys in the last day and how
-long one takes -- are a strip under both, a hairline between each: figures, not tiles, with no ring
-and no sparkline, since the line above already says whether a figure is wrong. The map stays as it
-is drawn -- [../architecture/console.md](../architecture/console.md), "A figure is drawn before it is
-written" and the paragraphs after -- **never taller than 26.25rem**, 420 pixels as Vercel's stands,
-its width following from its shape and the room either side of it left empty, so a wide screen
-widens the margin and not the map; its switch between flat and round is two icons in a frame at
-the top right of its column, where it stays however narrow the map. The list's column is 20rem, wide
-enough for a whole name and both figures. A view without the nodes, Platform's or Services', has the figures alone.
-Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its arrangement and
-its switch, not its look.
+the place's name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3
+nodes`, one line and never a fold -- how busy its busiest processor is, as a percent, and the memory
+its nodes use together, in GiB written `G` -- `2.6G` -- each to one decimal always, in a column of
+its own right-aligned, so the figures line up. Dense: 28 pixels a line, the type a step under the
+page's. **A shared place's processor is its busiest node's**, not their mean, which would hide one
+hot node behind two idle ones; its memory stays the sum, what the place holds in use. **The busiest
+place is first, and the order is taken again every five seconds**, not on each reading, so a line
+stays put long enough to be read: by whole percents, two places a fraction apart keeping the order
+they had, a place never read last, and no order taken while the pointer is on a line, which would
+move it out from under the pointer. The lines slide to their new places by GSAP, over 450 ms, or at
+once for a reader who asked for less motion and for a tab nobody is looking at; a page come to is
+drawn in order from the readings already held, never shuffled into it. Decided with the author on
+2026-10-09. Everything else about a place -- its apps, each of its nodes by code -- is the map's
+card, which pointing at a line opens; a node's line links to the node, and a shared place's to the
+nodes. A switch of figures above the list, and a shared place that folded open to a line a node,
+were each tried on 2026-10-09 and taken out as more machinery than a glance needs. The figures --
+nodes heard, apps running, deploys in the last day and how long one takes -- are a strip under both,
+a hairline between each: figures, not tiles, with no ring and no sparkline, since the line above
+already says whether a figure is wrong. The map stays as it is drawn --
+[../architecture/console.md](../architecture/console.md), "A figure is drawn before it is written"
+and the paragraphs after -- **never taller than 26.25rem**, 420 pixels as Vercel's stands, its width
+following from its shape and the room either side of it left empty, so a wide screen widens the
+margin and not the map; its switch between flat and round is two icons in a frame at the top right
+of its column, where it stays however narrow the map. The list's column is 20rem, wide enough for a
+whole name and both figures. A view without the nodes, Platform's or Services', has the figures
+alone. Taken, with the author, from the layout of Vercel's CDN overview on 2026-10-09: its
+arrangement and its switch, not its look.
 
 ## The globe is the flat map turned round
 

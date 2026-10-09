@@ -80,3 +80,28 @@ export function turn(state: { t: number }, to: 0 | 1): Promise<void> {
 		gsap.to(state, { t: to, duration: 0.7, ease: 'power4.out', onComplete: settle });
 	});
 }
+
+/**
+ * A list's rows changing places: each row's height on the page taken, `change` run until the DOM
+ * holds the new order, and each row that moved then slid from where it stood, over 450 ms. Rows
+ * are told apart by `data-key`. At once where the reader asked for less motion or the page is not
+ * being looked at, so a tab come back to is already in order.
+ */
+export async function reorder(list: HTMLElement, change: () => Promise<void>): Promise<void> {
+	const rows = () => [...list.children] as HTMLElement[];
+	if (stilled() || document.hidden) return change();
+	gsap.killTweensOf(rows());
+	gsap.set(rows(), { clearProps: 'transform' });
+	const stood = new Map(rows().map((row) => [row.dataset.key, row.getBoundingClientRect().top]));
+	await change();
+	for (const row of rows()) {
+		const was = stood.get(row.dataset.key);
+		const by = was === undefined ? 0 : was - row.getBoundingClientRect().top;
+		if (!by) continue;
+		gsap.fromTo(
+			row,
+			{ y: by },
+			{ y: 0, duration: 0.45, ease: 'power3.inOut', clearProps: 'transform' },
+		);
+	}
+}
