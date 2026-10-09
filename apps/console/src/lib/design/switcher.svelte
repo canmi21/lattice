@@ -21,7 +21,7 @@
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+				':hover': 'var(--color-hover)',
 			},
 			color: 'var(--color-text-strong)',
 			fontSize: text.px14,

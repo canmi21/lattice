@@ -66,7 +66,7 @@
 		row: {
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+				':hover': 'var(--color-hover)',
 			},
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,

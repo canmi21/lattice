@@ -19,9 +19,13 @@
 	--color-sunken: var(--color-page);
 	--color-surface: var(--color-paper);
 	--color-raised: var(--color-paper-hover);
-	/* A chosen option a step off its frame and no more: 5 percent black here, 7 percent white in the
-	   dark, each about as far from the card as the other; mono's 10 and 13 read as grey. */
-	--color-selected: oklch(0 0 0 / 0.05);
+	/* What the pointer is over and what is chosen, as one wash of the text's own color at two
+	   strengths: the wash's ink and its full strength are a theme's, the tiers' shares of it are
+	   not. See spec/console/design.md, "Hover and choice are one wash at two strengths". */
+	--wash-ink: 0;
+	--wash: 0.05;
+	--color-hover: oklch(var(--wash-ink) 0 0 / calc(var(--wash) * 0.5));
+	--color-selected: oklch(var(--wash-ink) 0 0 / var(--wash));
 	--color-line-faint: var(--color-paper-hover);
 	--color-line: oklch(0 0 0 / 0.08);
 	--shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 1px 3px oklch(0 0 0 / 0.02);
@@ -48,7 +52,8 @@
 	--color-surface: var(--color-page);
 	--color-line: oklch(1 0 0 / 0.09);
 	--shadow-card: none;
-	--color-selected: oklch(1 0 0 / 0.07);
+	--wash-ink: 1;
+	--wash: 0.07;
 }
 
 /* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,

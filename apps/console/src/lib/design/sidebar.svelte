@@ -116,7 +116,7 @@
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+				':hover': 'var(--color-hover)',
 			},
 			color: {
 				default: 'var(--color-text-muted)',
@@ -128,7 +128,7 @@
 			transitionDuration: duration.base,
 		},
 		here: {
-			backgroundColor: { default: 'var(--color-raised)', ':hover': 'var(--color-raised)' },
+			backgroundColor: { default: 'var(--color-selected)', ':hover': 'var(--color-selected)' },
 			color: { default: 'var(--color-text-strong)', ':hover': 'var(--color-text-strong)' },
 		},
 		/** The way back up: laid out as a page, with no ground of its own, hovered or not. */
@@ -158,7 +158,7 @@
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'color-mix(in srgb, var(--color-raised) 55%, transparent)',
+				':hover': 'var(--color-hover)',
 			},
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,
