@@ -10,12 +10,13 @@ import { RANGES } from '#lib/ui/segmented.svelte';
 import type { PageServerLoad } from './$types';
 
 /**
- * The span at once, the cluster and the app's reads streamed. A page already sent cannot become a
+ * The span at once, the cluster and the app's reads streamed, the cluster held for the
+ * document's own response. A page already sent cannot become a
  * 404, so an app no node runs is said in the page instead. An app asked for in another scope is
  * sent to its own, which the address names; All shows every one. See spec/architecture/console.md.
  * The database's page streams its keepers' health beside it; see src/lib/apps/health.ts.
  */
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
 	const app = event.params.app;
 	const own = scopeOf(app);
 	const view = viewOf(event.params.scope);
@@ -28,7 +29,7 @@ export const load: PageServerLoad = (event) => {
 	const span = range(chosen);
 	const held = cluster(edge);
 	return {
-		cluster: held,
+		cluster: event.isDataRequest ? held : await held,
 		order: ALL,
 		app,
 		range: chosen,

@@ -10,14 +10,17 @@ import type { PageServerLoad } from './$types';
 /** The span the chart and the tiles read, in days. */
 const DAYS = 30;
 
-/** The view's runs streamed, so the page stands at once; see spec/architecture/console.md. */
-export const load: PageServerLoad = (event) => {
+/**
+ * The view's runs streamed, so the page stands at once, and the cluster held for the document's
+ * own response; see spec/architecture/console.md.
+ */
+export const load: PageServerLoad = async (event) => {
 	const edge = edgeOf(event);
 	const view = viewOf(event.params.scope);
 	const now = Date.now();
 	return {
 		view,
-		cluster: cluster(edge),
+		cluster: event.isDataRequest ? cluster(edge) : await cluster(edge),
 		nodes: ALL,
 		days: DAYS,
 		now,

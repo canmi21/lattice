@@ -17,11 +17,12 @@ const METRICS = ['cpu.usage', 'memory.used', 'network.received', 'network.sent']
 const HOUR = 3600;
 
 /**
- * Every read streamed, so the page stands at once; see spec/architecture/console.md. The fleet's
+ * Every read streamed, so the page stands at once, the cluster held for the document's own
+ * response; see spec/architecture/console.md. The fleet's
  * charts over the chosen span, with each run started in it marked, and CPU by the hour over the
  * last day, came here from the overview -- spec/console/overview.md, "Charts are their pages'".
  */
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
 	const edge = edgeOf(event);
 	const asked = event.url.searchParams.get('range');
 	const chosen = (RANGES.find((one) => one.key === asked)?.key ?? '1h') as Range;
@@ -49,7 +50,7 @@ export const load: PageServerLoad = (event) => {
 		return out;
 	});
 	return {
-		cluster: cluster(edge),
+		cluster: event.isDataRequest ? cluster(edge) : await cluster(edge),
 		machines,
 		trends,
 		now: Date.now(),

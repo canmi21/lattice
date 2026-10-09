@@ -10,11 +10,12 @@ import type { PageServerLoad } from './$types';
 const DAYS = 30;
 
 /**
- * The cluster and the view's recent runs streamed, the page standing at once and each part filling
- * as its read lands; see spec/architecture/console.md, "Moving between pages never waits for a
- * node". The map is All's and Infra's, as the nodes are. See spec/console/overview.md.
+ * The view's recent runs streamed, the page standing at once and each part filling as its read
+ * lands; the cluster held for the document's own response, so the server draws the list and the
+ * map, and streamed on a move. See spec/architecture/console.md, "Moving between pages never waits
+ * for a node". The map is All's and Infra's, as the nodes are. See spec/console/overview.md.
  */
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
 	const edge = edgeOf(event);
 	const view = viewOf(event.params.scope);
 	const history = runsIn(edge, view);
@@ -23,7 +24,7 @@ export const load: PageServerLoad = (event) => {
 	return {
 		view,
 		nodes,
-		cluster: cluster(edge),
+		cluster: event.isDataRequest ? cluster(edge) : await cluster(edge),
 		deploys: history.then(({ runs, failures }) => ({
 			seen: runs.length,
 			figures: figures(runs, now, now - DAYS * 86_400_000),

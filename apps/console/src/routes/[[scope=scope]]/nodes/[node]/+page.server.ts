@@ -11,10 +11,11 @@ const MARKED = 200;
 
 /**
  * The header's reads on every tab, and the open tab's own beside them, all streamed so a tab is a
- * link that switches at once. A read that fails comes back as its failure, said in its place on
- * the page. See spec/architecture/console.md, "Moving between pages never waits for a node".
+ * link that switches at once, the cluster held for the document's own response. A read that fails
+ * comes back as its failure, said in its place on the page. See spec/architecture/console.md,
+ * "Moving between pages never waits for a node".
  */
-export const load: PageServerLoad = (event) => {
+export const load: PageServerLoad = async (event) => {
 	const name = event.params.node;
 	if (!isNode(name)) error(404, `No node is named ${name}.`);
 	const edge = edgeOf(event);
@@ -24,7 +25,7 @@ export const load: PageServerLoad = (event) => {
 		view.tab === tab ? read() : undefined;
 
 	return {
-		cluster: cluster(edge),
+		cluster: event.isDataRequest ? cluster(edge) : await cluster(edge),
 		name,
 		view,
 		span,

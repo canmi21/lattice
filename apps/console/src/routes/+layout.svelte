@@ -46,20 +46,24 @@
 	setView(() => view);
 
 	/**
-	 * Every page streams the cluster from its load, and what it read is taken in when it lands,
-	 * unless a newer load's has replaced it by then; the socket keeps the store after that. See
-	 * spec/architecture/console.md.
+	 * Every page's load hands on the cluster: read already for the document's own response, so it
+	 * is taken in at once and the server draws from it, and streamed on a move, taken in when it
+	 * lands unless a newer load's has replaced it by then; the socket keeps the store after that.
+	 * See spec/architecture/console.md.
 	 */
-	let latest: Promise<unknown> | undefined;
-	async function seed() {
+	let latest: unknown;
+	function seed() {
 		const read = page.data.cluster;
 		latest = read;
-		const one = await read;
-		if (one?.ok && read === latest) untrack(() => live.seed(one.data));
+		const take = (one: Awaited<typeof read>) => {
+			if (one?.ok && read === latest) untrack(() => live.seed(one.data));
+		};
+		if (read instanceof Promise) void read.then(take);
+		else take(read);
 	}
 	// Once now, and again on each load after.
-	void seed();
-	$effect.pre(() => void seed());
+	seed();
+	$effect.pre(() => seed());
 
 	// On mount, not in an effect: an effect reruns on what it reads, reopening the socket.
 	onMount(() => live.start());
