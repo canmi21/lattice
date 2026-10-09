@@ -74,6 +74,14 @@ and every icon inside them, the avatar included, is centered on one column, so t
 the left without a step. The sections' links are spaced apart by `0.25rem`, enough that the raised
 one never reads as touching the next.
 
+## A page is named once, in the top bar
+
+**A page's name is the top bar's trail and nowhere else on the screen.** The page itself carries no
+visible title: what it is about is the trail's last step, and a title under it would say it twice.
+Each page keeps its name as a heading for assistive technology alone, so a reader moving by headings
+still lands on it, and what a title row used to hold beside the name -- a state, a count, the facts
+of the thing, the time range -- stays, as the page's first row.
+
 ## Icons
 
 **A button that is only an icon is one component, `src/lib/design/icon-button.svelte`, in one of two

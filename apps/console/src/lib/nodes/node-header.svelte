@@ -6,7 +6,6 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import type { Snippet } from 'svelte';
-	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Gauge from '../chart/gauge.svelte';
 	import { duration, percent } from '../chart/numbers.ts';
 	import { moment } from '../chart/series.ts';
@@ -35,9 +34,6 @@
 	} = $props();
 
 	const zone = timeZone();
-	const styles = stylex.create({
-		code: { color: 'var(--color-text-muted)', fontSize: text.px14 },
-	});
 	const said = $derived(LIVENESS[row.state]);
 	const up = $derived(uptime(info?.booted, now));
 	const line = $derived(
@@ -87,7 +83,6 @@
 <div class="flex flex-col gap-4">
 	<PageHeader title={row.name} description={line} {actions}>
 		{#snippet meta()}
-			<span class={stylex.attrs(type.mono, styles.code).class}>{row.code}</span>
 			<Badge tone={said.tone}>{said.word}</Badge>
 			<Badge tone="quiet">{ROLES[row.role]}</Badge>
 			{#if row.heardAt}

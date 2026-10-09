@@ -1,7 +1,7 @@
 <script lang="ts">
 	/**
-	 * The top of a page: its title, a state beside it, a line of facts under it, and on the right
-	 * what scopes the page -- the time range first, when the page loaded one.
+	 * The top of a page: a state, a line of facts, and on the right what scopes the page -- the time
+	 * range first, when the page loaded one. Its title is a heading for assistive technology alone.
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import type { Snippet } from 'svelte';
@@ -38,18 +38,20 @@
 	);
 </script>
 
-<header class="flex flex-wrap items-center justify-between gap-4 pb-2">
-	<div class="flex min-w-0 flex-col gap-1">
-		<div class="flex flex-wrap items-center gap-3">
-			<h1 class={stylex.attrs(type.title).class}>{title}</h1>
-			{@render meta?.()}
+<!-- The title is the top bar's, said once there; here it is for a reader of headings alone. See
+     spec/console/design.md, "A page is named once, in the top bar". -->
+<h1 class="sr-only">{title}</h1>
+{#if meta || description || range || actions}
+	<header class="flex flex-wrap items-center justify-between gap-4">
+		<div class="flex min-w-0 flex-col gap-1">
+			{#if meta}<div class="flex flex-wrap items-center gap-3">{@render meta()}</div>{/if}
+			{#if description}<p class={stylex.attrs(type.soft).class}>{description}</p>{/if}
 		</div>
-		{#if description}<p class={stylex.attrs(type.soft).class}>{description}</p>{/if}
-	</div>
-	{#if range || actions}
-		<div class="flex flex-wrap items-center gap-2">
-			{#if range}<Segmented {options} value={range} label="Time range" />{/if}
-			{@render actions?.()}
-		</div>
-	{/if}
-</header>
+		{#if range || actions}
+			<div class="ml-auto flex flex-wrap items-center gap-2">
+				{#if range}<Segmented {options} value={range} label="Time range" />{/if}
+				{@render actions?.()}
+			</div>
+		{/if}
+	</header>
+{/if}
