@@ -22,60 +22,7 @@ hostname and cannot set one ahead for a wildcard application's subdomains, and a
 follow Access's redirect to get one: a page on one name could not open a socket on another --
 https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
 
-**It is black and white, drawn with semantic names** -- ground, surface, line, text, good, warn,
-danger and the series -- that a palette fills. The kit's `mono.css` paints the interface in light or
-dark; the icon at the top bar's right edge, Tabler's filled brightness mark, switches the two,
-mirrored in the dark so its filled half changes side, and keeps the choice in the kit's `theme`
-cookie. Nord supplies the chart series alone, so data keeps its distinctions while the interface
-remains monochrome. **Tabler is the console's icon family**, with 18 px navigation and theme icons,
-16 px inline controls and 14 px compact state marks. Navigation has a lighter stroke; small state
-marks have a heavier one. Its charts are drawn as SVG by the app itself with d3's scales and shapes,
-so the server renders them whole: a chart library drawing on a canvas would paint nothing until the
-browser ran it.
-
-**A button that is only an icon is one component, `src/lib/ui/icon-button.svelte`, in one of two
-kinds, square or round.** `ghost` has no ground of its own and rises on hover -- a bar's own
-controls, the top bar's light-and-dark switch. `framed` is filled with the surface and ruled by a
-one-pixel shadow rather than a border, as Geist's secondary button is, so the rule takes no room and
-the button is exactly its size; its hover lifts the fill and leaves the rule -- a control set apart
-from what is around it, the sidebar foot's commit and notifications, round at 1.75rem around an 18
-px icon. A kind is added to it rather than drawn again where it is wanted, so every icon on the
-console answers a hover the same way; its name is its label and its hover both.
-
-**The shell is three fixed regions, and only the page scrolls.** The sidebar runs down the whole
-left edge with its rule, the top bar sits right of it alone, and the page between them is the one
-scrolling element; the document itself never scrolls or bounces. Their sizes are in `rem`, so the
-three keep their proportions as the reader's text size changes. The top bar carries the scope on its
-left, the page's name at its center and the page's actions on its right -- creating something,
-whatever comes later, then the zone every moment on the page is written in, then the light-and-dark
-switch at the outside edge. The zone is the page's and not the account's, which is why it sits
-beside the page's actions: it decides how every time and every chart is written, and a choice of
-zone, when there is one, is what it becomes. The account sits at the foot of the sidebar, last, in a
-region of its own. Who is signed in and through where -- the avatar, the name, the relay's country
--- is one button: the menu it opens waits on accounts, and the whole group raising on hover is what
-says it opens one, with no icon to say it. Beside it, at the region's right edge, are two icons: a
-merge, a link to the commit the console was built from -- by lib's `spec/web/build.md`, its short
-hash on the link's hover -- and a bell for notifications, which waits on a feed of them as the menu
-waits on accounts. Until the platform's accounts exist it shows the author, from `@canmi/me`'s
-identity and their GitHub avatar through the CDN, so the region has its final shape before it has
-anything to sign in to -- web's `spec/todo/milestones.md`, D3. The avatar sits on a neutral disc
-until the picture arrives; a placeholder of its own is platform's `spec/issues/services.md`, "An
-avatar has no placeholder a page can paint before it arrives".
-
-**Whether the console is live is a dot on the avatar's corner and nothing else**: green while the
-socket is up, red while it is down and the page polls, and quiet for the moment before the socket
-has tried, so no load paints a red it is about to take back. It is ringed in the sidebar's ground,
-as a presence dot is. How many nodes are heard is the pages' to say, not the shell's. Under the
-name is the country of the relay the console is reached through, in full -- `Japan`,
-`United States`. The commit is an icon rather than a line of text: the region holds two lines, and
-a third fact written out made it a column of small type. No moment is shown, the build's or the
-reader's. The relay is the node nearest the reader, worked out on the server from where Cloudflare
-says they are without asking any node -- the order the Worker itself tries them in -- until the
-socket has gone through one and names it.
-
-**The zone in the top bar is the request's**, as every moment on the page is written in, and it is
-written as its offset from UTC with a sign -- `UTC-4`, `UTC+5:30`, and UTC itself `UTC+0` -- so
-every zone reads one way, never as a city's name or Intl's `GMT`; its name is on its hover.
+**What the console looks like -- its shell, its icons, how its styles are layered, its motion -- is [../console/design.md](../console/design.md).** This file is what it does.
 
 **The console is read whole, or in one of three scopes, the layers the workspace's
 `spec/architecture/layers.md` draws.** `All` is the default and has no segment of its own -- `/`,
@@ -160,23 +107,17 @@ Each app's `rollout` is shown beside it, as what a reader sees during one: a res
 deploy by hand -- infra's `spec/architecture/host.md`, "An app chooses how it is rolled out, and
 keeping nothing earns a gapless one".
 
-### An icon is drawn in three layers
-
-**An icon's box, its drawing's offset, and its drawing's scale are three things, and only the first
-is layout's.** The box is a square of the size asked for, and its center is the one point everything
-around it aligns to. The drawing is then moved off that center, and scaled about it, by the icon's
-row in `src/lib/ui/optics.ts` -- in the units of its own 24-unit grid, so one correction holds at
-every size it is drawn at. Both are done through the drawing's `viewBox`, as the player's cog is --
-web's `spec/styling/player.md` -- so the box, and any focus ring or frame around it, never moves;
-and a scaled drawing is given its stroke back, so it keeps the weight of the icons beside it.
-`src/lib/ui/icon.svelte` draws every icon that way.
-
-**A correction is measured, and then judged.** An outline icon's ink is weighed by rendering it and
-taking its centroid against the grid's center: `git-merge` centers at x 9.97, two units left,
-because two circles and the stem sit on the left and one on the right. Its correction is three
-quarters of that, 1.5 units right, since a drawing moved all the way to its centroid reads as having
-overshot. The table holds one row per icon, so an icon is corrected once and is the same wherever it
-appears.
+**Errors go to Sentry, and development sends nothing.** The console reports to a Sentry project of
+its own, its DSN beside the site's and the status page's in `@canmi/me/urls` -- public by
+construction, since the browser bundle carries it -- and through `@canmi/web/sentry`, as they do:
+`initClient` in the browser, `serverHandles` in the Worker, and Sentry's own Vite plugin in the
+build. In development Sentry is loaded and initialized as in production, so what breaks under it
+breaks here first, but its transport drops every event, so nothing is sent. `/live`, `/state` and
+`/nearest` are answered before Sentry's handles, since a socket's 101 must leave the hook as it was
+made and nothing may wrap it first; an error on those three is the relay's to report, not the
+console's. Source maps are not uploaded yet: the console's Worker is packaged by the web
+repository's workflow and deployed by the platform's deployer, and neither holds a Sentry token, so
+the build emits none.
 
 ## Live, through the nearest node
 
