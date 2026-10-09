@@ -1,10 +1,10 @@
 <script lang="ts">
 	/**
-	 * Every place beside the map, a line each under two quiet headings: a dot for whether its nodes
-	 * are heard, its name whole, how many nodes stand there where it is more than one, how busy its
+	 * Every place beside the map, a line each under quiet headings: a dot for whether its nodes are
+	 * heard, its name whole, how many nodes stand there where it is more than one, how busy its
 	 * processors are and how much memory is in use. The rest of a place -- its apps, each node by
-	 * code -- is the map's card, which pointing at a line opens. A node's line links to it, a shared place's to the
-	 * nodes. See spec/console/overview.md, "The map is the page's whole picture".
+	 * code -- is the map's card, which pointing at a line opens. A node's line links to it, a shared
+	 * place's to the nodes. See spec/console/overview.md, "The map is the page's whole picture".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
