@@ -149,11 +149,14 @@ beside a card's title, and its `24h` and `7d`, were framed switches inside a car
 **The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
 not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
-the pointer's row on the hover's wash. **The frame keeps its own inset, and each row inside it is
-square and the inside's whole width**, as the site's menus run their rows, so a rule between two
-groups meets no rounded row beside it; the site's frame itself, rows touching its line, is not
-taken. **Every row keeps a column on its left for a mark** -- a head's chevron, a link's arrow, an
-option's nothing -- so every row's words start at one edge, the check staying at the right. It unfolds from a step smaller at
+the pointer's row on the hover's wash, **each row the menu's whole width, edge to edge, as the
+site's menus run**, its wash cut only by the menu's own corners, so the rule above the links meets
+no rounded row beside it and the menu needs no inset of its own. **That rule is the menu's only
+one**: it parts choosing from going elsewhere, while a group needs none, its head and chevron
+already where it starts. **Every row is a mark's column, its
+words, and a mark's column**, either column empty where the row has no mark -- a head's chevron on
+the left; the check and a link's arrow on the right -- so every row's words start and end at one
+edge; a mark needs less room than words, so its columns stand nearer the edge and the words. It unfolds from a step smaller at
 its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit each, one
 open at a time**: a group's head, its unit and a chevron, opens it in place and closes the one open,
 choosing nothing, the one opening and the one closing carried together by GSAP over 180 ms, a closed
