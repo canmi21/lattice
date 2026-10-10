@@ -5,7 +5,6 @@
 	 * them, Deployments' and Nodes'. See spec/console/overview.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Card from '#lib/card.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
@@ -17,7 +16,6 @@
 	import Timeline from '#lib/overview/timeline.svelte';
 	import { DAY, WEEK } from '#lib/overview/timeline.js';
 	import TitleChoice from '#lib/ui/title-choice.svelte';
-	import { OUTCOME } from '#lib/overview/words.js';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
 	import { scoped } from '#lib/scope/context.js';
@@ -62,18 +60,10 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
-	/** The legend, in the words a reader is told, each beside its slot's color. */
-	const LEGEND = ['succeeded', 'running', 'failed'] as const;
 	/** How far back the timeline reaches; a week until the author settles it. */
 	let back: '24h' | '7d' = $state('7d');
 	const span = $derived(back === '7d' ? WEEK : DAY);
-	const styles = stylex.create({
-		/** The legend's words, beside the marks they name. */
-		legend: { color: 'var(--color-text-muted)', fontSize: text.px12 },
-		succeeded: { backgroundColor: 'var(--color-good)' },
-		running: { backgroundColor: 'var(--color-busy)' },
-		failed: { backgroundColor: 'var(--color-danger)' },
-	});
+	const styles = stylex.create({});
 
 	/** The place list's and the timeline's height before their reads land. */
 	const LIST = 9 * 28;
@@ -98,16 +88,6 @@
 					{ key: '24h', title: 'Last 24 hours' },
 				]}
 			/>
-		{/snippet}
-		{#snippet aside()}
-			<div class="flex h-8 items-center gap-4">
-				{#each LEGEND as outcome (outcome)}
-					<span class="flex items-center gap-1.5 {stylex.attrs(styles.legend).class}">
-						<span class="size-2.5 rounded-[2px] {stylex.attrs(styles[outcome]).class}"
-						></span>{OUTCOME[outcome]}
-					</span>
-				{/each}
-			</div>
 		{/snippet}
 		<div class="px-5 pb-4">
 			{#if seed.value}

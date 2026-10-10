@@ -7,5 +7,6 @@ import type { Outcome } from './timeline.ts';
 export const OUTCOME: Readonly<Record<Outcome, string>> = {
 	succeeded: 'Done',
 	running: 'In progress',
+	mixed: 'Partly failed',
 	failed: 'Failed',
 };

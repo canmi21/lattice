@@ -10,13 +10,38 @@ import type { Step } from './moving.ts';
 export const DAY = 86_400_000;
 export const WEEK = 7 * DAY;
 export const HOUR = 3_600_000;
-/** How long a slot is over a span of a day or less, and over a longer one. */
-export const QUARTER = HOUR / 4;
+/** How many slots a span may be drawn in, the finest first: each a whole number of minutes. */
+const COUNTS = {
+	day: [144, 96, 72, 48, 24],
+	week: [336, 168, 84, 56, 42, 28],
+} as const;
 
-/** How many slots `span` is drawn in. */
-export const slotsIn = (span: number): number => Math.round(span / (span > DAY ? HOUR : QUARTER));
+/** A slot's width and the gap between two, each in pixels, as far as each may stretch. */
+export const SLOT = { min: 3, max: 8 } as const;
+export const GAP = { min: 1, max: 3 } as const;
 
-export type Outcome = 'running' | 'failed' | 'succeeded';
+/** How many slots `span` is drawn in before its width is known: an hour each, or a quarter. */
+export const slotsIn = (span: number): number => (span > DAY ? 168 : 96);
+
+/**
+ * The slots `span` is drawn in across `width` pixels: the finest count whose slots, at their
+ * narrowest and closest, still fit, then a width and a gap within their bounds that fill it -- the
+ * slots widening first, and the gap after them. Where even the coarsest count does not fit at its
+ * narrowest, that count, overflowing; where the finest stops short at its widest, that count,
+ * short of the edge.
+ */
+export function fit(span: number, width: number): { of: number; slot: number; gap: number } {
+	const counts = span > DAY ? COUNTS.week : COUNTS.day;
+	const of =
+		counts.find((count) => count * SLOT.min + (count - 1) * GAP.min <= width) ?? counts.at(-1) ?? 1;
+	// The slots as wide as the row allows at the closest gap, then the gap as wide as what is left.
+	const slot = Math.max(SLOT.min, Math.min(SLOT.max, (width - (of - 1) * GAP.min) / of));
+	const gap = Math.max(GAP.min, Math.min(GAP.max, (width - of * slot) / Math.max(1, of - 1)));
+	return { of, slot, gap };
+}
+
+/** What became of a run on a node, or of a slot's runs: `mixed` where some failed, some not. */
+export type Outcome = 'running' | 'failed' | 'mixed' | 'succeeded';
 
 export interface Mark {
 	key: string;
@@ -34,10 +59,17 @@ export interface Mark {
 	detail?: string;
 }
 
-/** Worst first: going, then failed, then done. */
-const WORST: readonly Outcome[] = ['running', 'failed', 'succeeded'];
-const worst = (outcomes: readonly Outcome[]): Outcome =>
-	WORST.find((one) => outcomes.includes(one)) ?? 'succeeded';
+/**
+ * What `outcomes` come to together: going while any goes, failed where all that ended failed,
+ * done where none did, and mixed where some of each.
+ */
+function together(outcomes: readonly Outcome[]): Outcome {
+	if (outcomes.includes('running')) return 'running';
+	const failed = outcomes.some((one) => one === 'failed' || one === 'mixed');
+	const done = outcomes.some((one) => one === 'succeeded' || one === 'mixed');
+	if (failed && done) return 'mixed';
+	return failed ? 'failed' : 'succeeded';
+}
 
 const outcomeOf = (step: Step): Outcome =>
 	step.outcome === 'running' || step.outcome === 'failed' ? step.outcome : 'succeeded';
@@ -60,7 +92,7 @@ export function marks(steps: readonly Step[], now: number, span = DAY): Mark[] {
 	}
 	return [...gathered]
 		.flatMap(([key, group]): Mark[] => {
-			const outcome = worst(group.map(outcomeOf));
+			const outcome = together(group.map(outcomeOf));
 			const began = Math.min(...group.map((one) => Date.parse(one.started_at)));
 			const finishes = group.map((one) => Date.parse(one.finished_at ?? one.started_at));
 			const ended = outcome === 'running' ? now : Math.max(...finishes);
@@ -110,7 +142,7 @@ export function cells(marks: readonly Mark[], of: number): Cell[] {
 		node: (its[0] as Mark).node,
 		index: Math.min(of - 1, Math.floor((its[0] as Mark).from * of)),
 		of,
-		outcome: worst(its.map((one) => one.outcome)),
+		outcome: together(its.map((one) => one.outcome)),
 		marks: its,
 	}));
 }

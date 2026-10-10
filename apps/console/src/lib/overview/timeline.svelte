@@ -1,11 +1,11 @@
 <script lang="ts">
 	/**
 	 * The week, a line a node, as a status page draws one: its flag with the dot that says how it
-	 * is, the part of its place that tells it apart, and a row of slots, an hour each over a week
-	 * and a quarter over a day -- grey where nothing ran, green done, blue going, red where a run
-	 * failed. Under the rows, where the span starts and that it ends now. In a view without nodes
-	 * the lines are its busiest apps instead. See spec/console/overview.md, "The week is a line a
-	 * node".
+	 * is, the part of its place that tells it apart, and a row of slots -- grey where nothing ran,
+	 * white done, blue going, amber where a run partly failed and red where it failed. The slots
+	 * stretch between their bounds to fill the row, and where they cannot, there are more or fewer
+	 * of them. Under the rows, the legend and `Now`. In a view without nodes the lines are its
+	 * busiest apps instead. See spec/console/overview.md, "The week is a line a node".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -19,7 +19,16 @@
 	import HealthFlag from './health-flag.svelte';
 	import { healthOf } from './health.ts';
 	import type { Step } from './moving.ts';
-	import { type Cell, DAY, type Mark, marks, slots, slotsIn } from './timeline.ts';
+	import {
+		type Cell,
+		DAY,
+		type Mark,
+		type Outcome,
+		fit,
+		marks,
+		slots,
+		slotsIn,
+	} from './timeline.ts';
 	import { OUTCOME } from './words.ts';
 
 	let {
@@ -46,9 +55,12 @@
 	const APPS = 8;
 	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4';
 
-	const of = $derived(slotsIn(span));
-	/** Where the row starts, under its first slot. */
-	const since = $derived(span > DAY ? `${Math.round(span / DAY)} days ago` : '24 hours ago');
+	/** The row's width once the browser has laid it out; the server draws the usual count. */
+	let width = $state(0);
+	const layout = $derived(width ? fit(span, width) : undefined);
+	const of = $derived(layout?.of ?? slotsIn(span));
+	/** The legend, in the reader's words, each beside its slot's color. */
+	const LEGEND: readonly Outcome[] = ['succeeded', 'running', 'mixed', 'failed'];
 
 	const drawn = $derived(
 		marks(
@@ -117,8 +129,10 @@
 		label: { color: 'var(--color-text)', fontSize: text.px13 },
 		/** A slot nothing ran in: a step off the card, as a status page's empty day is. */
 		empty: { backgroundColor: 'color-mix(in srgb, var(--color-text) 9%, transparent)' },
-		succeeded: { backgroundColor: 'var(--color-good)' },
+		/** Done is the ink itself, so only what went wrong, or is going, carries a color. */
+		succeeded: { backgroundColor: 'var(--color-text)' },
 		running: { backgroundColor: 'var(--color-busy)' },
+		mixed: { backgroundColor: 'var(--color-warn)' },
 		failed: { backgroundColor: 'var(--color-danger)' },
 		slot: {
 			opacity: { default: 1, ':hover': 0.7 },
@@ -136,10 +150,18 @@
 		<a
 			href={only ? hrefOf(only) : to('/deployments')}
 			title={told(one)}
-			class="min-w-0 flex-1 rounded-[2px] {stylex.attrs(styles.slot, styles[one.outcome]).class}"
+			class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(
+				styles.slot,
+				styles[one.outcome],
+			).class}"
+			style:width={layout ? `${layout.slot}px` : undefined}
 		></a>
 	{:else}
-		<span class="min-w-0 flex-1 rounded-[2px] {stylex.attrs(styles.empty).class}"></span>
+		<span
+			class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(styles.empty)
+				.class}"
+			style:width={layout ? `${layout.slot}px` : undefined}
+		></span>
 	{/if}
 {/snippet}
 
@@ -161,20 +183,33 @@
 					{/if}
 					<span class="truncate">{line.label}</span>
 				</a>
-				<!-- One slot a span's hour or quarter, a pixel apart, as a status page's days are. -->
-				<div class="flex h-5 gap-px">
+				<!-- Its slots as wide and as far apart as the row lets them be, ending at now. -->
+				<div
+					class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
+					style:gap={layout ? `${layout.gap}px` : undefined}
+				>
 					{#each slots(line.marks, of) as one, index (index)}
 						{@render slot(one)}
 					{/each}
 				</div>
 			</div>
 		{/each}
-		<div class="{COLUMNS} pt-1">
-			<span></span>
-			<div class="flex justify-between {stylex.attrs(styles.axis).class}">
-				<span>{since}</span>
-				<span>Now</span>
+		<!-- The legend under the names, and where the rows end; the title says where they start. -->
+		<div class="flex items-center justify-between pt-2 {stylex.attrs(styles.axis).class}">
+			<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
+				{#each LEGEND as outcome (outcome)}
+					<span class="flex items-center gap-1.5">
+						<span class="h-3 w-[3px] rounded-[1px] {stylex.attrs(styles[outcome]).class}"
+						></span>{OUTCOME[outcome]}
+					</span>
+				{/each}
 			</div>
+			<span>Now</span>
+		</div>
+		<!-- What the slots are measured against: the rows' second column, empty and as wide. -->
+		<div aria-hidden="true" class="h-0 {COLUMNS}">
+			<span></span>
+			<div bind:clientWidth={width}></div>
 		</div>
 	</div>
 {:else}

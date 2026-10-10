@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Step } from './moving.ts';
-import { DAY, WEEK, cells, marks, slots, slotsIn } from './timeline.ts';
+import { DAY, GAP, SLOT, WEEK, cells, fit, marks, slots, slotsIn } from './timeline.ts';
 
 const NOW = Date.parse('2026-10-09T12:00:00Z');
 const at = (hoursAgo: number) => new Date(NOW - hoursAgo * 3_600_000).toISOString();
@@ -41,7 +41,7 @@ describe('timeline', () => {
 		expect(drawn).toHaveLength(2);
 		expect(drawn.find((one) => one.node === 'tyo')).toMatchObject({
 			apps: ['relay', 'geo'],
-			outcome: 'failed',
+			outcome: 'mixed',
 			detail: 'gone',
 		});
 	});
@@ -70,7 +70,7 @@ describe('timeline', () => {
 		expect(drawn.map((one) => [one.run, one.from])).toEqual([[8, 0]]);
 	});
 
-	it('gathers a week into an hour a cell, a cell the worst of its marks', () => {
+	it('gathers a week into an hour a cell, mixed where one run failed and one did not', () => {
 		const drawn = marks(
 			[
 				step({ run: 1, started_at: at(10), finished_at: at(9.99) }),
@@ -81,7 +81,7 @@ describe('timeline', () => {
 		);
 		const gathered = cells(drawn, 168);
 		expect(gathered).toHaveLength(1);
-		expect(gathered[0]).toMatchObject({ outcome: 'failed', index: 158 });
+		expect(gathered[0]).toMatchObject({ outcome: 'mixed', index: 158 });
 		expect(gathered[0]?.marks).toHaveLength(2);
 	});
 
@@ -93,5 +93,19 @@ describe('timeline', () => {
 		expect(line).toHaveLength(96);
 		expect(line.filter(Boolean)).toHaveLength(1);
 		expect(line[92]?.outcome).toBe('succeeded');
+	});
+
+	it('fits the finest count of slots the width holds, stretching the gap and then the slots', () => {
+		const roomy = fit(WEEK, 1400);
+		expect(roomy.of).toBe(336);
+		const narrow = fit(WEEK, 600);
+		expect(narrow.of).toBe(84);
+		for (const one of [roomy, narrow, fit(DAY, 700), fit(DAY, 300)]) {
+			expect(one.gap).toBeGreaterThanOrEqual(GAP.min);
+			expect(one.gap).toBeLessThanOrEqual(GAP.max);
+			expect(one.slot).toBeGreaterThanOrEqual(SLOT.min);
+			expect(one.slot).toBeLessThanOrEqual(SLOT.max);
+		}
+		expect(narrow.of * narrow.slot + (narrow.of - 1) * narrow.gap).toBeLessThanOrEqual(600.001);
 	});
 });
