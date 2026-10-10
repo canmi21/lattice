@@ -3,6 +3,7 @@
  * loaded from every node, the most each serves, and the filters run here over what came back.
  * See spec/architecture/console.md.
  */
+import type { Zone } from '#lib/chart/series.ts';
 import { ALL, type Cursor, type FleetEvent, fan } from '#lib/server/fleet.ts';
 import { events as read } from '#lib/server/reads.ts';
 import type { Edge, Failure } from '#lib/server/read.ts';
@@ -48,7 +49,7 @@ async function pool(edge: Edge, before: Cursor, keep: Keep): Promise<Pool> {
 export function load(
 	edge: Edge,
 	params: URLSearchParams,
-	zone: string,
+	zone: Zone,
 	keep: Keep = () => true,
 	now = Date.now(),
 ) {
@@ -56,7 +57,7 @@ export function load(
 	return { query, nodes: ALL, now, read: gather(edge, query, zone, now, keep) };
 }
 
-async function gather(edge: Edge, query: Query, zone: string, now: number, keep: Keep) {
+async function gather(edge: Edge, query: Query, zone: Zone, now: number, keep: Keep) {
 	const paged = Object.keys(query.before).length > 0;
 	// Both at once: the charts count the newest, the log shows the page asked for.
 	const [newest, older] = await Promise.all([

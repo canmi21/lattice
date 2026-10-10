@@ -86,9 +86,12 @@ platform's checkouts sit beside this one. A display name the copy lacks is writt
 is a small ring or bar filled to the share, the figure beside it short, and the full sentence
 (`975.5 MiB of 23.4 GiB`) on hover; a table cell never carries a sentence a glance cannot read.
 
-**Every time is written in the reader's zone**, which Cloudflare names on the request, set once in
-the layout and read by every chart, so the server and the browser write the same text and the page
-does not change as it wakes; a zone Intl does not know falls back to UTC. **The world map is
+**The server computes in UTC and every time is written in the reader's zone**, by its IANA name.
+The name comes from the `timezone` cookie the browser keeps ([../console/state.md](../console/state.md),
+"Kept, and where"), else from the zone Cloudflare names on the request, else UTC; a name Intl does
+not know is passed over. It is set once in the layout and read by every chart, table, tip and day
+bucket, each moment in the offset its zone had then, so the server and the browser write the same
+text and the page does not change as it wakes. Decided with the author on 2026-10-10. **The world map is
 projected when the console is built**, flat and as a grid of dots, so neither the Worker nor the
 browser carries a projection or a world's topology -- only the dots it drew. A globe is offered
 beside it, the same dots turned round by the browser on a canvas and loaded only when asked for --

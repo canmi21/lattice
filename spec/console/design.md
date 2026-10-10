@@ -54,7 +54,7 @@ reader's. The relay is the node nearest the reader, worked out on the server fro
 says they are without asking any node -- the order the Worker itself tries them in -- until the
 socket has gone through one and names it.
 
-**The zone in the top bar is the request's**, as every moment on the page is written in, and it is
+**The zone in the top bar is the reader's**, as every moment on the page is written in, and it is
 written as its offset from UTC with a sign -- `UTC-4`, `UTC+5:30`, and UTC itself `UTC+0` -- so
 every zone reads one way, never as a city's name or Intl's `GMT`; its name is on its hover.
 

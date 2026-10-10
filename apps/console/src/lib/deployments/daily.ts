@@ -3,7 +3,7 @@
  * Days are cut at midnight in `zone`, each run on the day its first placement started.
  */
 import type { Bars } from '../chart/bar-chart.svelte';
-import { offset } from '../chart/series.ts';
+import { offset, type Zone } from '../chart/series.ts';
 import type { Run } from '../server/runs.ts';
 import { type RunState, runState, said } from './state.ts';
 
@@ -20,7 +20,7 @@ const STACKED: { state: RunState; color: string }[] = [
 const label = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 
 /** Whole days since the epoch on `zone`'s calendar. */
-function dayOf(at: number, zone: string): number {
+function dayOf(at: number, zone: Zone): number {
 	return Math.floor((at + offset(at, zone)) / DAY);
 }
 
@@ -29,7 +29,7 @@ export function daily(
 	runs: Run[],
 	now: number,
 	days: number,
-	zone: string,
+	zone: Zone,
 ): { categories: string[]; series: Bars[] } {
 	const today = dayOf(now / 1000, zone);
 	const first = today - days + 1;

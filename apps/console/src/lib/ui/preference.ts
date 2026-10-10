@@ -5,7 +5,7 @@
  */
 
 /** A year, at every path, sent on a link followed from elsewhere; the theme cookie's attributes. */
-const ATTRIBUTES = ';path=/;max-age=31536000;SameSite=Lax';
+export const ATTRIBUTES = ';path=/;max-age=31536000;SameSite=Lax';
 
 /** What the cookie `name` holds where it is one of `allowed`, else `fallback`. */
 export function preferred<T extends string>(

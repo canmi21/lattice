@@ -3,7 +3,7 @@
 	import Card from '#lib/card.svelte';
 	import StackedBar from '#lib/chart/stacked-bar.svelte';
 	import Heatmap from '#lib/chart/heatmap.svelte';
-	import { moment } from '#lib/chart/series.js';
+	import { moment, written } from '#lib/chart/series.js';
 	import { OUTCOMES } from '#lib/events/counts.js';
 	import EventsTable from '#lib/events/events-table.svelte';
 	import Filters from '#lib/events/filters.svelte';
@@ -36,11 +36,6 @@
 		skipped: 'var(--color-text-muted)',
 		running: 'var(--color-busy)',
 	};
-	const dayLabel = new Intl.DateTimeFormat('en-US', {
-		timeZone: zone,
-		month: 'short',
-		day: 'numeric',
-	});
 
 	type Read = Awaited<PageProps['data']['read']>;
 	const bars = (charts: Read['charts']) =>
@@ -117,7 +112,7 @@
 				<Skeleton height={220} chart />
 			{:then { charts }}
 				<StackedBar
-					categories={charts.days.times.map((at) => dayLabel.format(new Date(at * 1000)))}
+					categories={charts.days.times.map((at) => written(at * 1000, zone, 'day'))}
 					series={bars(charts)}
 					label="Event outcomes per day over the last 7 days"
 				/>

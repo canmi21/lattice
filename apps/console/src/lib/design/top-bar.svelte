@@ -108,7 +108,9 @@
 	<div class="flex min-w-0 items-center gap-2 justify-self-end">
 		{@render actions?.()}
 		<!-- The request's zone, as the charts write it; see spec/architecture/console.md. -->
-		<span class="select-text {stylex.attrs(styles.zone).class}" title={zone}>{offsetOf(zone)}</span>
+		<span class="select-text {stylex.attrs(styles.zone).class}" title={zone.name}
+			>{offsetOf(zone)}</span
+		>
 		<IconButton label="Switch between light and dark" onclick={toggleTheme}>
 			<!-- One mark for both, mirrored in the dark so its filled half changes side. -->
 			<BrightnessIcon size={18} aria-hidden="true" class="dark:-scale-x-100" />

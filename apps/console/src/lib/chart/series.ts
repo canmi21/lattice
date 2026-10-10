@@ -54,16 +54,22 @@ export function withGaps(points: Datum[]): Datum[] {
 }
 
 /**
- * Moments are written in one named zone and one locale, never the runtime's own: the server
- * renders the first paint and the browser takes it over, and the reader's zone, which Cloudflare
- * tells the server, is the one both can be handed. `ui/time-zone.ts` carries it to a chart.
+ * A zone as the console carries it: the reader's IANA name, which the server draws with from the
+ * `timezone` cookie and the browser takes over, never the runtime's own zone, so both write the
+ * same text. `ui/time-zone.ts` carries it to a chart; see spec/console/state.md, "Kept, and where".
  */
-export const UTC = 'UTC';
+export interface Zone {
+	readonly name: string;
+}
+
+export const UTC: Zone = { name: 'UTC' };
 
 const SHAPES = {
 	seconds: { hour: '2-digit', minute: '2-digit', second: '2-digit' },
 	clock: { hour: '2-digit', minute: '2-digit' },
+	hour: { hour: 'numeric', minute: '2-digit' },
 	day: { month: 'short', day: 'numeric' },
+	weekday: { weekday: 'short' },
 	full: {
 		month: 'short',
 		day: 'numeric',
@@ -82,30 +88,37 @@ const SHAPES = {
 	},
 } satisfies Record<string, Intl.DateTimeFormatOptions>;
 
+export type Shape = Exclude<keyof typeof SHAPES, 'parts'>;
+
 const made = new Map<string, Intl.DateTimeFormat>();
 
-function writer(zone: string, shape: keyof typeof SHAPES): Intl.DateTimeFormat {
-	const id = `${zone} ${shape}`;
+function writer(zone: Zone, shape: keyof typeof SHAPES): Intl.DateTimeFormat {
+	const id = `${zone.name} ${shape}`;
 	const known = made.get(id);
 	if (known) return known;
-	const fresh = new Intl.DateTimeFormat('en-US', { ...SHAPES[shape], timeZone: zone });
+	const fresh = new Intl.DateTimeFormat('en-US', { ...SHAPES[shape], timeZone: zone.name });
 	made.set(id, fresh);
 	return fresh;
+}
+
+/** `at`, in milliseconds, written in `shape` on `zone`'s clock. */
+export function written(at: number, zone: Zone, shape: Shape): string {
+	return writer(zone, shape).format(at);
 }
 
 /** How a tick names its moment, given how much time the axis spans. */
 export function tickLabel(span: number, zone = UTC): (moment: Date) => string {
 	const shape = span <= 180 ? 'seconds' : span <= 2 * 86400 ? 'clock' : 'day';
-	return (when) => writer(zone, shape).format(when);
+	return (when) => written(when.getTime(), zone, shape);
 }
 
 /** A moment in full, for the tooltip. */
 export function moment(at: number, zone = UTC): string {
-	return writer(zone, 'full').format(new Date(at * 1000));
+	return written(at * 1000, zone, 'full');
 }
 
 /** How far `zone`'s clock is ahead of UTC at `at`, in seconds. */
-export function offset(at: number, zone: string): number {
+export function offset(at: number, zone: Zone): number {
 	const parts = Object.fromEntries(
 		writer(zone, 'parts')
 			.formatToParts(new Date(at * 1000))

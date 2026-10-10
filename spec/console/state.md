@@ -37,7 +37,12 @@ not names the console chooses.
   that changes the first paint is such a fact**, so the server draws it as it was left rather than
   drawing the default and redrawing: the overview's span, `span`, and the map's view, `map`, a
   globe opening round rather than turning, each a cookie of a year at every path, written as it is
-  chosen -- `src/lib/ui/preference.ts`. The span's dimension will be one as well.
+  chosen -- `src/lib/ui/preference.ts` -- and the span's dimension, `dimension`. **The reader's zone
+  is one as well**, `timezone`, its IANA name as the browser gives it -- `America/New_York`,
+  `Asia/Kolkata`, `UTC` -- written by the browser on every load where it differs from the
+  browser's own, so a reader who moves is drawn right from their next load on. A name the server
+  does not know is ignored. Without a usable cookie the server takes the zone Cloudflare names,
+  and only that first visit may redraw once the page wakes -- `src/lib/ui/time-zone.ts`.
 
 ## Not kept
 

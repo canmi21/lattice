@@ -39,12 +39,12 @@ describe('counts', () => {
 			event('tyo', '2026-09-20T00:00:00Z'),
 			event('tyo', '2026-10-06T02:00:00Z', 'odd'),
 		];
-		const utc = days(at, NOW, 'UTC');
+		const utc = days(at, NOW, { name: 'UTC' });
 		expect(utc.times).toHaveLength(7);
 		expect(utc.times.at(-1)).toBe(Date.parse('2026-10-06T00:00:00Z') / 1000);
 		expect(utc.values[1]?.at(-1)).toBe(1);
 		expect(utc.values[0]?.at(-2)).toBe(1);
-		const tokyo = days(at, NOW, 'Asia/Tokyo');
+		const tokyo = days(at, NOW, { name: 'Asia/Tokyo' });
 		expect(tokyo.times.at(-1)).toBe(Date.parse('2026-10-05T15:00:00Z') / 1000);
 		expect(tokyo.values[0]?.at(-2)).toBe(0);
 		expect(tokyo.values[0]?.at(-1)).toBe(1);

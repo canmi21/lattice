@@ -9,6 +9,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { written } from '../chart/series.ts';
 	import type { Live } from '../live.svelte.ts';
 	import { nameOf, partOf } from '../map/places.ts';
 	import { CODES } from '../nodes/facts.ts';
@@ -203,21 +204,14 @@
 	const hrefOf = (mark: Mark) =>
 		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
 
-	const dayOf = (at: number) =>
-		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: zone }).format(at);
+	const dayOf = (at: number) => written(at, zone, 'day');
 	/** A slot's time on the reader's clock: `9 PM` of `Oct 9`, `Oct 9` a `Thu`, `Oct 7 – 9`. */
 	function timeOf(start: number): Pick<Tip, 'time' | 'date'> {
 		if (length < DAY) {
-			const clock = new Intl.DateTimeFormat('en-US', {
-				hour: 'numeric',
-				minute: '2-digit',
-				timeZone: zone,
-			});
-			return { time: clock.format(start).replace(':00', ''), date: dayOf(start) };
+			return { time: written(start, zone, 'hour').replace(':00', ''), date: dayOf(start) };
 		}
 		if (length === DAY) {
-			const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: zone });
-			return { time: dayOf(start), date: weekday.format(start) };
+			return { time: dayOf(start), date: written(start, zone, 'weekday') };
 		}
 		const last = start + length - 1;
 		const [from, to] = [dayOf(start), dayOf(last)];

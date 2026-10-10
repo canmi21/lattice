@@ -2,7 +2,7 @@
  * What the charts above the log count, from the events loaded for them: events per hour per node
  * over the last day, and outcomes per day over the last week, days as the reader's zone cuts them.
  */
-import { offset } from '#lib/chart/series.ts';
+import { offset, type Zone } from '#lib/chart/series.ts';
 import type { FleetEvent } from '#lib/server/fleet.ts';
 
 const HOUR = 3600;
@@ -41,13 +41,13 @@ export interface Days {
 }
 
 /** The start in seconds of the day `at` falls in, by `zone`'s clock. */
-function dayOf(at: number, zone: string): number {
+function dayOf(at: number, zone: Zone): number {
 	const shift = offset(at, zone);
 	return Math.floor((at + shift) / DAY) * DAY - shift;
 }
 
 /** Outcomes per day over the 7 days ending today; an outcome host adds later is not drawn. */
-export function days(events: FleetEvent[], now: number, zone: string): Days {
+export function days(events: FleetEvent[], now: number, zone: Zone): Days {
 	const today = dayOf(now / 1000, zone);
 	const times = Array.from({ length: 7 }, (_, at) => dayOf(today - (6 - at) * DAY + DAY / 2, zone));
 	const values = OUTCOMES.map(() => times.map(() => 0));

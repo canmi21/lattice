@@ -14,7 +14,7 @@
 	import TopBar from '#lib/design/top-bar.svelte';
 	import { provideActions } from '#lib/ui/actions.svelte.js';
 	import { goTo, holdTag, keepPlace, placeIn, placeOf, placeTag } from '#lib/ui/place.js';
-	import { setTimeZone } from '#lib/ui/time-zone.js';
+	import { setTimeZone, settle } from '#lib/ui/time-zone.js';
 	// The shell's face, its CDN filled in by the build; see vite.config.ts.
 	import '@canmi/fonts/mono.css';
 	import '../app.css';
@@ -22,8 +22,11 @@
 
 	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
-	// Once, from the server's load: every chart and time below writes the reader's zone.
-	setTimeZone(untrack(() => data.zone));
+	// Once, from the server's load: every chart and time below writes the reader's zone, which the
+	// browser corrects where the server drew on a guess; see src/lib/ui/time-zone.ts.
+	const zone = $state({ ...untrack(() => data.zone) });
+	setTimeZone(zone);
+	onMount(() => settle(zone));
 
 	/**
 	 * The visual layer in development, linked as the panel links it: the layer order first, then the

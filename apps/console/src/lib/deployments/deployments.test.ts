@@ -176,12 +176,12 @@ describe('the timeline', () => {
 describe('runs per day', () => {
 	it('counts each run on its day in the zone, by state, with empty days kept', () => {
 		const now = Date.parse('2026-10-06T12:00:00Z');
-		const { categories, series } = daily([run()], now, 3, 'UTC');
+		const { categories, series } = daily([run()], now, 3, { name: 'UTC' });
 		expect(categories).toEqual(['Oct 4', 'Oct 5', 'Oct 6']);
 		expect(series.find((one) => one.key === 'running')?.values).toEqual([0, 1, 0]);
 		// 02:00 UTC on the 5th is still the 4th in Honolulu.
 		const early = group([at('tyo', 'web', { started_at: '2026-10-05T02:00:00Z' })]).runs as Run[];
-		const west = daily(early, now, 3, 'Pacific/Honolulu');
+		const west = daily(early, now, 3, { name: 'Pacific/Honolulu' });
 		expect(west.categories).toEqual(['Oct 4', 'Oct 5', 'Oct 6']);
 		expect(west.series.find((one) => one.key === 'succeeded')?.values).toEqual([1, 0, 0]);
 		expect(within([run()], now, 24)).toBe(0);
