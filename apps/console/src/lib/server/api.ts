@@ -1,7 +1,7 @@
 /**
- * The console's own API under `/api/`, a Hono app as the site's is: the facets, each at the address
- * ../facets.ts asks it at, and whatever the console comes to answer itself after them. See
- * spec/architecture/console.md, "A component asks for its facet".
+ * The console's own API under `/api/`, a Hono app as the site's is: the facets and the live
+ * stream, each at the address ../facets.ts asks it at, and whatever the console answers itself
+ * after them. See spec/architecture/console.md, "A component asks for its facet".
  */
 import { routeOf } from '@canmi/addresses';
 import { failure, success } from '@canmi/response';
@@ -11,7 +11,7 @@ import { getCookie } from 'hono/cookie';
 import { ASKED, PREFIX } from '../facets.ts';
 import { served } from '../ui/time-zone.ts';
 import type { Env } from './edge.ts';
-import { FACETS, type FacetName } from './facets.ts';
+import { FACETS, type FacetName, STREAMS, type StreamName } from './facets.ts';
 import type { Whereabouts } from './nodes.ts';
 import { sourcesOf } from './sources.ts';
 
@@ -23,6 +23,7 @@ app.use(poweredBy());
 app.get(`${PREFIX}*`, async (c) => {
 	const asked = routeOf(ASKED, c.req.path.slice(PREFIX.length));
 	if (!asked) return failure(404, 'no_such_route');
+	if (asked.route in STREAMS) return STREAMS[asked.route as StreamName].open(c.req.raw, c.env);
 	const facet = FACETS[asked.route as FacetName];
 	const params = facet.params({ ...c.req.query(), ...asked.query });
 	if (!params) return failure(400, 'invalid_route');

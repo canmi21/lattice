@@ -2,7 +2,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { URLS } from '@monoflake/sdk';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { type Env, RELAY, ROUTES, TRIES, handle, isRoute, socketOf } from './edge.ts';
+import { type Env, RELAY, TRIES, openLive, socketOf } from './edge.ts';
 import { NODES, type Node, order } from './nodes.ts';
 
 /** wrangler.jsonc as data: its comments and trailing commas taken off, strings left alone. */
@@ -45,14 +45,6 @@ function down(): Response {
 	throw new Error('tunnel down');
 }
 
-/** A binding that never answers, until the request's signal gives up on it. */
-const hanging = {
-	fetch: (_url: string, init: RequestInit = {}) =>
-		new Promise<Response>((_, reject) => {
-			init.signal?.addEventListener('abort', () => reject(init.signal?.reason));
-		}),
-} as unknown as Fetcher;
-
 /** Where Cloudflare places every reader here: Osaka, whose order is Tokyo's three first. */
 const OSAKA = { latitude: '34.6937', longitude: '135.5023' };
 const NEAREST = order(OSAKA);
@@ -83,19 +75,11 @@ describe('wrangler.jsonc', () => {
 	});
 });
 
-describe('the routes ahead of the pages', () => {
-	it('answers each of its paths exactly, and no page shares one', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {});
-		// Nothing bound, so `/state` is a 502 and `/live` a 426: answered, if not well.
-		const { env } = bound({});
-		for (const route of ROUTES) {
-			expect(isRoute(route)).toBe(true);
-			expect((await handle(asked(route), env)).status).not.toBe(404);
-		}
-		expect(['/', '/nodes', '/live/', '/state.json'].some(isRoute)).toBe(false);
-		// A page here would never be reached: src/hooks.server.ts answers its path first.
+describe('the API ahead of the pages', () => {
+	it('shares its prefix with no page', () => {
+		// A page here would never be reached: src/hooks.server.ts hands `/api/` to the API first.
 		const pages = readdirSync(join(import.meta.dirname, '../../routes'));
-		expect(pages.filter((page) => isRoute(`/${page}`))).toEqual([]);
+		expect(pages).not.toContain('api');
 	});
 });
 
@@ -140,7 +124,7 @@ describe('the live socket', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {});
 		const every = Object.fromEntries(Object.keys(NODES).map((node) => [node, down]));
 		const { sent, env } = bound(every);
-		const response = await handle(asked('/live', UPGRADE), env);
+		const response = await openLive(asked('/live', UPGRADE), env);
 		expect(response.status).toBe(502);
 		expect(await response.json()).toMatchObject({ code: 'upstream_unavailable' });
 		expect(sent.map(({ node }) => node)).toEqual(NEAREST.slice(0, TRIES));
@@ -148,53 +132,8 @@ describe('the live socket', () => {
 
 	it('refuses a request that asks for no socket', async () => {
 		const { sent, env } = bound({ tyo: () => OPENED });
-		const response = await handle(asked('/live'), env);
+		const response = await openLive(asked('/live'), env);
 		expect(response.status).toBe(426);
 		expect(sent).toHaveLength(0);
-	});
-});
-
-describe('the state', () => {
-	it("passes the first node's answer on as it is, after one that failed", async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {});
-		const body = JSON.stringify({ status: 'success', data: { node: 'hnd' } });
-		const [failing, unreachable, answering] = NEAREST as [Node, Node, Node];
-		const { sent, env } = bound({
-			[failing]: () => new Response('bad gateway', { status: 502 }),
-			[unreachable]: down,
-			[answering]: () => new Response(body, { headers: { 'content-type': 'application/json' } }),
-		});
-		const response = await handle(asked('/state'), env);
-		expect(response.status).toBe(200);
-		expect(response.headers.get('content-type')).toBe('application/json');
-		expect(await response.text()).toBe(body);
-		expect(sent.map(({ url }) => url)).toEqual(Array(3).fill(`${RELAY}/state`));
-	});
-
-	it('gives up on a node that hangs, for the next', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {});
-		const body = JSON.stringify({ status: 'success', data: { node: 'hnd' } });
-		const [hung, answering] = NEAREST as [Node, Node];
-		const { sent, env } = bound({ [answering]: () => new Response(body) });
-		const response = await handle(asked('/state'), { ...env, [hung.toUpperCase()]: hanging }, 20);
-		expect(response.status).toBe(200);
-		expect(await response.text()).toBe(body);
-		expect(sent.map(({ node }) => node)).toEqual([answering]);
-	});
-});
-
-describe('handle', () => {
-	it('names the nearest node and the order, without asking any', async () => {
-		const { sent, env } = bound({});
-		const response = await handle(asked('/nearest'), env);
-		const { data } = (await response.json()) as { data: { node: Node; order: Node[] } };
-		expect(data).toEqual({ node: NEAREST[0], order: NEAREST });
-		expect(sent).toHaveLength(0);
-	});
-
-	it('answers anything else with a 404', async () => {
-		const { env } = bound({});
-		expect((await handle(asked('/other'), env)).status).toBe(404);
-		expect((await handle(asked('/state', { method: 'POST' }), env)).status).toBe(404);
 	});
 });

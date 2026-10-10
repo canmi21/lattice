@@ -7,19 +7,25 @@
  */
 import { AXES, type Axis, DIMENSIONS, type Dimension, asked } from '../overview/history.ts';
 import { type Dry, dried } from '../overview/judge.ts';
+import { figures } from '../overview/deploys.ts';
 import {
+	type Packed,
 	type Step,
 	type Trace,
 	fromHistory,
 	fromLive,
 	merged,
+	packed,
 	traced,
 } from '../overview/moving.ts';
 import { DAY, SPANS, type Span } from '../overview/timeline.ts';
 import { VIEWS, type View, shows } from '../scope/scope.ts';
 import { offsetIn } from '../ui/time-zone.ts';
 import type { Zone } from '../chart/series.ts';
-import type { Cluster, Entry, History } from '../wire.ts';
+import type { Cluster, Entry, History, Live } from '../wire.ts';
+import { type Env, openLive } from './edge.ts';
+import { order } from './nodes.ts';
+import { primaryOf } from './primary.ts';
 import type { Read } from './read.ts';
 import type { Sources } from './sources.ts';
 
@@ -94,10 +100,10 @@ export const FACETS = {
 			const view = viewOf(query);
 			return span && view && { span, view };
 		},
-		read: async (context, { span, view }): Promise<Trace[]> => {
+		read: async (context, { span, view }): Promise<Packed> => {
 			const steps = await stepsSince(context, view, context.now - reachOf(span));
 			// A skip draws nothing; see spec/console/overview.md.
-			return steps.filter((step) => step.outcome !== 'skipped').map(traced);
+			return packed(steps.filter((step) => step.outcome !== 'skipped').map(traced));
 		},
 	}),
 
@@ -112,6 +118,50 @@ export const FACETS = {
 			const steps = await stepsSince(context, view, context.now - DAY);
 			return steps.filter((step) => step.outcome === 'running' || step.outcome === 'failed');
 		},
+	}),
+
+	/** Every node whole, as the relay holds it: the live store's, polled while the socket is down. */
+	cluster: facet({
+		revision: 1,
+		params: () => ({}),
+		read: (context) => context.sources.cluster(),
+	}),
+
+	/** The relay nearest the reader and the order the rest follow, worked out without asking one. */
+	nearest: facet({
+		revision: 1,
+		params: () => ({}),
+		read: async (context) => {
+			const nodes = order(context.sources.edge.where);
+			return { node: nodes[0], order: nodes };
+		},
+	}),
+
+	/** The view's runs counted for the figures under the map, and the nodes not read. */
+	deploys: facet({
+		revision: 1,
+		params: (query) => {
+			const view = viewOf(query);
+			return view && { view };
+		},
+		read: async (context, { view }) => {
+			const { runs, failures } = await context.sources.runs(view);
+			return {
+				seen: runs.length,
+				figures: figures(runs, context.now, context.now - 30 * DAY),
+				missing: Object.entries(failures).map(([node, failure]) => ({
+					node,
+					message: failure.message,
+				})),
+			};
+		},
+	}),
+
+	/** The node the database is primary on, which each place's latency on the map is to. */
+	primary: facet({
+		revision: 1,
+		params: () => ({}),
+		read: (context) => primaryOf(context.sources.edge),
 	}),
 
 	/** Every node, lean: what the shell, the map and the place list draw. */
@@ -167,3 +217,22 @@ export type Facets = typeof FACETS;
 export type FacetName = keyof Facets;
 export type ParamsOf<N extends FacetName> = Parameters<Facets[N]['read']>[1];
 export type AnswerOf<N extends FacetName> = Awaited<ReturnType<Facets[N]['read']>>;
+
+/**
+ * A stream: answered by a socket rather than once, its address worked out like a facet's from the
+ * type its messages are read by. `message` is never set; it carries that type to the build.
+ */
+export interface Stream<M> {
+	revision: number;
+	message?: M;
+	open: (request: Request, env: Env) => Promise<Response>;
+}
+
+const stream = <M>(one: Stream<M>): Stream<M> => one;
+
+export const STREAMS = {
+	/** Every node as it changes, from the nearest relay that opens a socket. */
+	live: stream<Live>({ revision: 1, open: openLive }),
+};
+
+export type StreamName = keyof typeof STREAMS;

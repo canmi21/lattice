@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 import type { FleetEvent } from '../server/fleet.ts';
 import type { Run } from '../server/runs.ts';
 import type { Event, Held } from '../wire.ts';
-import { current, fromHistory, fromLive, type Step, what } from './moving.ts';
+import {
+	current,
+	fromHistory,
+	fromLive,
+	packed,
+	type Step,
+	type Trace,
+	unpacked,
+	what,
+} from './moving.ts';
+import { marks } from './timeline.ts';
 
 const step = (over: Partial<Step>): Step => ({
 	run: 1,
@@ -207,5 +217,67 @@ describe('what is deploying now', () => {
 		);
 		expect(now.running.map((one) => one.run)).toEqual([2, 1]);
 		expect(now.failed.map((one) => one.run)).toEqual([4, 3]);
+	});
+});
+
+describe('traces packed for the page', () => {
+	const traces: Trace[] = [
+		{
+			run: 7,
+			source: 'run',
+			node: 'tyo',
+			app: 'web',
+			outcome: 'succeeded',
+			started_at: '2026-10-09T03:00:00.250Z',
+			finished_at: '2026-10-09T03:01:30.000Z',
+		},
+		{
+			source: 'panel',
+			node: 'rdu',
+			app: 'caddy',
+			outcome: 'running',
+			started_at: '2026-10-09T02:00:00Z',
+		},
+		{
+			run: 8,
+			source: 'run',
+			node: 'tyo',
+			app: 'api',
+			outcome: 'failed',
+			started_at: '2026-10-09T05:00:00Z',
+			finished_at: '2026-10-09T05:00:09Z',
+			detail: 'pull failed',
+		},
+	];
+
+	it('come back as the same steps, to the millisecond, in the order they started', () => {
+		const back = unpacked(packed(traces));
+		expect(back.map((one) => [one.node, one.app, one.run, one.outcome, one.detail])).toEqual([
+			['rdu', 'caddy', undefined, 'running', undefined],
+			['tyo', 'web', 7, 'succeeded', undefined],
+			['tyo', 'api', 8, 'failed', 'pull failed'],
+		]);
+		expect(back[1]?.started_at).toBe('2026-10-09T03:00:00.250Z');
+		expect(back[0]?.finished_at).toBeUndefined();
+	});
+
+	it('draw the marks the steps drew', () => {
+		const now = Date.parse('2026-10-09T06:00:00Z');
+		const fields = (one: ReturnType<typeof marks>[number]) => [
+			one.node,
+			one.apps,
+			one.outcome,
+			one.from,
+			one.to,
+		];
+		expect(marks(unpacked(packed(traces)), now).map(fields)).toEqual(
+			marks(traces, now).map(fields),
+		);
+	});
+
+	it('write each name once', () => {
+		const { names, steps } = packed(traces);
+		expect(names.node).toEqual(['rdu', 'tyo']);
+		expect(steps).toHaveLength(traces.length * 7);
 	});
 });

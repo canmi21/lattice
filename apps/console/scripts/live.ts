@@ -1,5 +1,5 @@
 /**
- * `/live` under `vite dev`, which hands every upgrade to its own HMR server and never to
+ * The `live` stream under `vite dev`, which hands every upgrade to its own HMR server and never to
  * src/hooks.server.ts. The browser's socket is joined to the one src/lib/server/edge.ts opens
  * through the nearest node's binding, the remote VPC binding the pages read through, so the relay
  * at the other end is the real one. Loaded by vite.config.ts while serving alone; the Worker never
@@ -35,7 +35,8 @@ interface Platform {
 export function live(server: ViteDevServer): void {
 	const browsers = new WebSocketServer({ noServer: true });
 	server.httpServer?.on('upgrade', (request: IncomingMessage, socket: Duplex, head: Buffer) => {
-		if (new URL(request.url ?? '/', 'http://localhost').pathname !== '/live') return;
+		// Development asks the stream at its name; see src/lib/facets.ts.
+		if (new URL(request.url ?? '/', 'http://localhost').pathname !== '/api/live') return;
 		if (!admitted(request.headers.origin, portOf(server))) {
 			socket.write('HTTP/1.1 403 Forbidden\r\nconnection: close\r\n\r\n');
 			socket.destroy();

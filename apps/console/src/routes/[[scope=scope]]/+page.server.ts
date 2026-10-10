@@ -1,14 +1,10 @@
-import { figures } from '#lib/overview/deploys.js';
 import { AXES, DIMENSIONS } from '#lib/overview/history.js';
 import { SPANS } from '#lib/overview/timeline.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { FACETS } from '#lib/server/facets.js';
-import { edgeOf, facetContext } from '#lib/server/platform.js';
-import { primaryOf } from '#lib/server/primary.js';
+import { facetContext } from '#lib/server/platform.js';
 import { preferred } from '#lib/ui/preference.js';
 import type { PageServerLoad } from './$types';
-
-const DAYS = 30;
 
 /**
  * The page's facets held for the document's own response, so the server draws the page whole, and
@@ -21,15 +17,7 @@ export const load: PageServerLoad = async (event) => {
 	const context = facetContext(event);
 	const view = viewOf(event.params.scope);
 	const nodes = view === 'all' || view === 'infra';
-	const runs = context.sources.runs(view);
-	const deploys = runs.then(({ runs: all, failures }) => ({
-		seen: all.length,
-		figures: figures(all, context.now, context.now - DAYS * 86_400_000),
-		missing: Object.entries(failures).map(([node, failure]) => ({
-			node,
-			message: failure.message,
-		})),
-	}));
+	const deploys = FACETS.deploys.read(context, { view });
 	const back = preferred(
 		event.cookies,
 		'span',
@@ -65,6 +53,6 @@ export const load: PageServerLoad = async (event) => {
 		now: first ? await now : now,
 		dry: first ? await dry : dry,
 		// Where each place's latency is to; see spec/console/overview.md.
-		primary: nodes ? primaryOf(edgeOf(event)) : Promise.resolve(undefined),
+		primary: nodes ? FACETS.primary.read(context, {}) : Promise.resolve(undefined),
 	};
 };

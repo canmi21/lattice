@@ -53,6 +53,78 @@ export function traced(step: Step): Trace {
 	};
 }
 
+/**
+ * Traces as the `steps` facet sends them, each name written once: per step seven numbers -- its
+ * node, app, source and outcome by their place in `names`, its run or -1, how long after the step
+ * before it it started, and how long it took or -1 while it runs -- in the order they started, so
+ * the numbers are small and repeat. See spec/architecture/console.md, "A component asks for its
+ * facet".
+ */
+export interface Packed {
+	names: { node: string[]; app: string[]; source: string[]; outcome: string[] };
+	/** When the first step started, in milliseconds. */
+	from: number;
+	steps: number[];
+	/** Why each failed step failed, by its place in the start order. */
+	details: Record<string, string>;
+}
+
+/** The numbers one step takes in `Packed.steps`. */
+const STRIDE = 7;
+
+export function packed(traces: readonly Trace[]): Packed {
+	const timed = traces
+		.map((trace) => ({ trace, start: Date.parse(trace.started_at) }))
+		.filter((one) => !Number.isNaN(one.start))
+		.toSorted((a, b) => a.start - b.start);
+	const names: Packed['names'] = { node: [], app: [], source: [], outcome: [] };
+	const indexOf = (list: string[], name: string) => {
+		const at = list.indexOf(name);
+		return at === -1 ? list.push(name) - 1 : at;
+	};
+	const steps: number[] = [];
+	const details: Record<string, string> = {};
+	let before = timed[0]?.start ?? 0;
+	for (const [at, { trace, start }] of timed.entries()) {
+		const end = trace.finished_at ? Date.parse(trace.finished_at) : Number.NaN;
+		steps.push(
+			indexOf(names.node, trace.node),
+			indexOf(names.app, trace.app),
+			indexOf(names.source, trace.source),
+			indexOf(names.outcome, trace.outcome),
+			trace.run ?? -1,
+			start - before,
+			Number.isNaN(end) ? -1 : end - start,
+		);
+		if (trace.detail) details[at] = trace.detail;
+		before = start;
+	}
+	return { names, from: timed[0]?.start ?? 0, steps, details };
+}
+
+export function unpacked({ names, from, steps, details }: Packed): Trace[] {
+	const traces: Trace[] = [];
+	let start = from;
+	for (let at = 0; at * STRIDE < steps.length; at++) {
+		const [node, app, source, outcome, run, after, took] = steps.slice(
+			at * STRIDE,
+			(at + 1) * STRIDE,
+		) as [number, number, number, number, number, number, number];
+		start += after;
+		traces.push({
+			...(run === -1 ? {} : { run }),
+			source: names.source[source] ?? '',
+			node: names.node[node] ?? '',
+			app: names.app[app] ?? '',
+			outcome: names.outcome[outcome] ?? '',
+			started_at: new Date(start).toISOString(),
+			...(took === -1 ? {} : { finished_at: new Date(start + took).toISOString() }),
+			...(details[at] ? { detail: details[at] } : {}),
+		});
+	}
+	return traces;
+}
+
 /** An event as a step: a run's within it, anything else apart. */
 function stepOf(node: string, event: Event): Step {
 	const { kind, run, commit } = event.source;

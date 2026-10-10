@@ -9,7 +9,7 @@ import { onMount } from 'svelte';
 import { ask } from '../facets.ts';
 import type { View } from '../scope/scope.ts';
 import type { History } from '../wire.ts';
-import type { Trace } from './moving.ts';
+import { type Trace, unpacked } from './moving.ts';
 import type { Span } from './timeline.ts';
 
 /** How often the span's minutes are asked again, in milliseconds. */
@@ -66,7 +66,7 @@ export class Detail {
 		]);
 		if (this.#asking === key) this.#asking = undefined;
 		// Kept only while it is still the span drawn, and only whole.
-		if (steps && this.of().back === key) this.current = { key, history, steps };
+		if (steps && this.of().back === key) this.current = { key, history, steps: unpacked(steps) };
 	}
 
 	async #minutes(key: Span): Promise<void> {

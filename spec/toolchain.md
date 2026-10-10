@@ -117,6 +117,12 @@ may still be reading, and closing it is not a build's business.
 each running that server's mise dev task. A window already running is left alone; one whose server
 has exited is restarted.
 
+**A workspace package added while the session runs needs every server that imports it restarted.**
+A running Vite server resolves modules from what was linked when it started, so after a
+`pnpm install` that links a new package the server answers `Cannot find module` until it starts
+again: stop its window and run `up`. On 2026-10-10 `@canmi/addresses` left the site answering 500,
+and `aka`, which resolves the marks through the site, answered the console's favicon with a 502.
+
 **Every server is always on, `local` and the editor included, and `up` takes no argument.** The
 editor was optional while it was the desktop client -- a window somebody used rather than a server
 somebody called -- and that client is archived. What replaced it is a Vite server reading the

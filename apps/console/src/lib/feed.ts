@@ -1,8 +1,9 @@
 /**
- * The one socket to `/live`, and `/state` asked every few seconds while it is down, both on the
- * page's own host: worker/index.ts answers them. See platform's spec/architecture/relay.md, "A
- * browser opens `/live`".
+ * The one socket to the `live` stream, and the `cluster` facet asked every few seconds while it is
+ * down, both under the page's own `/api/`: ./server/api.ts answers them. See platform's
+ * spec/architecture/relay.md, "A browser opens `/live`".
  */
+import { ask, streamUrl } from './facets.ts';
 import type { Cluster, Live } from './wire.ts';
 
 /** Which of the two is in use. */
@@ -28,8 +29,7 @@ const SILENCE_MS = 30_000;
 
 /** Starts listening; the returned function stops. */
 export function listen(listener: Listener): () => void {
-	const socketUrl = new URL('/live', location.href);
-	socketUrl.protocol = socketUrl.protocol === 'http:' ? 'ws:' : 'wss:';
+	const socketUrl = streamUrl('live');
 
 	let socket: WebSocket | undefined;
 	let retry = FIRST_RETRY_MS;
@@ -75,8 +75,8 @@ export function listen(listener: Listener): () => void {
 	function startPolling() {
 		listener.mode('polling');
 		if (poll) return;
-		void ask();
-		poll = setInterval(() => void ask(), POLL_MS);
+		void askCluster();
+		poll = setInterval(() => void askCluster(), POLL_MS);
 	}
 
 	function stopPolling() {
@@ -85,22 +85,14 @@ export function listen(listener: Listener): () => void {
 		listener.failure(undefined);
 	}
 
-	async function ask() {
-		try {
-			const answer = await fetch('/state');
-			const body = (await answer.json()) as
-				| { status: 'success'; data: Cluster }
-				| { status: 'error'; code: string; message: string };
-			if (!poll) return;
-			if (body.status === 'success') {
-				listener.polled(body.data);
-				listener.failure(undefined);
-			} else {
-				listener.failure(body.message);
-			}
-		} catch (error) {
-			if (poll) listener.failure(error instanceof Error ? error.message : String(error));
-		}
+	async function askCluster() {
+		const read = await ask('cluster', {});
+		if (!poll) return;
+		if (read === undefined) listener.failure('no relay answered');
+		else if (read.ok) {
+			listener.polled(read.data);
+			listener.failure(undefined);
+		} else listener.failure(read.failure.message);
 	}
 
 	dial();

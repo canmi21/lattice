@@ -13,8 +13,9 @@ readings from its host's API, reached through that node's VPC binding at Caddy's
 `event.platform` is empty under its Cloudflare adapter, and runs with `nodejs_compat`, which
 SvelteKit's server needs.
 
-**The page and its live socket are one Worker on one host, `console.canmi.app`.** `/live`, `/state`
-and `/nearest` are answered in the server hook before any page: the Worker picks the nearest node
+**The page and its live socket are one Worker on one host, `console.canmi.app`.** The `live`
+stream and the `cluster` and `nearest` facets are answered under `/api/`, in the server hook before
+any page -- "A component asks for its facet" below: the Worker picks the nearest node
 from where Cloudflare says the reader is and hands the request to that node's relay by its VPC
 binding, the next node when it fails. A response the hook returns itself leaves SvelteKit as it
 was made, which a WebSocket's 101 must, and does: a browser saw the 101 on 2026-10-06. One host because Access sets its cookie per concrete
@@ -119,7 +120,8 @@ from the busiest of them, red if any is gone, and its card listing each node.
 reaches the same VPC services the deployed Worker does, with the read token in a `.dev.vars` written
 from infra's sops file and never printed -- `mise run //repos/web:dev-console` writes it when
 missing. Vite keeps every WebSocket upgrade for its own reload, so in development alone a plugin
-takes `/live`, admits only the dev server's own `localhost` origin, and joins the browser to the
+takes the `live` stream at `/api/live`, its name, as development asks every facet, admits only
+the dev server's own `localhost` origin, and joins the browser to the
 nearest relay's socket; none of it is in the build.
 
 **It reads, and does not write, at first.** Each node's host gains a read-only token, good for its
@@ -146,10 +148,9 @@ its own, its DSN beside the site's and the status page's in `@canmi/me/urls` -- 
 construction, since the browser bundle carries it -- and through `@canmi/web/sentry`, as they do:
 `initClient` in the browser, `serverHandles` in the Worker, and Sentry's own Vite plugin in the
 build. In development Sentry is loaded and initialized as in production, so what breaks under it
-breaks here first, but its transport drops every event, so nothing is sent. `/live`, `/state` and
-`/nearest` are answered before Sentry's handles, since a socket's 101 must leave the hook as it was
-made and nothing may wrap it first; an error on those three is the relay's to report, not the
-console's. Source maps are not uploaded yet: the console's Worker is packaged by the web
+breaks here first, but its transport drops every event, so nothing is sent. The API under `/api/`
+is answered before Sentry's handles, since the `live` stream's 101 must leave the hook as it was
+made and nothing may wrap it first; an error there is the relay's to report, not the console's. Source maps are not uploaded yet: the console's Worker is packaged by the web
 repository's workflow and deployed by the platform's deployer, and neither holds a Sentry token, so
 the build emits none.
 
@@ -176,6 +177,15 @@ nobody writes the route that serves it.** Three layers, decided with the author 
   contract, not by name", with the same `@canmi/addresses`. `revision` is raised only where a
   meaning changes under an unchanged type. Development asks at the facet's name.
 
+**A stream is addressed as a facet is.** The `live` socket is `STREAMS.live`, its contract the type
+of the messages it carries, `Live`, so the relay's socket moves to a new address when what it sends
+does. Nothing the console answers is reached by a name it chose by hand any longer.
+
+**The facets cover what has been polished, and nothing else, as of 2026-10-10**: the sidebar with
+its account, the top bar, and on the overview the verdict, the map's card -- the place list, the
+world map and the figures under them -- and the timeline. Every other page reads as it did: its
+look and likely its structure are still to change, and a facet cut now would be cut again.
+
 **`/api/` is a Hono app**, `src/lib/server/api.ts`, as the site's API is: the facets first, and
 whatever the console answers itself later -- a third party's API passed on -- beside them, in the
 same app. Its first middleware is `poweredBy()`, and the console's pages carry `X-Powered-By: Hono`
@@ -188,7 +198,10 @@ priority, at once where the pointer comes to the card first, and for each span p
 to 150 KB, 126 KB to 28 KB compressed: its runs' steps alone had been 811 KB of it.
 
 **A facet's answer is written for its reader, defined once and referred to after**: a slot is a
-letter rather than an object, a step drops every field no hover reads. A small answer compresses
+letter rather than an object, a step drops every field no hover reads, and the steps name each
+node, app, source and outcome once and are seven numbers each after, in start order, times as
+milliseconds after the one before -- `Packed` in `src/lib/overview/moving.ts`. A week's steps went
+from 798,520 bytes to 54,050 on 2026-10-10, 74,173 to 15,583 compressed. A small answer compresses
 well; a nested one barely does.
 
 ## Drawn before the first paint
@@ -231,7 +244,7 @@ each other**, so whichever node a reader reached has everything as it happens. T
 mesh carrying live state beside its log -- platform's `spec/architecture/relay.md` -- and it needs what the relay's
 first step needs, a port on the tailnet. **Workers VPC carries the WebSocket**: the console's Worker
 hands the upgrade to the nearest node's binding and gets the relay's 101 back, seen from a browser
-on 2026-10-06. While the socket is down the page polls `/state`.
+on 2026-10-06. While the socket is down the page polls the `cluster` facet.
 
 ## The pipeline
 

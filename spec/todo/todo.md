@@ -49,16 +49,12 @@ still fan out across the nodes from the Worker, each to become one read of the n
 
 ## The console's facets
 
-[../architecture/console.md](../architecture/console.md), "A component asks for its facet", is the
-overview's. The rest follow it:
+[../architecture/console.md](../architecture/console.md), "A component asks for its facet", covers
+the polished parts. The rest follow each when it is polished, not before:
 
-- **The routes still answered by name move under `/api/`**: `/state` and `/nearest`, the app
-  page's `health`, and `/live`, whose socket is answered before any page and wants care.
-- **Every other page's load reads facets**, the nodes lean wherever no events are drawn; the
-  node's page, which draws them, keeps the whole.
-- **The timeline's steps are written once and referred to after**: nodes, apps and sources named
-  once and each step by number, its times as numbers; 308 KB and 42 KB compressed for a week on
-  2026-10-10, read after the first paint.
+- **Each other page's load reads facets** once its look is settled -- Nodes, a node, Apps, an app,
+  Deployments, a run -- the nodes lean wherever no events are drawn.
+- **The app page's `health` moves under `/api/`** with that page, a facet like the rest.
 
 ## The console's depth
 

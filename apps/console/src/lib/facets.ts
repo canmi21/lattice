@@ -4,25 +4,33 @@
  * spec/architecture/console.md, "A component asks for its facet".
  */
 import { asking, pathOf } from '@canmi/addresses';
-import type { AnswerOf, FacetName, ParamsOf } from './server/facets.ts';
+import type { AnswerOf, FacetName, ParamsOf, StreamName } from './server/facets.ts';
 
 /** Stated by a production build; see vite.config.ts. Absent in development and in tests. */
-declare const STATED_FACET_ADDRESSES: Readonly<Record<FacetName, string>> | undefined;
+declare const STATED_FACET_ADDRESSES: Readonly<Record<RouteName, string>> | undefined;
 
-/** Every facet's name, which is its shape: what a facet takes it takes in the query. */
+/** What the API answers: a facet once, a stream by a socket. */
+export type RouteName = FacetName | StreamName;
+
+/** Every facet's and stream's name, which is its shape: what one takes it takes in the query. */
 export const NAMES = [
 	'history',
 	'steps',
 	'now',
 	'nodes',
 	'timeline',
-] as const satisfies readonly FacetName[];
+	'cluster',
+	'nearest',
+	'deploys',
+	'primary',
+	'live',
+] as const satisfies readonly RouteName[];
 
 /** Where facets are asked, on the console's own origin. */
 export const PREFIX = '/api/';
 
-export const ASKED = asking<FacetName>(
-	Object.fromEntries(NAMES.map((name) => [name, name])) as Record<FacetName, string>,
+export const ASKED = asking<RouteName>(
+	Object.fromEntries(NAMES.map((name) => [name, name])) as Record<RouteName, string>,
 	typeof STATED_FACET_ADDRESSES === 'object' ? STATED_FACET_ADDRESSES : undefined,
 );
 
@@ -43,4 +51,11 @@ export async function ask<N extends FacetName>(
 	} catch {
 		return undefined;
 	}
+}
+
+/** Where `name`'s socket is opened, on the page's own host. */
+export function streamUrl(name: StreamName): URL {
+	const url = new URL(pathOf(ASKED, PREFIX, name), location.href);
+	url.protocol = url.protocol === 'http:' ? 'ws:' : 'wss:';
+	return url;
 }

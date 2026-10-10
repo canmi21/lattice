@@ -1,10 +1,10 @@
 /**
- * The console's live socket, and its one `/state`, handed to the nearest node's relay. Once the
- * socket is passed on nothing here runs per message. See spec/architecture/console.md, "Live,
- * through the nearest node". No authentication of its own: Access stands in front of every `.app`
- * name, see the same file. Answered from src/hooks.server.ts, ahead of every page.
+ * The relays reached through each node's binding, and the console's live socket handed to the
+ * nearest one that opens. Once the socket is passed on nothing here runs per message. See
+ * spec/architecture/console.md, "Live, through the nearest node". No authentication of its own:
+ * Access stands in front of every `.app` name, see the same file. Answered through ./api.ts.
  */
-import { failure, success } from '@canmi/response';
+import { failure } from '@canmi/response';
 import { URLS } from '@monoflake/sdk';
 import { type Node, type Whereabouts, order } from './nodes.ts';
 
@@ -78,43 +78,15 @@ export async function socketOf(
 	return opened?.answer.webSocket ?? undefined;
 }
 
-/** The paths answered here rather than by a page. */
-export const ROUTES = ['/live', '/state', '/nearest'] as const;
-
-export function isRoute(path: string): path is (typeof ROUTES)[number] {
-	return (ROUTES as readonly string[]).includes(path);
-}
-
 /**
- * `timeout` bounds each relay `/state` asks, never the socket `/live` opens: an established socket
- * outlives any request.
+ * The browser's socket joined to the first relay that opens one, nearest first: the `live` stream
+ * the API answers. `TIMEOUT` never bounds it, since an established socket outlives any request.
  */
-export async function handle(request: Request, env: Env, timeout = TIMEOUT): Promise<Response> {
-	const { pathname } = new URL(request.url);
-	if (request.method !== 'GET') return failure(404, 'no_such_route');
-	const nodes = order(request.cf as Whereabouts | undefined);
-	switch (pathname) {
-		case '/live': {
-			if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
-				return failure(426, 'invalid_method');
-			}
-			const socket = await socketOf(request, env, nodes);
-			if (socket === undefined) return failure(502, 'upstream_unavailable');
-			return new Response(null, { status: 101, webSocket: socket });
-		}
-		// The console's polling, while it has no socket: the relay's answer, as it gave it.
-		case '/state': {
-			const reached = await first(
-				nodes,
-				(node) =>
-					reach(env, node, '/state', { method: 'GET', signal: AbortSignal.timeout(timeout) }),
-				(answer) => answer.ok,
-			);
-			return reached?.answer ?? failure(502, 'upstream_unavailable');
-		}
-		case '/nearest':
-			return success({ node: nodes[0], order: nodes });
-		default:
-			return failure(404, 'no_such_route');
+export async function openLive(request: Request, env: Env): Promise<Response> {
+	if (request.headers.get('upgrade')?.toLowerCase() !== 'websocket') {
+		return failure(426, 'invalid_method');
 	}
+	const socket = await socketOf(request, env, order(request.cf as Whereabouts | undefined));
+	if (socket === undefined) return failure(502, 'upstream_unavailable');
+	return new Response(null, { status: 101, webSocket: socket });
 }

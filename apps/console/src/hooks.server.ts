@@ -8,7 +8,6 @@ import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
 import { PREFIX } from '#lib/facets.js';
 import api from '#lib/server/api.js';
-import { handle as edge, isRoute } from '#lib/server/edge.js';
 
 /** Every page, through Sentry's handles first; development loads them and sends nothing. */
 const pages = sequence(
@@ -29,14 +28,13 @@ const pages = sequence(
 const context = { waitUntil, passThroughOnException: () => {}, props: {} } as ExecutionContext;
 
 /**
- * `/live`, `/state` and `/nearest`, and the API under `/api/`, before any page and before Sentry
- * too: a response this hook returns itself leaves SvelteKit as it was made, which the socket's 101
- * must, and nothing may wrap it first. See src/lib/server/edge.ts and spec/architecture/console.md,
- * "Errors go to Sentry, and development sends nothing".
+ * The API under `/api/` before any page and before Sentry too: a response this hook returns itself
+ * leaves SvelteKit as it was made, which the live stream's 101 must, and nothing may wrap it first.
+ * See src/lib/server/api.ts and spec/architecture/console.md, "Errors go to Sentry, and
+ * development sends nothing".
  */
 export const handle: Handle = (input) => {
 	const { pathname } = input.event.url;
-	if (isRoute(pathname)) return edge(input.event.request, env);
 	if (pathname.startsWith(PREFIX)) return api.fetch(input.event.request, env, context);
 	return pages(input);
 };
