@@ -52,6 +52,19 @@ something back as it was, so nothing that was open only for a moment survives on
 
 ## A place comes back as near as the page still allows
 
+**A return is at its place from its first frame, and never moves to it.** A reload, or a path come
+back to in the same tab, draws the page where the reader left it: no frame of the page's top
+first, and no scroll from the top down. The main area scrolls on its own, so the browser restores
+nothing; two scripts the page carries do it before any module loads -- one in the head hides the
+main area where a place is kept, one right after it sets the offset and shows it -- and the
+hydrated page only corrects where the content has changed under the offset. A page may paint
+before it is parsed whole, which is why the area is hidden rather than trusted to be set in time.
+
+**Motion to a place is for one arrival only**: the first time this tab comes to a page, with the
+address naming an anchor or a chosen state in it -- a link into a section, as the site's
+articles take -- the page is carried there, since the reader has not seen it and the motion says
+where they were sent. Anything kept is returned to in place.
+
 **A page's scroll is restored in steps, each a fallback for the one before.** With the offset the
 page keeps the section the reader was in, by the section's own name, and how far into it they were.
 Back on the page, the offset is taken where the page is still as it was; where its content has

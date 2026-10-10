@@ -13,7 +13,7 @@
 	import SkipLink from '#lib/design/skip-link.svelte';
 	import TopBar from '#lib/design/top-bar.svelte';
 	import { provideActions } from '#lib/ui/actions.svelte.js';
-	import { goTo, keepPlace, placeIn, placeOf } from '#lib/ui/place.js';
+	import { goTo, holdTag, keepPlace, placeIn, placeOf, placeTag } from '#lib/ui/place.js';
 	import { setTimeZone } from '#lib/ui/time-zone.js';
 	// The shell's face, its CDN filled in by the build; see vite.config.ts.
 	import '@canmi/fonts/mono.css';
@@ -84,7 +84,16 @@
 	afterNavigate(({ from, to }) => {
 		const path = to?.url.pathname;
 		if (!scroller || !path) return;
-		if (from?.url.pathname !== path) goTo(scroller, placeOf(sessionStorage, path));
+		if (from?.url.pathname !== path) {
+			const place = placeOf(sessionStorage, path);
+			// Come fresh to an anchor the address names: the one arrival carried there in motion.
+			const named = !place && !from && to.url.hash;
+			const anchor = named
+				? document.getElementById(decodeURIComponent(to.url.hash.slice(1)))
+				: null;
+			if (anchor) anchor.scrollIntoView({ behavior: 'smooth' });
+			else goTo(scroller, place);
+		}
 		placing = path;
 	});
 	let pending = false;
@@ -123,6 +132,8 @@
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
 	<title>{name}</title>
+	<!-- The main area held back while a reload finds its place; see src/lib/ui/place.ts. -->
+	{@html holdTag}
 </svelte:head>
 
 <!-- Three fixed regions, and only the page scrolls. See spec/architecture/console.md. -->
@@ -140,3 +151,6 @@
 		{@render children()}
 	</div>
 </main>
+<!-- A reload at its place before the first frame, which the hydrated page would reach a frame
+     late; see src/lib/ui/place.ts. Run as the document is parsed, never again. -->
+{@html placeTag}

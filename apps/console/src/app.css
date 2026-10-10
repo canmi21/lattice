@@ -88,6 +88,11 @@ html {
 		overscroll-behavior: none;
 	}
 
+	/* A reload finding its place, for the moment before the offset is set: src/lib/ui/place.ts. */
+	html[data-placing] #content {
+		visibility: hidden;
+	}
+
 	body {
 		background-color: var(--color-ground);
 		color: var(--color-text);

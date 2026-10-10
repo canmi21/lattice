@@ -79,6 +79,30 @@ export function landing(scroller: HTMLElement, place: Place): number {
 	return 0;
 }
 
+/** The place kept for this path, read by the two scripts below as the record holds it. */
+const READ =
+	`var r=sessionStorage.getItem(${JSON.stringify(tab.key)});` +
+	`var p=r&&(JSON.parse(r)[${JSON.stringify(KEY)}]||{})[location.pathname];` +
+	`p=p&&typeof p.top==="number"&&isFinite(p.top)?p:null;`;
+
+/**
+ * A reload back at its place from its first frame, in two scripts, since a page may paint before
+ * it is parsed whole: `holdScript` in the head hides the main area where a place is kept, and
+ * `placeScript`, right after `main`, sets the offset and shows it. They read the record
+ * themselves, before any module loads; what they repeat of its shape -- one JSON object under
+ * its key, a map under `scroll.at` by path -- is held against `placeOf` by the test beside this
+ * file. The section's fallback waits for the page's modules, in `goTo`.
+ */
+export const holdScript = `(function(){try{${READ}if(p)document.documentElement.setAttribute("data-placing","")}catch(e){}})()`;
+
+export const placeScript =
+	`(function(){try{${READ}var m=document.getElementById("content");if(p&&m)m.scrollTop=p.top}` +
+	`catch(e){}document.documentElement.removeAttribute("data-placing")})()`;
+
+/** The two as tags for the page's markup, where a template cannot spell a script's tags. */
+export const holdTag = `<script>${holdScript}</script>`;
+export const placeTag = `<script>${placeScript}</script>`;
+
 /**
  * Takes `scroller` to `place`, following the page while it is still finding its height; the
  * reader's own scroll, wheel, touch or key, ends the following at once.
