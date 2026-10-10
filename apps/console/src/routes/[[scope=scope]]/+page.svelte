@@ -26,7 +26,7 @@
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Silent from '#lib/ui/silent.svelte';
-	import { DIMENSIONS, type Dimension } from '#lib/overview/history.js';
+	import { AXES, type Axis, DIMENSIONS, type Dimension } from '#lib/overview/history.js';
 	import { Histories } from '#lib/overview/histories.svelte.js';
 	import { prefer } from '#lib/ui/preference.js';
 	import Skeleton from '#lib/ui/skeleton.svelte';
@@ -87,6 +87,11 @@
 			options: DIMENSIONS.filter((one) => data.nodes || one.key !== 'connectivity'),
 		},
 	]);
+	/** What a line is, in a view with nodes: a node until the reader picks apps. */
+	// svelte-ignore state_referenced_locally
+	let by: Axis = $state(data.by);
+	$effect(() => prefer('by', by));
+	const axes = [{ name: 'By', options: AXES }];
 	const histories = new Histories(() => ({ key: data.back, history: data.minutes }));
 	$effect(() => {
 		if (histories.current?.key !== back) void histories.ask(back);
@@ -105,14 +110,17 @@
 
 {#snippet lists()}
 	<Card
-		title="{DIMENSIONS.find((one) => one.key === dimension)?.title}, {SPANS.find(
-			(one) => one.key === back,
-		)?.title}"
+		title="{DIMENSIONS.find((one) => one.key === dimension)?.title}{data.nodes
+			? ` ${AXES.find((one) => one.key === by)?.title}`
+			: ''}, {SPANS.find((one) => one.key === back)?.title}"
 		flush
 	>
 		{#snippet heading()}
 			<span class="flex items-center gap-2">
 				<TitleChoice label="What the timeline shows" bind:value={dimension} groups={asking} />
+				{#if data.nodes}
+					<TitleChoice label="What a line is" bind:value={by} groups={axes} />
+				{/if}
 				<TitleChoice
 					label="How far back"
 					bind:value={back}
@@ -132,6 +140,7 @@
 					nodes={data.nodes}
 					{back}
 					bind:dimension
+					{by}
 					history={histories.current?.history}
 				/>
 			{:else}

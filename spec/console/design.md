@@ -148,6 +148,13 @@ in the page's head, where there is room for a framed switch. The overview's `All
 beside a card's title, and its `24h` and `7d`, were framed switches inside a card's head until
 2026-10-09. Decided with the author on 2026-10-09.
 
+**Every menu is built from one panel and one row, `src/lib/ui/menu-content.svelte` and
+`menu-row.svelte`**: the title's choice, the view switcher at the top bar's left, a shared name's
+choice of apps -- one panel, ruled and shadowed with no inset of its own, one row, edge to edge
+with a mark's column each side of its words, so a rule set once holds in every menu and none
+drifts into a look of its own, as the switcher had, inset and rounded and its rows taller. Decided
+with the author on 2026-10-10.
+
 **The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
 muted, the chosen one told by a check on its right alone, and the pointer's row on the hover's

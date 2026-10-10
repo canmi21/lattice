@@ -1,6 +1,6 @@
 import { figures } from '#lib/overview/deploys.js';
 import { fromHistory } from '#lib/overview/moving.js';
-import { DIMENSIONS, asked } from '#lib/overview/history.js';
+import { AXES, DIMENSIONS, asked } from '#lib/overview/history.js';
 import { DAY, SPANS } from '#lib/overview/timeline.js';
 import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
@@ -59,6 +59,12 @@ export const load: PageServerLoad = async (event) => {
 			'dimension',
 			DIMENSIONS.map((one) => one.key),
 			'overview',
+		),
+		by: preferred(
+			event.cookies,
+			'by',
+			AXES.map((one) => one.key),
+			'node',
 		),
 		minutes: first ? await minutes : minutes,
 		shape: preferred(event.cookies, 'map', ['flat', 'globe'] as const, 'flat'),

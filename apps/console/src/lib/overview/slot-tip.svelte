@@ -14,6 +14,8 @@
 		key: string;
 		/** What it is drawn with: the app's own icon, a run's rocket, the unheard's access point. */
 		icon: IconComponent;
+		/** Where the line names a node, its flag in the icon's place. */
+		flag?: string;
 		name: string;
 		lasted: string;
 		verdict: Verdict;
@@ -49,6 +51,8 @@
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 	import Icon from '../design/icon.svelte';
 	import Point from '../design/point.svelte';
+	import { heightBeside } from '../design/optics.ts';
+	import Flag from '../map/flag.svelte';
 	import { type } from '../style.ts';
 	import { painted } from './verdict.ts';
 
@@ -80,7 +84,7 @@
 	/** A verdict as the dot in an icon's corner; nothing to say is a grey one. */
 	const badgeOf = (verdict: Verdict) =>
 		stylex.attrs(verdict === 'none' ? styles.idle : painted[verdict]).class;
-	const NAMES = { deploys: 'Deploys', services: 'Services', connectivity: 'Connectivity' };
+	const NAMES = { deploys: 'Deploys', services: 'Uptime', connectivity: 'Connectivity' };
 
 	/**
 	 * Its first and last words cut to their ink, cap height above and baseline below, so its edge
@@ -147,6 +151,21 @@
 		},
 	});
 </script>
+
+<!-- A node's flag where an icon would stand, set in its words by the same rule, its dot alike. -->
+{#snippet flagged(code: string, verdict: Verdict, words: string)}
+	<span
+		class="relative mr-1 inline-flex size-[14px]"
+		style:vertical-align="calc({heightBeside(words, 'before')} / 2 - 7px)"
+	>
+		<Flag {code} size={14} />
+		<span
+			aria-hidden="true"
+			class="absolute -right-px -bottom-px size-1.5 rounded-full {badgeOf(verdict)}"
+			style:box-shadow="0 0 0 1.5px var(--badge-ground, var(--color-surface))"
+		></span>
+	</span>
+{/snippet}
 
 <div
 	role="tooltip"
@@ -248,13 +267,13 @@
 					>
 						<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
 						<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
-							><Icon
-								icon={item.icon}
-								size={14}
-								words={item.name}
-								badge={badgeOf(item.verdict)}
-								class="mr-1 {stylex.attrs(styles.muted).class}"
-							/>{item.name}</span
+							>{#if item.flag}{@render flagged(item.flag, item.verdict, item.name)}{:else}<Icon
+									icon={item.icon}
+									size={14}
+									words={item.name}
+									badge={badgeOf(item.verdict)}
+									class="mr-1 {stylex.attrs(styles.muted).class}"
+								/>{/if}{item.name}</span
 						>
 						<span class="text-right {end} {stylex.attrs(type.shell, styles.muted).class}"
 							>{item.lasted}</span

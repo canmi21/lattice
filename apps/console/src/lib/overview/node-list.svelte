@@ -159,12 +159,15 @@
 				>
 					<span class="flex min-w-0 items-center gap-2.5">
 						<HealthFlag code={lead} told={place.told} />
-						<span class="truncate {stylex.attrs(styles.name).class}">{place.name}</span>
-						{#if shared}
-							<span class="shrink-0 {stylex.attrs(styles.count).class}"
-								>{place.members.length} nodes</span
-							>
-						{/if}
+						<!-- The name and how many share it a half step apart, as a mark and its words are. -->
+						<span class="flex min-w-0 items-center gap-1">
+							<span class="truncate {stylex.attrs(styles.name).class}">{place.name}</span>
+							{#if shared}
+								<span class="shrink-0 {stylex.attrs(styles.count).class}"
+									>+{place.members.length}</span
+								>
+							{/if}
+						</span>
 					</span>
 					<span class="text-right {stylex.attrs(type.shell, styles.value).class}">{place.cpu}</span>
 					<span class="text-right {stylex.attrs(type.shell, styles.value).class}"

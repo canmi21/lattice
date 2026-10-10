@@ -14,16 +14,21 @@
 	import { nameOf, partOf } from '../map/places.ts';
 	import { CODES } from '../nodes/facts.ts';
 	import { scoped } from '../scope/context.ts';
-	import { displayOf } from '../scope/scope.ts';
+	import { SCOPES, type Scope, displayOf, scopeOf } from '../scope/scope.ts';
+	import { type } from '../style.ts';
+	import { LOCATIONS } from '../map/land.generated.ts';
 	import { offsetIn, offsetOf, timeZone } from '../ui/time-zone.ts';
 	import type { History, Slot } from '../wire.ts';
+	import Icon from '../design/icon.svelte';
 	import HealthFlag from './health-flag.svelte';
+	import Members from './members.svelte';
 	import AccessPointIcon from '@tabler/icons-svelte-runes/icons/access-point';
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 	import { glyphOf } from '../apps/glyphs.ts';
 	import SlotTip, { type Fact, type Item, type Tip } from './slot-tip.svelte';
 	import { healthOf } from './health.ts';
 	import {
+		type Axis,
 		type Dimension,
 		type Verdict,
 		WORDS,
@@ -62,6 +67,7 @@
 		steps,
 		keep,
 		nodes = true,
+		by = 'node',
 		back = '7d',
 		dimension = $bindable('overview'),
 		history,
@@ -70,8 +76,10 @@
 		/** Every step known, history and live together. */
 		steps: Step[];
 		keep: (app: string) => boolean;
-		/** A line a node; else a line an app, its busiest first. */
+		/** Whether the view has nodes to draw a line each; without them the lines are apps. */
 		nodes?: boolean;
+		/** What a line is, where the view has nodes: a node, or an app. */
+		by?: Axis;
 		/** How far back the line reaches, by its name. */
 		back?: Span;
 		/** What a slot is the verdict of. */
@@ -83,8 +91,6 @@
 	const { to, node: toNode, app: toApp } = scoped();
 	const zone = timeZone();
 
-	/** Apps' lines at most, in a view without nodes. */
-	const APPS = 8;
 	/**
 	 * The labels as wide as the widest of them and a short step after, the rest the slots': one
 	 * grid every row shares, so every row's slots start where the longest label leaves off.
@@ -117,14 +123,23 @@
 		marks: Mark[];
 		code?: string;
 		app?: string;
+		/** Every app the line stands for, more than one where apps share a name. */
+		apps?: string[];
+		/** An app's layer, which its line is grouped under. */
+		layer?: Scope;
 		label: string;
 		/** The whole name, on the label's hover. */
 		whole: string;
 	}
 
+	/** The nodes west to east, as the map lays them out left to right, a place's nodes together. */
+	const WEST_TO_EAST = CODES.toSorted((a, b) => LOCATIONS[a][1] - LOCATIONS[b][1]);
+	/** The layers an app line is grouped in, in the order the console's views name them. */
+	const LAYERS = ['infra', 'platform', 'services'] as const;
+
 	const lines = $derived.by((): Line[] => {
-		if (nodes) {
-			return CODES.map((code) => ({
+		if (nodes && by === 'node') {
+			return WEST_TO_EAST.map((code) => ({
 				key: code,
 				href: toNode(code),
 				marks: drawn.filter((mark) => mark.node === code),
@@ -133,22 +148,36 @@
 				whole: nameOf(code).full,
 			}));
 		}
-		const busiest = [
-			...Map.groupBy(
-				drawn.flatMap((mark) => mark.apps.map((app) => ({ app, mark }))),
-				(one) => one.app,
+		// Every app the view shows: what the nodes run now, and what ran in the span besides.
+		const apps = new Set([
+			...Object.values(live.view.nodes).flatMap((entry) =>
+				(entry.snapshot?.apps ?? []).map((app) => app.name),
 			),
-		]
-			.toSorted(([, a], [, b]) => b.length - a.length)
-			.slice(0, APPS);
-		return busiest.map(([app, its]) => ({
-			key: app,
-			href: toApp(app),
-			marks: its.map((one) => one.mark),
-			app,
-			label: displayOf(app),
-			whole: displayOf(app),
-		}));
+			...drawn.flatMap((mark) => mark.apps),
+		]);
+		// Apps one name, as apk and apt are both Package Updates, are one line, as a place's nodes
+		// are one line of the place list; the line's name opens a choice between them.
+		const named = Map.groupBy(
+			[...apps].filter((app) => keep(app)),
+			(app) => displayOf(app),
+		);
+		return [...named]
+			.map(([name, members]) => ({ name, members: members.toSorted() }))
+			.toSorted(
+				(a, b) =>
+					LAYERS.indexOf(scopeOf(a.members[0] ?? '')) -
+						LAYERS.indexOf(scopeOf(b.members[0] ?? '')) || a.name.localeCompare(b.name),
+			)
+			.map(({ name, members }) => ({
+				key: members.join(' '),
+				href: toApp(members[0] ?? ''),
+				marks: drawn.filter((mark) => mark.apps.some((app) => members.includes(app))),
+				app: members[0],
+				apps: members,
+				layer: scopeOf(members[0] ?? ''),
+				label: name,
+				whole: members.length > 1 ? `${name}: ${members.join(', ')}` : name,
+			}));
 	});
 
 	/** Each node's history gathered to the row's slots, once for every line. */
@@ -171,6 +200,39 @@
 		),
 	);
 	const earliest = $derived(began.size ? Math.min(...began.values()) : undefined);
+
+	/**
+	 * An app's services as the overview weighs them across the nodes that run it: down where it is
+	 * down on every one of them, degraded where on some, as a node's are weighed among its apps.
+	 */
+	function hostsOf(apps: string[], across: { code: string; slot: Slot }[]): Verdict {
+		const pairs = across.flatMap((one) => apps.map((app) => served(one.slot, app)));
+		const worst = pairs.reduce<Verdict>(worse, 'none');
+		if (worst !== 'down') return worst;
+		const hosts = runs(apps).length;
+		const down = pairs.filter((one) => one === 'down').length;
+		return hosts > 0 && down >= hosts ? 'down' : 'degraded';
+	}
+
+	/** Each place `apps` run now, one entry a node and app, those held on purpose aside. */
+	const runs = (apps: string[]) =>
+		CODES.flatMap((code) =>
+			(live.view.nodes[code]?.snapshot?.apps ?? []).filter(
+				(one) => apps.includes(one.name) && !one.held,
+			),
+		);
+
+	/**
+	 * How an app is now across the nodes that run it, as a node's flag says how the node is: well
+	 * running on all of them, leaving where down on some, down where down on every one, quiet
+	 * where no node runs it now or every one holds it on purpose.
+	 */
+	function appHealth(apps: string[]): 'well' | 'leaving' | 'down' | 'quiet' {
+		const held = runs(apps);
+		if (!held.length) return 'quiet';
+		const down = held.filter((one) => !one.running).length;
+		return down === 0 ? 'well' : down < held.length ? 'leaving' : 'down';
+	}
 
 	/** How many apps a node runs as it is read now, those held on purpose aside. */
 	const running = (code: string) =>
@@ -198,6 +260,8 @@
 	}
 
 	const rows = $derived(lines.map((line) => ({ line, cells: slots(line.marks, of) })));
+	/** Whether the app lines span more than one layer, so each layer is headed. */
+	const layered = $derived(new Set(lines.map((line) => line.layer)).size > 1);
 	const shaded = $derived(shades(rows.flatMap((row) => row.cells)));
 
 	/** How long, in its one largest unit: `42s`, `3m`. */
@@ -248,7 +312,8 @@
 		const end = start + length;
 		const own = line.code ? minutes.get(line.code)?.[index] : undefined;
 		// An app's services are the worst any node had of it.
-		const across = line.app
+		const members = line.apps ?? [];
+		const across = members.length
 			? CODES.flatMap((code) => {
 					const slot = minutes.get(code)?.[index];
 					return slot ? [{ code, slot }] : [];
@@ -257,8 +322,10 @@
 
 		const outcome = counted ? counts(own) : cell?.outcome;
 		const deploys = deployed(outcome);
-		const services = line.app
-			? across.reduce<Verdict>((worst, one) => worse(worst, served(one.slot, line.app)), 'none')
+		const services = members.length
+			? across
+					.flatMap((one) => members.map((app) => served(one.slot, app)))
+					.reduce<Verdict>(worse, 'none')
 			: served(own);
 		const connectivity = line.code ? heard(own) : 'none';
 
@@ -283,16 +350,20 @@
 			lasting(episode(raw(code), step, start, end, of) ?? fallback);
 		const items: Item[] = [
 			...(asks('services')
-				? line.app
+				? members.length
 					? across.flatMap(({ code, slot }) =>
-							downIn(slot, line.app).map((one) => ({
-								key: `down ${code}`,
-								icon: glyphOf(one.app),
-								name: partOf(code),
-								href: toNode(code),
-								lasted: lastedIn(code, downFor(one.app), one.seconds),
-								verdict: served(slot, line.app),
-							})),
+							members.flatMap((app) =>
+								downIn(slot, app).map((one) => ({
+									key: `down ${code} ${app}`,
+									icon: glyphOf(app),
+									flag: code,
+									// Where the line stands for several apps, which of them it was.
+									name: members.length > 1 ? `${partOf(code)} · ${app}` : partOf(code),
+									href: toNode(code),
+									lasted: lastedIn(code, downFor(app), one.seconds),
+									verdict: served(slot, app),
+								})),
+							),
 						)
 					: downIn(own).map((one) => ({
 							key: `down ${one.app}`,
@@ -349,7 +420,7 @@
 		// is planned; green is left for a slot where nothing changed and nothing went wrong.
 		const changed = deploys === 'fine' ? 'planned' : deploys;
 		// A node's services weighed among all it runs: some down is degraded, every one down is down.
-		const weighed = line.code ? servedOf(own, running(line.code)) : services;
+		const weighed = line.code ? servedOf(own, running(line.code)) : hostsOf(members, across);
 		const verdict = [changed, weighed, connectivity].reduce(worse, 'none');
 		return {
 			verdict,
@@ -399,6 +470,12 @@
 
 	const styles = stylex.create({
 		label: { color: 'var(--color-text)', fontSize: text.px13 },
+		glyph: { color: 'var(--color-text-muted)' },
+		/** An app's dot, in the colors a node's flag wears its own. */
+		well: { backgroundColor: 'var(--color-primary)' },
+		leaving: { backgroundColor: 'var(--color-warn)' },
+		down: { backgroundColor: 'var(--color-danger)' },
+		quiet: { backgroundColor: 'var(--color-text-muted)' },
 		none: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 	});
 </script>
@@ -441,21 +518,43 @@
 	<div class="{COLUMNS} gap-y-1.5">
 		{#each rows as row, at (row.line.key)}
 			{@const line = row.line}
+			{#if line.layer && line.layer !== rows[at - 1]?.line.layer && layered}
+				<!-- Where a layer's apps begin, said once and quietly, as the place list's heads are. -->
+				<div class="col-span-2 flex h-6 items-end {stylex.attrs(type.label).class}">
+					{SCOPES.find((one) => one.key === line.layer)?.label}
+				</div>
+			{/if}
 			<div class="col-span-2 grid h-6 grid-cols-subgrid items-center">
-				<a
-					href={line.href}
-					title={line.whole}
-					class="flex min-w-0 items-center gap-2.5 {stylex.attrs(styles.label).class}"
-				>
+				{#snippet label()}
 					{#if line.code}
 						<HealthFlag
 							code={line.code}
 							told={healthOf(live.view.nodes[line.code], live.now)}
 							size={14}
 						/>
+					{:else if line.app}
+						<Icon
+							icon={glyphOf(line.app)}
+							size={14}
+							badge={stylex.attrs(styles[appHealth(line.apps ?? [])]).class}
+							class={stylex.attrs(styles.glyph).class}
+						/>
 					{/if}
 					<span class="truncate">{line.label}</span>
-				</a>
+				{/snippet}
+				{#if (line.apps?.length ?? 0) > 1}
+					<div class="flex min-w-0 {stylex.attrs(styles.label).class}" title={line.whole}>
+						<Members apps={line.apps ?? []} hrefOf={toApp}>{@render label()}</Members>
+					</div>
+				{:else}
+					<a
+						href={line.href}
+						title={line.whole}
+						class="flex min-w-0 items-center gap-2.5 {stylex.attrs(styles.label).class}"
+					>
+						{@render label()}
+					</a>
+				{/if}
 				<!-- Its slots as wide and as far apart as the row lets them be, ending at now; half a gap
 				     out past each end, which the first and last slots' reach fills. -->
 				<div class="relative min-w-0">

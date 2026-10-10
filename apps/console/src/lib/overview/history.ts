@@ -10,12 +10,21 @@ import { type Outcome, type Span, SPANS, finestOf } from './timeline.ts';
 
 export const DIMENSIONS = [
 	{ key: 'overview', title: 'Overview', label: 'Overview' },
-	{ key: 'services', title: 'Services', label: 'Services' },
+	// Kept `services` as its key, the cookie's word; said Uptime, so it is not the apps' axis.
+	{ key: 'services', title: 'Uptime', label: 'Uptime' },
 	{ key: 'deploys', title: 'Deploys', label: 'Deploys' },
 	{ key: 'connectivity', title: 'Connectivity', label: 'Connectivity' },
 ] as const;
 
 export type Dimension = (typeof DIMENSIONS)[number]['key'];
+
+/** What a line of the timeline is: a node, its places west to east, or an app, by its layer. */
+export const AXES = [
+	{ key: 'node', title: 'by node', label: 'By node' },
+	{ key: 'app', title: 'by app', label: 'By app' },
+] as const;
+
+export type Axis = (typeof AXES)[number]['key'];
 
 /** A slot's verdict, mildest first: nothing to say, fine, planned, degraded, down. */
 export const VERDICTS = ['none', 'fine', 'planned', 'degraded', 'down'] as const;

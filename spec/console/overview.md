@@ -26,8 +26,8 @@ region, so a reader who cannot see the color is told the line as it changes.
 along its foot.** The list is a line a place under quiet headings, `Location`, `CPU` and `RAM`, in
 place of any switch: the country's flag with a dot on its corner, in the map's blue or red when a
 node there is not heard, ringed in the card's own ground as the account's avatar wears its presence,
-the place's name whole, how many nodes stand there where it is more than one -- `Tokyo, Japan 3
-nodes`, one line and never a fold -- how busy its busiest processor is, as a percent, and the memory
+the place's name whole, how many nodes stand there where it is more than one, written `+3` a half step
+after the name -- `Tokyo, Japan +3`, one line and never a fold -- how busy its busiest processor is, as a percent, and the memory
 its nodes use together, in GiB written `G` -- `2.6G` -- each to one decimal always, in a column of
 its own right-aligned, so the figures line up. Dense: 28 pixels a line, the type a step under the
 page's. **A shared place's processor is its busiest node's**, not their mean, which would hide one
@@ -191,13 +191,15 @@ platform's `spec/architecture/relay.md`, "Each node's minutes, kept for a year";
 
 ## A line is any of three things, or the worst of them
 
-**The timeline's card is asked two things in its title, `Overview ⌄  Last 7 days ⌄`**: what a slot
-is the verdict of, and over how long. What it is of is one of four, the choice kept as the span's
+**The timeline's card is asked three things in its title, read as one phrase, `Overview ⌄ by node ⌄
+Last 7 days ⌄`**: what a slot is the verdict of, what a line is, and over how long. A view without
+nodes is not asked the second, its lines being apps. What it is of is one of four, the choice kept as the span's
 is, in a cookie the server draws with:
 
 - **Deploys**: what ran on the node, as the runs above say it -- done, in progress, partly failed,
   failed -- each slot as dark as its runs rank among its outcome's.
-- **Services**: whether every app that should have run did. An app down for a few rounds, under
+- **Uptime**: whether every app that should have run did -- named Uptime, not Services, so it is not
+  mistaken for the lines being apps; its cookie's word is still `services`. An app down for a few rounds, under
   ten seconds, is a blip and the slot stays up; down for part of the slot, the slot dipped; down
   for half of it or more, the slot is down.
 - **Connectivity**: whether the node was heard. Minutes unheard after a minute that said the node
@@ -265,6 +267,23 @@ with it where the point stands under it. A line under the rule goes to what it n
 node, the time unheard to the node's events, a run to the run. A line over it, where the overview
 says all three, shows that one alone: the card turns to it and the tip goes, the slot under the
 still pointer opening no other until the pointer has left it.
+
+**A line is a node or an app, `by node` or `by app`, the choice kept as the span's is.** Nodes stand
+west to east by longitude, as the map lays them out left to right, a place's nodes together. Apps
+stand in the console's three layers, Infra, Platform, Services, each headed quietly where a view
+holds more than one, and by name within a layer. **Apps sharing a name are one line**, as a place's
+nodes are one line of the place list -- apk and apt, both `Package Updates +2`, the count a half
+step after the name -- weighed together, their trouble named by node and app in the tip, `Buffalo
+· apk`, and the name a choice between them, each to its own page;
+the order is fixed, never by how much went wrong, since a status grid is read by where a line
+stands and a color already says what is wrong. An app line takes every app the view shows: what the
+nodes run now and what ran in the span. In the overview an app is weighed across the nodes that
+run it, as a node is across its apps -- down on some of them degraded, down on every one down --
+and its tip names the nodes it was down on, each by its flag where an app is drawn by its icon,
+the dot in the flag's corner. An app line is labeled by its own icon, how it is now as the dot in
+the icon's corner in the colors a node's flag wears -- blue running on every node that runs it,
+amber down on some, red down on all, quiet where none runs it now. Decided with the author on
+2026-10-10.
 
 **The labels are as wide as the widest of them**, a flag, a dot and a place, and the slots take all
 the rest after a short step, 12 pixels: one grid every line shares, so every line's slots start
