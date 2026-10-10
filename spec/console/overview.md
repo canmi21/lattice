@@ -257,6 +257,19 @@ deliberate move to something else. This is the behavior wanted, not a cost; the 
 tip the pointer passes through, would close under a reader still reading it. Decided with the
 author on 2026-10-10.
 
+**A tip's lines lead somewhere, and wash under the pointer as the menus' rows do** -- one state,
+so the stronger wash, edge to edge, the space between two lines split between them so their washes
+meet, and the last line's reaching the tip's foot, its corners rounded as the card's are inside its
+rule -- the card cannot clip it, its point and bridge standing outside it -- and its point washed
+with it where the point stands under it. A line under the rule goes to what it names: an app down to its app, a node's to the
+node, the time unheard to the node's events, a run to the run. A line over it, where the overview
+says all three, shows that one alone: the card turns to it and the tip goes, the slot under the
+still pointer opening no other until the pointer has left it.
+
+**The labels are as wide as the widest of them**, a flag, a dot and a place, and the slots take all
+the rest after a short step, 12 pixels: one grid every line shares, so every line's slots start
+where the longest label leaves off.
+
 **A row is one place to point along, with no gap between its slots**: each slot holds the pointer
 over itself and half the gap either side, so a pointer moving across the row goes from one slot's
 tip to the next without falling between them; the ring stays on the slot alone, not its reach.

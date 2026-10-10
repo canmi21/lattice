@@ -71,7 +71,7 @@
 		<span
 			aria-hidden="true"
 			class="absolute -right-px -bottom-px size-1.5 rounded-full {badge}"
-			style:box-shadow="0 0 0 1.5px var(--color-surface)"
+			style:box-shadow="0 0 0 1.5px var(--badge-ground, var(--color-surface))"
 		></span>
 	</span>
 {:else}

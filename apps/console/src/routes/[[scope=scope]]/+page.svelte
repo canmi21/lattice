@@ -131,7 +131,7 @@
 					{keep}
 					nodes={data.nodes}
 					{back}
-					{dimension}
+					bind:dimension
 					history={histories.current?.history}
 				/>
 			{:else}

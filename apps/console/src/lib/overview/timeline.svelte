@@ -63,7 +63,7 @@
 		keep,
 		nodes = true,
 		back = '7d',
-		dimension = 'overview',
+		dimension = $bindable('overview'),
 		history,
 	}: {
 		live: Live;
@@ -85,7 +85,11 @@
 
 	/** Apps' lines at most, in a view without nodes. */
 	const APPS = 8;
-	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4';
+	/**
+	 * The labels as wide as the widest of them and a short step after, the rest the slots': one
+	 * grid every row shares, so every row's slots start where the longest label leaves off.
+	 */
+	const COLUMNS = 'grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3';
 
 	/** The row's width once the browser has laid it out; the server draws the usual count. */
 	let width = $state(0);
@@ -285,6 +289,7 @@
 								key: `down ${code}`,
 								icon: glyphOf(one.app),
 								name: partOf(code),
+								href: toNode(code),
 								lasted: lastedIn(code, downFor(one.app), one.seconds),
 								verdict: served(slot, line.app),
 							})),
@@ -293,6 +298,7 @@
 							key: `down ${one.app}`,
 							icon: glyphOf(one.app),
 							name: displayOf(one.app),
+							href: toApp(one.app),
 							lasted: lastedIn(line.code ?? '', downFor(one.app), one.seconds),
 							verdict: services,
 						}))
@@ -303,6 +309,7 @@
 							key: 'unheard',
 							icon: AccessPointIcon,
 							name: 'Unheard',
+							href: `${toNode(line.code)}?tab=events`,
 							lasted: lastedIn(line.code, unheardIn, own.missing * 60),
 							verdict: connectivity,
 						},
@@ -313,6 +320,7 @@
 						key: mark.key,
 						icon: RocketIcon,
 						name: appsOf(mark),
+						href: hrefOf(mark),
 						lasted: took(mark),
 						verdict: deployed(mark.outcome),
 					}))
@@ -358,7 +366,13 @@
 	 * them and goes the moment it leaves all three, with no delay to wait out.
 	 */
 	let pointed: { key: string; tip: Tip; at: DOMRect; slot: HTMLElement } | undefined = $state();
+	/**
+	 * Hushed once a line of the tip is chosen: the tip goes, and the slot under the still pointer
+	 * does not open another until the pointer has left it.
+	 */
+	let hushed = false;
 	const point = (one: Drawn) => (event: Event) => {
+		if (hushed && event.type === 'pointerenter') return;
 		const slot = event.currentTarget as HTMLElement;
 		pointed = { key: one.key, tip: one.tip, at: slot.getBoundingClientRect(), slot };
 	};
@@ -366,6 +380,7 @@
 	/** Off the slot, unless onto its tip. */
 	let tipped: HTMLElement | undefined = $state();
 	const off = (event: PointerEvent) => {
+		hushed = false;
 		const to = event.relatedTarget as Node | null;
 		if (to && tipped?.contains(to)) return;
 		leave();
@@ -423,10 +438,10 @@
 {/snippet}
 
 {#if nodes || lines.length}
-	<div class="relative flex flex-col gap-1.5">
-		{#each rows as row (row.line.key)}
+	<div class="{COLUMNS} gap-y-1.5">
+		{#each rows as row, at (row.line.key)}
 			{@const line = row.line}
-			<div class="h-6 {COLUMNS}">
+			<div class="col-span-2 grid h-6 grid-cols-subgrid items-center">
 				<a
 					href={line.href}
 					title={line.whole}
@@ -441,27 +456,43 @@
 					{/if}
 					<span class="truncate">{line.label}</span>
 				</a>
-				<!-- Its slots as wide and as far apart as the row lets them be, ending at now. -->
-				<!-- Half a gap out past each end, which the first and last slots' reach fills. -->
-				<div
-					class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
-					style:margin-inline={layout ? `${-layout.gap / 2}px` : undefined}
-				>
-					{#each row.cells as cell, index (index)}
-						{@render slot(slotOf(line, cell, index))}
-					{/each}
+				<!-- Its slots as wide and as far apart as the row lets them be, ending at now; half a gap
+				     out past each end, which the first and last slots' reach fills. -->
+				<div class="relative min-w-0">
+					{#if at === 0}
+						<!-- What the slots are measured against: the column itself, empty and as wide. -->
+						<div
+							aria-hidden="true"
+							class="absolute inset-x-0 top-0 h-0"
+							bind:clientWidth={width}
+						></div>
+					{/if}
+					<div
+						class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
+						style:margin-inline={layout ? `${-layout.gap / 2}px` : undefined}
+					>
+						{#each row.cells as cell, index (index)}
+							{@render slot(slotOf(line, cell, index))}
+						{/each}
+					</div>
 				</div>
 			</div>
 		{/each}
-		<!-- What the slots are measured against: the rows' second column, empty and as wide, laid
-		     over the rows so it adds no gap under the last. -->
-		<div aria-hidden="true" class="absolute inset-x-0 top-0 h-0 {COLUMNS}">
-			<span></span>
-			<div bind:clientWidth={width}></div>
-		</div>
 	</div>
 	{#if pointed}
-		<SlotTip tip={pointed.tip} at={pointed.at} bind:root={tipped} onleave={away} />
+		<SlotTip
+			tip={pointed.tip}
+			at={pointed.at}
+			bind:root={tipped}
+			onleave={away}
+			onpick={dimension === 'overview'
+				? (what) => {
+						dimension = what;
+						hushed = true;
+						leave();
+					}
+				: undefined}
+		/>
 	{/if}
 {:else}
 	<p class="flex min-h-40 items-center justify-center {stylex.attrs(styles.none).class}">

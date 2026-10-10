@@ -17,6 +17,8 @@
 		name: string;
 		lasted: string;
 		verdict: Verdict;
+		/** Where it leads: the app's page, the run's, the node's events. */
+		href?: string;
 	}
 
 	/** A slot's tip: when, said as the reader's clock says it, what it says, and what it holds. */
@@ -55,13 +57,24 @@
 		at,
 		root = $bindable(),
 		onleave,
+		onpick,
 	}: {
 		tip: Tip;
 		at: DOMRect;
 		/** The tip itself, bridge and all, which the slot's leaving checks it went into. */
 		root?: HTMLElement;
 		onleave?: (event: PointerEvent) => void;
+		/** Given where the tip says each of several things, a line chosen shows that one alone. */
+		onpick?: (what: Fact['what']) => void;
 	} = $props();
+
+	/** Whether its last line is pointed at, which the point beside it is washed with. */
+	let lastHeld = $state(false);
+	/** Its rule as the browser drew it, snapped to device pixels; its last line rounds within. */
+	let rule = $state(1);
+	$effect(() => {
+		if (root) rule = Number.parseFloat(getComputedStyle(root).borderTopWidth) || 1;
+	});
 
 	const ICONS = { deploys: RocketIcon, services: PackagesIcon, connectivity: AccessPointIcon };
 	/** A verdict as the dot in an icon's corner; nothing to say is a grey one. */
@@ -76,6 +89,11 @@
 	 */
 	const START = '[text-box:trim-start_cap_alphabetic]';
 	const END = '[text-box:trim-end_cap_alphabetic]';
+	/**
+	 * The last line's foot rounded as the card's is inside its rule, so its wash keeps to the card:
+	 * the card cannot clip it, its point and bridge standing outside it.
+	 */
+	const FOOT = 'rounded-b-[calc(8px-var(--rule,1px))]';
 
 	/** How far it stands off the window's edges, and off the slot past its point, in pixels. */
 	const OFF = 8;
@@ -117,6 +135,16 @@
 		idle: { backgroundColor: 'var(--color-text-muted)' },
 		word: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
 		rule: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--color-line)' },
+		/** A line that leads somewhere, washed under the pointer the menus' one way, its dots' rings
+		 * washed with it. */
+		line: {
+			backgroundColor: { default: 'transparent', ':hover': 'var(--color-selected)' },
+			'--badge-ground': {
+				default: 'var(--color-surface)',
+				':hover': 'var(--color-selected-solid)',
+			},
+			cursor: 'pointer',
+		},
 	});
 </script>
 
@@ -125,13 +153,20 @@
 	bind:this={root}
 	onpointerleave={onleave}
 	class="fixed z-50 flex w-max max-w-64 min-w-44 flex-col {stylex.attrs(styles.card).class}"
+	style:--rule="{rule}px"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:visibility={width ? 'visible' : 'hidden'}
 	bind:clientWidth={width}
 	bind:clientHeight={height}
 >
-	<Point card={root} edge={below ? 'top' : 'bottom'} along={point} size={POINT} />
+	<Point
+		card={root}
+		edge={below ? 'top' : 'bottom'}
+		along={point}
+		size={POINT}
+		ground={lastHeld && !below ? 'var(--color-selected-solid)' : undefined}
+	/>
 	<!-- Unseen, the gap between it and its slot, as wide as the slot: the pointer crossing from
 	     the one to the other never leaves them, so the tip need not wait to see if it returns. -->
 	<span
@@ -144,57 +179,91 @@
 		style:bottom={below ? '100%' : undefined}
 	></span>
 	<!-- When, its date first, strong; the zone it is written in quiet beside it. -->
-	<div class="flex items-baseline justify-between gap-4 px-2 pt-2 pb-1.5">
-		<span class="{START} {stylex.attrs(styles.time).class}">{tip.when}</span>
+	<div class="flex items-baseline justify-between gap-4 px-2 pt-2 pb-[3px]">
+		<span class="whitespace-nowrap {START} {stylex.attrs(styles.time).class}">{tip.when}</span>
 		<span class="{START} {stylex.attrs(styles.muted).class}">{tip.zone}</span>
 	</div>
-	<!-- A mark and the words it marks a half step apart, everything else a whole step. -->
-	<div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 px-2 pb-2">
-		{#each tip.facts as fact, index (fact.what)}
-			{@const end = !tip.items.length && index === tip.facts.length - 1 ? END : ''}
-			<span class="whitespace-nowrap {end} {stylex.attrs(styles.muted).class}"
-				><Icon
-					icon={ICONS[fact.what]}
-					size={14}
-					words={NAMES[fact.what]}
-					badge={badgeOf(fact.verdict)}
-					class="mr-1"
-				/>{NAMES[fact.what]}</span
-			>
-			<span
-				class="text-right whitespace-nowrap {end} {stylex.attrs(
-					fact.verdict === 'none' ? styles.muted : styles.word,
-				).class}">{fact.word}</span
-			>
+	<!-- Each line the tip's whole width, so the wash under the pointer runs edge to edge; the
+	     space between two lines split between them, so their washes meet. -->
+	{#snippet fact(one: Fact, last: boolean)}
+		{@const end = last && !tip.items.length ? END : ''}
+		<span class="whitespace-nowrap {end} {stylex.attrs(styles.muted).class}"
+			><Icon
+				icon={ICONS[one.what]}
+				size={14}
+				words={NAMES[one.what]}
+				badge={badgeOf(one.verdict)}
+				class="mr-1"
+			/>{NAMES[one.what]}</span
+		>
+		<span
+			class="text-right whitespace-nowrap {end} {stylex.attrs(
+				one.verdict === 'none' ? styles.muted : styles.word,
+			).class}">{one.word}</span
+		>
+	{/snippet}
+	<div class="flex flex-col">
+		{#each tip.facts as one, index (one.what)}
+			{@const last = index === tip.facts.length - 1}
+			{@const foot = last && !tip.items.length}
+			{@const padding = `px-2 pt-[3px] ${last ? 'pb-2' : 'pb-[3px]'} ${foot ? FOOT : ''}`}
+			{#if onpick}
+				<!-- Chosen, the card shows this one alone and the tip goes. -->
+				<button
+					type="button"
+					class="flex w-full items-center justify-between gap-2 text-left {padding} {stylex.attrs(
+						styles.line,
+					).class}"
+					onclick={() => onpick(one.what)}
+					onpointerenter={() => (lastHeld = last && !tip.items.length)}
+					onpointerleave={() => (lastHeld = false)}
+				>
+					{@render fact(one, last)}
+				</button>
+			{:else}
+				<div class="flex items-center justify-between gap-2 {padding}">
+					{@render fact(one, last)}
+				</div>
+			{/if}
 		{/each}
 	</div>
 	{#if tip.items.length}
-		<!-- What it holds by name, how long aside in the figures' face. -->
-		<ul
-			class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-2 pt-1.5 pb-2 {stylex.attrs(
-				styles.rule,
-			).class}"
-		>
+		<!-- What it holds, each leading to its own page, how long aside in the figures' face. -->
+		<ul class="flex flex-col {stylex.attrs(styles.rule).class}">
 			{#each tip.items as item, index (item.key)}
-				{@const end = !tip.more && index === tip.items.length - 1 ? END : ''}
+				{@const last = !tip.more && index === tip.items.length - 1}
+				{@const end = last ? END : ''}
 				<li class="contents">
-					<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
-					<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
-						><Icon
-							icon={item.icon}
-							size={14}
-							words={item.name}
-							badge={badgeOf(item.verdict)}
-							class="mr-1 {stylex.attrs(styles.muted).class}"
-						/>{item.name}</span
+					<svelte:element
+						this={item.href ? 'a' : 'div'}
+						href={item.href}
+						role={item.href ? undefined : 'presentation'}
+						class="flex items-center justify-between gap-2 px-2 {index === 0
+							? 'pt-1.5'
+							: 'pt-0.5'} {last ? `pb-2 ${FOOT}` : 'pb-0.5'} {item.href
+							? stylex.attrs(styles.line).class
+							: ''}"
+						onpointerenter={() => (lastHeld = last)}
+						onpointerleave={() => (lastHeld = false)}
 					>
-					<span class="text-right {end} {stylex.attrs(type.shell, styles.muted).class}"
-						>{item.lasted}</span
-					>
+						<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
+						<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
+							><Icon
+								icon={item.icon}
+								size={14}
+								words={item.name}
+								badge={badgeOf(item.verdict)}
+								class="mr-1 {stylex.attrs(styles.muted).class}"
+							/>{item.name}</span
+						>
+						<span class="text-right {end} {stylex.attrs(type.shell, styles.muted).class}"
+							>{item.lasted}</span
+						>
+					</svelte:element>
 				</li>
 			{/each}
 			{#if tip.more}
-				<li class="pl-[18px] {END} {stylex.attrs(styles.muted).class}">
+				<li class="px-2 pt-0.5 pb-2 pl-[26px] {END} {stylex.attrs(styles.muted).class}">
 					{tip.more} more
 				</li>
 			{/if}

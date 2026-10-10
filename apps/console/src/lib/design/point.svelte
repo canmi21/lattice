@@ -15,6 +15,7 @@
 		along,
 		outside = false,
 		size = 7,
+		ground = 'var(--color-surface)',
 	}: {
 		/** The card whose rule it runs on from. */
 		card: HTMLElement | undefined;
@@ -26,6 +27,8 @@
 		outside?: boolean;
 		/** How far it stands out, half as far as it is wide. */
 		size?: number;
+		/** What fills it: the card's ground, or a washed row's beside it, which it runs on from. */
+		ground?: string;
 	} = $props();
 
 	let rule = $state(1);
@@ -42,7 +45,6 @@
 			backgroundColor: 'var(--color-surface)',
 			backgroundImage: 'linear-gradient(var(--color-line), var(--color-line))',
 		},
-		ground: { backgroundColor: 'var(--color-surface)' },
 	});
 
 	/** A triangle `long` across its base and `out` from it, its base `reach` into the card. */
@@ -70,6 +72,6 @@
 ></span>
 <span
 	aria-hidden="true"
-	class="absolute {stylex.attrs(styles.ground).class}"
-	style={placed(size * 2 - 2 * slant, size - slant, 1)}
+	class="absolute"
+	style="{placed(size * 2 - 2 * slant, size - slant, 1)};background-color:{ground}"
 ></span>
