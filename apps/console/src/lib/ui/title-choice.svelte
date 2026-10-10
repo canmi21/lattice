@@ -15,7 +15,7 @@
 	import ChevronRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
 	import { DropdownMenu } from 'bits-ui';
 	import Icon from '../design/icon.svelte';
-	import { unfold } from '../design/motion.ts';
+	import { fold, unfold } from '../design/motion.ts';
 	import { type } from '../style.ts';
 
 	/** An option: its key, the title it gives the card, and its words in the menu. */
@@ -53,6 +53,21 @@
 	$effect(() => {
 		if (menu) opened = home?.name;
 	});
+	/** Each group's options, folded to nothing where the group is closed. */
+	const folds: (HTMLElement | undefined)[] = $state([]);
+	/** The group each fold last stood for, so a fold first met is set and a change is carried. */
+	const stood = new WeakMap<HTMLElement, boolean>();
+	$effect(() => {
+		groups.forEach((group, at) => {
+			const element = folds[at];
+			if (!element) return;
+			const open = group.name === opened;
+			const was = stood.get(element);
+			if (was === open) return;
+			fold(element, open, was === undefined);
+			stood.set(element, open);
+		});
+	});
 
 	const styles = stylex.create({
 		trigger: {
@@ -71,8 +86,8 @@
 			boxShadow: '0 4px 12px rgb(0 0 0 / 0.25), 0 1px 3px rgb(0 0 0 / 0.2)',
 			fontSize: text.px13,
 		},
+		/** A row the menu's width, edge to edge, its wash cut only by the menu's own corners. */
 		item: {
-			borderRadius: radius.md,
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 			backgroundColor: {
 				default: 'transparent',
@@ -94,7 +109,7 @@
 {#snippet rule()}
 	<span
 		aria-hidden="true"
-		class="absolute inset-x-1 -top-[0.5px] h-px {stylex.attrs(styles.rule).class}"
+		class="absolute inset-x-0 -top-[0.5px] h-px {stylex.attrs(styles.rule).class}"
 	></span>
 {/snippet}
 
@@ -119,7 +134,7 @@
 			alignOffset={-6}
 			loop
 			aria-label={label}
-			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto p-1 {stylex.attrs(
+			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto {stylex.attrs(
 				styles.menu,
 			).class}"
 			{@attach unfold}
@@ -131,7 +146,7 @@
 					closeOnSelect={false}
 					onSelect={() => (opened = group.name)}
 					aria-expanded={open}
-					class="relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
+					class="relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-3 {stylex.attrs(
 						styles.item,
 						styles.head,
 					).class}"
@@ -140,15 +155,18 @@
 					<Icon icon={open ? ChevronDownIcon : ChevronRightIcon} size={14} />
 					{group.name}
 				</DropdownMenu.Item>
-				{#if open}
+				<!-- Every group's options stand in the menu, a closed group's folded to nothing and out of
+				     the keys' reach, so opening one is carried rather than cut. -->
+				<div bind:this={folds[at]} class="flex shrink-0 flex-col overflow-hidden">
 					{#each group.options as one (one.key)}
 						{@const here = one.key === value && group.name === home?.name}
 						<DropdownMenu.Item
+							disabled={!open}
 							onSelect={() => {
 								value = one.key;
 								from = group.name;
 							}}
-							class="flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 pr-2 pl-[1.625rem] {stylex.attrs(
+							class="flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 pr-3 pl-8 {stylex.attrs(
 								styles.item,
 								here && styles.checked,
 							).class}"
@@ -157,7 +175,7 @@
 							{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
 						</DropdownMenu.Item>
 					{/each}
-				{/if}
+				</div>
 			{/each}
 			{#if links.length}
 				{#each links as one, index (one.href)}
@@ -166,7 +184,7 @@
 							<a
 								{...props}
 								href={one.href}
-								class="relative flex h-7 shrink-0 items-center justify-between gap-3 px-2 {stylex.attrs(
+								class="relative flex h-7 shrink-0 items-center justify-between gap-3 px-3 {stylex.attrs(
 									styles.item,
 								).class}"
 							>

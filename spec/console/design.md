@@ -149,12 +149,16 @@ beside a card's title, and its `24h` and `7d`, were framed switches inside a car
 **The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
 not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
-the pointer's row on the hover's wash, each inset from the menu's edge. It unfolds from a step
-smaller at its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit
-each, one open at a time**: a group's head, its unit and a chevron, opens it in place and closes the
-one open, choosing nothing; the menu opens on the chosen option's group; and one option may stand in
-two groups, said in each one's unit, a mixed list having read `12 hours` and then `24 hours` above
-`3 days` as though 24 hours were not a day. Decided with the author on 2026-10-10.
+the pointer's row on the hover's wash, **each row the menu's whole width, edge to edge, as the
+site's menus run**, its wash cut only by the menu's own corners, so a rule between two groups meets
+no rounded row beside it and the menu needs no inset of its own. It unfolds from a step smaller at
+its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit each, one
+open at a time**: a group's head, its unit and a chevron, opens it in place and closes the one open,
+choosing nothing, the one opening and the one closing carried together by GSAP over 180 ms, a closed
+group's options folded to nothing and out of the keys' reach; the menu opens on the chosen option's
+group; and one option may stand in two groups, said in each one's unit, a mixed list having read `12
+hours` and then `24 hours` above `3 days` as though 24 hours were not a day. Decided with the author
+on 2026-10-10.
 
 ## Words in the sans, figures in the shell's face
 

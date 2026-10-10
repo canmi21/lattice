@@ -53,6 +53,31 @@ export function grow(node: HTMLElement, from: { width: number; height: number })
 	);
 }
 
+/**
+ * A group of a menu opening or closing in place: its height carried from where it stands to its
+ * own or to nothing, over 180 ms, the one closing as the other opens. At once where `now` is set,
+ * as the menu itself opens, or for a reader who asked for less motion.
+ */
+export function fold(node: HTMLElement, open: boolean, now = false): void {
+	gsap.killTweensOf(node);
+	if (now || stilled()) {
+		gsap.set(node, { height: open ? 'auto' : 0 });
+		return;
+	}
+	gsap.fromTo(
+		node,
+		{ height: node.offsetHeight },
+		{
+			height: open ? node.scrollHeight : 0,
+			duration: 0.18,
+			ease: 'power2.inOut',
+			onComplete: () => {
+				if (open) gsap.set(node, { height: 'auto' });
+			},
+		},
+	);
+}
+
 /** How far a level of the sidebar travels as it gives way, in pixels. */
 const STEP = 24;
 
