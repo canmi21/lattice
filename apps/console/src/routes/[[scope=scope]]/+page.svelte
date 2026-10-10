@@ -5,6 +5,7 @@
 	 * them, Deployments' and Nodes'. See spec/console/overview.md.
 	 */
 	import * as stylex from '@stylexjs/stylex';
+	import { border, radius } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Card from '#lib/card.svelte';
 	import { live as liveOf } from '#lib/live.svelte.js';
 	import { HEIGHT, WIDTH } from '#lib/map/land.generated.js';
@@ -61,9 +62,15 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
+
+	/** The card's corner inside its hairline, which what fills the card to its edge is cut to. */
+	const INSIDE = `calc(${radius.xl} - ${border.hairlinePx})`;
+	const styles = stylex.create({
+		foot: { overflow: 'hidden', borderBottomLeftRadius: INSIDE, borderBottomRightRadius: INSIDE },
+		whole: { overflow: 'hidden', borderRadius: INSIDE },
+	});
 	/** How far back the timeline reaches; a week until the reader chooses. */
 	let back: Span = $state('7d');
-	const styles = stylex.create({});
 
 	/** The place list's and the timeline's height before their reads land. */
 	const LIST = 9 * 28;
@@ -134,7 +141,8 @@
 				</Heard>
 			</div>
 		</div>
-		<div class={stylex.attrs(surfaces.rowRule).class}>
+		<!-- Clipped to the card's inner corners, which the rules between the figures would cross. -->
+		<div class={stylex.attrs(surfaces.rowRule, styles.foot).class}>
 			<Figures {live} deploys={data.deploys} {keep} />
 		</div>
 	</section>
@@ -147,7 +155,9 @@
 		{#if any}
 			<Verdict {live} {now} {keep} nodes={false} />
 			<section class={stylex.attrs(surfaces.card).class}>
-				<Figures {live} deploys={data.deploys} {keep} nodes={false} />
+				<div class={stylex.attrs(styles.whole).class}>
+					<Figures {live} deploys={data.deploys} {keep} nodes={false} />
+				</div>
 			</section>
 			{@render lists()}
 		{:else}
