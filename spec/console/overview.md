@@ -225,8 +225,14 @@ leaves out quiet beside it -- `9 PM` and `Oct 9`, `Oct 9` and `Thu`, `Oct 7 – 
 thing it says, an icon -- a rocket for deploys, packages for services, an access point for being
 heard -- its name, its verdict's dot and one word; and under a rule what it holds by name, how
 long each lasted aside in the figures' face: each app down, the minutes unheard, each run, four at
-most and the rest counted. It stands over the slot, under it near the window's top, and inside the
-window, and goes with a scroll.
+most and the rest counted. A mark and the words it marks -- an icon and its name, a dot and its
+word -- stand a half step apart, four pixels, and everything else a whole step, eight, so each
+mark reads as part of its words. It stands over the slot, under it near the window's top, and
+inside the window, its edge eight pixels on every side measured from the ink -- its first and last
+words trimmed to cap height and baseline, as the map's card is, since a line's leading would
+otherwise widen the top and foot past the sides -- with a point toward the slot as the map's
+card has, lifted with it as one
+shape, and goes with a scroll.
 
 **The row's slots begin on whole times of the reader's clock** -- the hour, the day -- the last
 holding now, so a slot is `9 PM`, never `9:27 PM`, and a reload a few minutes on draws the same
