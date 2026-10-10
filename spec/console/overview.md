@@ -96,7 +96,9 @@ dots are what is drawn.
 
 **A place's card points at its mark**: a small point at the card's edge toward the mark, level
 with it and kept off the corners when the card is pushed up or down by the map's edge, the card and
-its point lifted by one shadow so they read as one shape. **Pointing at a place opens a card of
+its point lifted by one shadow so they read as one shape. **A card whose words change its size is
+carried to the new one**, quickly, over 160 ms, rather than cut to it: a node going from its uptime
+to `Upgrading`, a figure gaining a digit. **Pointing at a place opens a card of
 rows, a name and a value each**: uptime, role, apps running
 of listed as `15/15`,
 and two rings with their figures, the processor's share busy and the memory in use written in `G`

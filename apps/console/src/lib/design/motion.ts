@@ -53,29 +53,101 @@ export function grow(node: HTMLElement, from: { width: number; height: number })
 	);
 }
 
+/** A part of a menu that opens or closes in place, and which of the two. */
+export interface Fold {
+	node: HTMLElement;
+	open: boolean;
+}
+
 /**
- * A group of a menu opening or closing in place: its height carried from where it stands to its
- * own or to nothing, over 180 ms, the one closing as the other opens. At once where `now` is set,
- * as the menu itself opens, or for a reader who asked for less motion.
+ * Groups of a menu opening and closing in place as one drawer: each one's rows hang whole under
+ * its head and are drawn out of it or pushed back in, the last row first out, while its height
+ * follows, so no row fades or is seen cut. Every fold is one timeline on one curve, quick at first
+ * and settling, over 420 ms, so what one gives the other takes. At once where `now` is set, as the
+ * menu itself opens, or for a reader who asked for less motion.
  */
-export function fold(node: HTMLElement, open: boolean, now = false): void {
-	gsap.killTweensOf(node);
+export function fold(folds: readonly Fold[], now = false): void {
+	gsap.killTweensOf(folds.flatMap(({ node }) => [node, ...node.children]));
 	if (now || stilled()) {
-		gsap.set(node, { height: open ? 'auto' : 0 });
+		for (const { node, open } of folds) {
+			gsap.set(node, { height: open ? 'auto' : 0 });
+			gsap.set(node.children, { clearProps: 'transform' });
+		}
 		return;
 	}
-	gsap.fromTo(
-		node,
-		{ height: node.offsetHeight },
-		{
-			height: open ? node.scrollHeight : 0,
-			duration: 0.18,
-			ease: 'power2.inOut',
-			onComplete: () => {
-				if (open) gsap.set(node, { height: 'auto' });
-			},
-		},
-	);
+	const drawer = gsap.timeline({ defaults: { duration: 0.42, ease: 'power3.out' } });
+	for (const { node, open } of folds) {
+		const whole = node.scrollHeight;
+		const from = node.offsetHeight;
+		const to = open ? whole : 0;
+		drawer.fromTo(
+			node,
+			{ height: from },
+			{ height: to, onComplete: () => void (open && gsap.set(node, { height: 'auto' })) },
+			0,
+		);
+		// The rows' foot kept on the fold's edge, so they travel with it rather than being uncovered.
+		drawer.fromTo(
+			node.children,
+			{ y: from - whole },
+			{ y: to - whole, clearProps: open ? 'transform' : '' },
+			0,
+		);
+	}
+}
+
+/**
+ * While a fold is under way, the rows sliding under a still pointer are not pointed at: `menu`'s
+ * rows take no pointer until the 420 ms of a fold are over, so none lights up as it passes. The
+ * menu itself still does, so a press meanwhile lands on it and not on the page under it.
+ */
+export function still(menu: HTMLElement): void {
+	if (stilled()) return;
+	const rows = [...menu.children];
+	gsap.set(rows, { pointerEvents: 'none' });
+	gsap.delayedCall(0.42, () => gsap.set(rows, { clearProps: 'pointerEvents' }));
+}
+
+/**
+ * A frame whose words change its size carried there over 160 ms rather than cut: its first child,
+ * laid out at its own size, is watched, and on a change the frame is set back to the size it
+ * stood at and taken to the new one, its padding and border kept. An attachment; the frame clips
+ * what it does not yet hold. See spec/console/design.md, "Motion is GSAP".
+ */
+export function reshape(frame: HTMLElement): () => void {
+	const inner = frame.firstElementChild;
+	if (!(inner instanceof HTMLElement)) return () => {};
+	let stood = { width: frame.offsetWidth, height: frame.offsetHeight };
+	const observer = new ResizeObserver(() => {
+		const style = getComputedStyle(frame);
+		const around = (...sides: string[]) =>
+			sides.reduce((sum, side) => sum + Number.parseFloat(style.getPropertyValue(side)), 0);
+		const to = {
+			width:
+				inner.offsetWidth +
+				around('padding-left', 'padding-right', 'border-left-width', 'border-right-width'),
+			height:
+				inner.offsetHeight +
+				around('padding-top', 'padding-bottom', 'border-top-width', 'border-bottom-width'),
+		};
+		const from = gsap.isTweening(frame)
+			? { width: frame.offsetWidth, height: frame.offsetHeight }
+			: stood;
+		stood = to;
+		if (stilled() || (from.width === to.width && from.height === to.height)) return;
+		gsap.killTweensOf(frame);
+		gsap.fromTo(frame, from, {
+			...to,
+			duration: 0.16,
+			ease: 'power2.out',
+			clearProps: 'width,height',
+		});
+	});
+	observer.observe(inner);
+	return () => {
+		observer.disconnect();
+		gsap.killTweensOf(frame);
+	};
 }
 
 /** How far a level of the sidebar travels as it gives way, in pixels. */

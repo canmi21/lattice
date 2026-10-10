@@ -15,7 +15,7 @@
 	import ChevronRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
 	import { DropdownMenu } from 'bits-ui';
 	import Icon from '../design/icon.svelte';
-	import { fold, unfold } from '../design/motion.ts';
+	import { type Fold, fold, still, unfold } from '../design/motion.ts';
 	import { type } from '../style.ts';
 
 	/** An option: its key, the title it gives the card, and its words in the menu. */
@@ -57,16 +57,21 @@
 	const folds: (HTMLElement | undefined)[] = $state([]);
 	/** The group each fold last stood for, so a fold first met is set and a change is carried. */
 	const stood = new WeakMap<HTMLElement, boolean>();
+	let content: HTMLElement | null = $state(null);
 	$effect(() => {
+		const first: Fold[] = [];
+		const changed: Fold[] = [];
 		groups.forEach((group, at) => {
-			const element = folds[at];
-			if (!element) return;
+			const node = folds[at];
+			if (!node) return;
 			const open = group.name === opened;
-			const was = stood.get(element);
+			const was = stood.get(node);
 			if (was === open) return;
-			fold(element, open, was === undefined);
-			stood.set(element, open);
+			(was === undefined ? first : changed).push({ node, open });
+			stood.set(node, open);
 		});
+		fold(first, true);
+		fold(changed);
 	});
 
 	const styles = stylex.create({
@@ -97,8 +102,6 @@
 				':focus-visible': 'var(--color-hover)',
 			},
 		},
-		/** The chosen option, at the selection's wash and in the strong ink, as a chosen link is. */
-		checked: { color: 'var(--color-text-strong)', backgroundColor: 'var(--color-selected)' },
 		/** A group's head, its unit, a step quieter than the options it holds. */
 		head: { color: 'var(--color-text-muted)' },
 		rule: { backgroundColor: 'var(--color-line)' },
@@ -148,6 +151,7 @@
 			alignOffset={-6}
 			loop
 			aria-label={label}
+			bind:ref={content}
 			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto {stylex.attrs(
 				styles.menu,
 			).class}"
@@ -158,7 +162,11 @@
 				<!-- A head opens its group in place and closes the one open; it chooses nothing. -->
 				<DropdownMenu.Item
 					closeOnSelect={false}
-					onSelect={() => (opened = group.name)}
+					onSelect={() => {
+						if (opened === group.name) return;
+						if (content) still(content);
+						opened = group.name;
+					}}
 					aria-expanded={open}
 					class="flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
 						styles.item,
@@ -182,7 +190,6 @@
 							}}
 							class="flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
 								styles.item,
-								here && styles.checked,
 							).class}"
 						>
 							{@render mark()}

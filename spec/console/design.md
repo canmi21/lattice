@@ -148,8 +148,9 @@ beside a card's title, and its `24h` and `7d`, were framed switches inside a car
 
 **The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
-not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
-the pointer's row on the hover's wash, **each row the menu's whole width, edge to edge, as the
+muted, the chosen one told by a check on its right alone, and the pointer's row on the hover's
+wash: **a wash stays only where it says where one is**, as the sidebar's says which page is open, and
+a menu's choice is said by its check, so its row's wash is the pointer's; **each row the menu's whole width, edge to edge, as the
 site's menus run**, its wash cut only by the menu's own corners, so the rule above the links meets
 no rounded row beside it and the menu needs no inset of its own. **That rule is the menu's only
 one**: it parts choosing from going elsewhere, while a group needs none, its head and chevron
@@ -159,7 +160,7 @@ the left; the check and a link's arrow on the right -- so every row's words star
 edge; a mark needs less room than words, so its columns stand nearer the edge and the words. It unfolds from a step smaller at
 its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit each, one
 open at a time**: a group's head, its unit and a chevron, opens it in place and closes the one open,
-choosing nothing, the one opening and the one closing carried together by GSAP over 180 ms, a closed
+choosing nothing, the one opening and the one closing carried together as one drawer, one GSAP timeline on one curve over 420 ms, quick at first and settling: each group's options hang whole under its head and are drawn out of it, the last first, or pushed back in, travelling with its edge rather than uncovered by it, never fading; no row lights up as it slides under a still pointer; a closed
 group's options folded to nothing and out of the keys' reach; the menu opens on the chosen option's
 group; and one option may stand in two groups, said in each one's unit, a mixed list having read `12
 hours` and then `24 hours` above `3 days` as though 24 hours were not a day. Decided with the author

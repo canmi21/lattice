@@ -10,6 +10,7 @@
 	import * as stylex from '@stylexjs/stylex';
 	import { duration as hover, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 	import Gauge from '../chart/gauge.svelte';
+	import { reshape } from '../design/motion.ts';
 	import { uptime } from '../nodes/machine.ts';
 	import { scoped } from '../scope/context.ts';
 	import { tone, type, type Tone } from '../style.ts';
@@ -143,53 +144,60 @@
 	</dl>
 {/snippet}
 
-<div class="flex flex-col gap-1.5 {stylex.attrs(styles.card).class}" data-site={site.key}>
-	{#if lone}
-		<span class={stylex.attrs(styles.title).class}>{nameOf(lone.code).full}</span>
-		{@render rows(lone)}
-	{:else}
-		<!-- One table: the rows named once at the left, a little apart, and the place's nodes as
+<!-- The frame, carried to a new size when its words change it, and what it holds at its own. -->
+<div
+	class="overflow-hidden {stylex.attrs(styles.card).class}"
+	data-site={site.key}
+	{@attach reshape}
+>
+	<div class="flex w-max flex-col gap-1.5">
+		{#if lone}
+			<span class={stylex.attrs(styles.title).class}>{nameOf(lone.code).full}</span>
+			{@render rows(lone)}
+		{:else}
+			<!-- One table: the rows named once at the left, a little apart, and the place's nodes as
 		     close columns headed by their cities, the country in the corner over the names. The
 		     console's table rules and padding are for a page's tables, not a card's. -->
-		<table class="w-auto">
-			<thead>
-				<tr>
-					<th
-						scope="col"
-						class="border-0 p-0 pr-5 text-left font-normal {stylex.attrs(styles.muted).class}"
-						>{countryOf(site.members[0]?.code ?? site.key)}</th
-					>
-					{#each site.members as member (member.code)}
-						<th scope="col" class="border-0 py-0.5 pr-0 pl-3 text-right font-normal">
-							<a
-								href={toNode(member.code)}
-								data-row={member.code}
-								aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
-								class={stylex.attrs(styles.head).class}>{partOf(member.code)}</a
-							>
-						</th>
-					{/each}
-				</tr>
-			</thead>
-			<tbody>
-				{#each ROWS as row (row)}
+			<table class="w-auto">
+				<thead>
 					<tr>
 						<th
-							scope="row"
-							class="border-0 p-0 py-0.5 pr-5 text-left font-normal {stylex.attrs(styles.muted)
-								.class}">{row}</th
+							scope="col"
+							class="border-0 p-0 pr-5 text-left font-normal {stylex.attrs(styles.muted).class}"
+							>{countryOf(site.members[0]?.code ?? site.key)}</th
 						>
 						{#each site.members as member (member.code)}
-							<td
-								class="border-0 py-0.5 pr-0 pl-3 whitespace-nowrap {stylex.attrs(
-									styles.value,
-									row !== 'Role' && type.shell,
-								).class}">{@render value(member, row)}</td
-							>
+							<th scope="col" class="border-0 py-0.5 pr-0 pl-3 text-right font-normal">
+								<a
+									href={toNode(member.code)}
+									data-row={member.code}
+									aria-label="{partOf(member.code)}, {nameOf(member.code).full} ({member.code})"
+									class={stylex.attrs(styles.head).class}>{partOf(member.code)}</a
+								>
+							</th>
 						{/each}
 					</tr>
-				{/each}
-			</tbody>
-		</table>
-	{/if}
+				</thead>
+				<tbody>
+					{#each ROWS as row (row)}
+						<tr>
+							<th
+								scope="row"
+								class="border-0 p-0 py-0.5 pr-5 text-left font-normal {stylex.attrs(styles.muted)
+									.class}">{row}</th
+							>
+							{#each site.members as member (member.code)}
+								<td
+									class="border-0 py-0.5 pr-0 pl-3 whitespace-nowrap {stylex.attrs(
+										styles.value,
+										row !== 'Role' && type.shell,
+									).class}">{@render value(member, row)}</td
+								>
+							{/each}
+						</tr>
+					{/each}
+				</tbody>
+			</table>
+		{/if}
+	</div>
 </div>
