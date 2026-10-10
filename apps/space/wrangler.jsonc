@@ -1,0 +1,19 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "space",
+	// The adapter's Worker, and the client and prerendered files it serves beside the pages it
+	// renders; both written by `vite build`. See spec/architecture/space.md.
+	"main": ".svelte-kit/cloudflare/_worker.js",
+	"compatibility_date": "2026-07-29",
+	// SvelteKit keeps each request's event in `node:async_hooks`' AsyncLocalStorage.
+	"compatibility_flags": ["nodejs_compat"],
+	"assets": { "directory": ".svelte-kit/cloudflare", "binding": "ASSETS" },
+
+	// The apex, outside Access and public. A custom domain, so every deploy asserts it, as the
+	// console's does; see platform's spec/architecture/platform.md.
+	"routes": [{ "pattern": "canmi.app", "custom_domain": true }],
+
+	"observability": { "logs": { "enabled": true } },
+	"workers_dev": false,
+	"preview_urls": false,
+}

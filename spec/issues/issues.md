@@ -25,6 +25,7 @@ which areas exist and which entries are worth reaching for first.
 | area                     | entries | what it holds                                                        |
 | ------------------------ | ------- | -------------------------------------------------------------------- |
 | [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
+| [space.md](space.md)     | 1       | where space's specs come from, and which are public                  |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
 | [site.md](site.md)       | 25      | routing, rendering, the article page, the tests, the license surface |
 | [cms.md](cms.md)         | 4       | what the CMS cannot yet offer, and what it cannot reach              |

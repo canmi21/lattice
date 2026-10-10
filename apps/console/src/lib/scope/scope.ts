@@ -93,6 +93,7 @@ export const DISPLAY_NAMES: Readonly<Record<string, string>> = {
 	router: 'App Router',
 	shot: 'Screenshots',
 	site: 'Website',
+	space: 'Space',
 	store: 'Node Store',
 	telemetry: 'Telemetry',
 	tunnel: 'Tunnel',

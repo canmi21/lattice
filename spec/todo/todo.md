@@ -38,6 +38,19 @@ the system, and it is this layer's":
   panel showed until it retired.
 - **It is polished until the author runs the system from it**, before it is made for anybody else.
 
+## Space
+
+What [../architecture/space.md](../architecture/space.md) decides and is not built:
+
+- **`canmi.app` goes to space**: platform's redirect rule in `rules/canmi.app/` comes off the apex,
+  the sdk names `canmi.app` and its paths, and `space` joins the deployer's `WORKER_OWNERS` and
+  `.mise/tasks/deployable`'s `MOVED`.
+- **What every host carries**: robots.txt and security.txt from `@canmi/me/robots`, the favicon
+  through `aka` as the console's is, and Sentry with its own DSN, `EXTERNAL.sentry.space`, once
+  `@canmi/me` is released with it.
+- **The neutral components move to a library under `libs/`**, the console importing them from
+  there.
+
 ## The console's reads move to the backend
 
 [../architecture/console.md](../architecture/console.md), "The console's server never waits on

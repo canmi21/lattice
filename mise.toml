@@ -170,6 +170,11 @@ description = "Run the console against the real nodes through their remote bindi
 dir = "apps/console"
 run = "(test -f .dev.vars || pnpm run vars) && pnpm run dev"
 
+[tasks.dev-space]
+description = "Run canmi.app's design system, docs and specs"
+dir = "apps/space"
+run = "pnpm run dev"
+
 # The HTTP shell and the collection half behind it, on the pinned port. One command because they
 # are one service: the Rust half spawns the other and dies with it. See spec/architecture/local.md.
 [tasks.dev-local]
@@ -229,6 +234,11 @@ run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 [tasks.check-console]
 description = "Type check the console, a SvelteKit application of its own"
 dir = "apps/console"
+run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
+
+[tasks.check-space]
+description = "Type check canmi.app's space, a SvelteKit application of its own"
+dir = "apps/space"
 run = 'pnpm run check ${AUDIT:+--fail-on-warnings}'
 
 [tasks.check-social]

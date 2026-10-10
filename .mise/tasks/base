@@ -37,6 +37,7 @@ SERVERS = {
 	"cms": BASE,
 	"status": BASE,
 	"landing": BASE,
+	"space": BASE,
 }
 # A window whose foreground command is a shell has no server in it any more.
 SHELLS = {"fish", "zsh", "bash", "sh", "-fish", "-zsh", "-bash"}

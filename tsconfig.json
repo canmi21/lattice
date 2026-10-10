@@ -19,6 +19,7 @@
 		"apps/cms",
 		"apps/status",
 		"apps/landing",
-		"apps/console"
+		"apps/console",
+		"apps/space"
 	]
 }

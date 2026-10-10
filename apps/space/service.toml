@@ -1,0 +1,6 @@
+# canmi.app's paths, one Worker until a part grows into an app of its own. See
+# spec/architecture/space.md.
+version = 1
+name = "space"
+display_name = "Space"
+placements = ["workers"]

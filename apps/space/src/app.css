@@ -1,0 +1,31 @@
+/* The layers, declared before anything opens one, in the order the site declares them. See
+   spec/architecture/css/layers.md. */
+@layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
+@import 'tailwindcss';
+@import '@canmi/kit/theme/palettes/mono.css';
+@import '@canmi/kit/tokens/interaction.css';
+@source '.';
+
+@custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
+
+@theme {
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--font-shell: 'Ioskeley Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+	--font-mono: var(--font-shell);
+}
+
+@layer base {
+	body {
+		background-color: var(--color-page);
+		color: var(--color-text);
+		font-family: var(--font-sans);
+		font-size: 0.875rem;
+		line-height: 1.5;
+		-webkit-font-smoothing: antialiased;
+	}
+
+	a {
+		color: inherit;
+		text-decoration-line: none;
+	}
+}
