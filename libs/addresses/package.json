@@ -1,0 +1,12 @@
+{
+	"name": "@canmi/addresses",
+	"private": true,
+	"type": "module",
+	"exports": {
+		".": "./src/index.ts",
+		"./build": "./src/build.ts"
+	},
+	"devDependencies": {
+		"@types/node": "^26.6.4"
+	}
+}

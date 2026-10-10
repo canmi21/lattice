@@ -13,7 +13,9 @@
 	import Heard from '#lib/nodes/heard.svelte';
 	import Figures from '#lib/overview/figures.svelte';
 	import NodeList from '#lib/overview/node-list.svelte';
-	import { current, fromLive, merged } from '#lib/overview/moving.js';
+	import { type Step, type Trace, current, fromLive, merged } from '#lib/overview/moving.js';
+	import { Settled } from '#lib/settled.svelte.js';
+	import { Detail } from '#lib/overview/detail.svelte.js';
 	import Timeline from '#lib/overview/timeline.svelte';
 	import TimelineLegend from '#lib/overview/timeline-legend.svelte';
 	import { SPANS, SPAN_GROUPS, type Span } from '#lib/overview/timeline.js';
@@ -27,7 +29,6 @@
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Silent from '#lib/ui/silent.svelte';
 	import { AXES, type Axis, DIMENSIONS, type Dimension } from '#lib/overview/history.js';
-	import { Histories } from '#lib/overview/histories.svelte.js';
 	import { prefer } from '#lib/ui/preference.js';
 	import Skeleton from '#lib/ui/skeleton.svelte';
 	import Unread from '#lib/unread.svelte';
@@ -38,9 +39,9 @@
 	const live = liveOf();
 	const keep = (app: string) => shows(data.view, app);
 
-	/** The runs' steps once they land, overtaken by the live store's as the nodes report. */
+	/** What is running and what failed lately once it lands, overtaken by the live store's. */
 	const seed = new Landed(
-		() => data.moving,
+		() => data.now,
 		() => data.view,
 	);
 	const now = $derived(
@@ -50,8 +51,11 @@
 				fromLive(live.view.nodes).filter((step) => keep(step.app)),
 			),
 	);
-	/** Every step known, the day's history and the live store's, which the timeline draws. */
-	const day = $derived(seed.value ? merged(seed.value, fromLive(live.view.nodes)) : []);
+	/** The timeline's first paint, as the server cut it for the span, dimension and axis it read. */
+	const dried = new Landed(
+		() => data.dry,
+		() => data.view,
+	);
 
 	/** Whether the view holds anything: a run, or an app on a node; unknown counts as yes. */
 	const holds = (read: Awaited<typeof data.cluster>, deploys: Awaited<typeof data.deploys>) =>
@@ -92,9 +96,22 @@
 	let by: Axis = $state(data.by);
 	$effect(() => prefer('by', by));
 	const axes = [{ name: 'By', options: AXES }];
-	const histories = new Histories(() => ({ key: data.back, history: data.minutes }));
+	/** The rest of the span, read after the first paint; see src/lib/overview/detail.svelte.ts. */
+	const detail = new Detail(() => ({ back, view: data.view }));
+	/** The first paint's colors, while they are still of what the card asks. */
+	const dry = $derived(
+		back === data.back && dimension === data.dimension && by === data.by ? dried.value : undefined,
+	);
+	/**
+	 * The nodes' own events, kept as they were until one of them changes: a node reports every few
+	 * seconds and its events seldom move, and the timeline is laid out again on each new array.
+	 */
+	const happening = new Settled<Step[]>(() => fromLive(live.view.nodes), JSON.stringify);
+	/** Every step of the span known, read and live together, once the span is read. */
+	const steps = $derived(detail.current && merged<Trace>(detail.current.steps, happening.current));
+	// Anything the card is asked to draw that the first paint did not cut wants the rest now.
 	$effect(() => {
-		if (histories.current?.key !== back) void histories.ask(back);
+		if (!dry) detail.want('high');
 	});
 
 	/** The place list's and the timeline's height before their reads land. */
@@ -131,17 +148,19 @@
 		{/snippet}
 		{#snippet aside()}<TimelineLegend {dimension} />{/snippet}
 		<!-- Its last row as far from the card's foot as its words are from the sides. -->
-		<div class="px-5 pb-4.5">
-			{#if seed.value}
+		<!-- The pointer coming to the card asks for what its hover reads, ahead of the hover. -->
+		<div class="px-5 pb-4.5" onpointerenter={() => detail.want('high')} role="presentation">
+			{#if dry || steps}
 				<Timeline
 					{live}
-					steps={day}
+					{dry}
+					{steps}
 					{keep}
 					nodes={data.nodes}
 					{back}
 					bind:dimension
 					{by}
-					history={histories.current?.history}
+					history={detail.current?.history}
 				/>
 			{:else}
 				<Skeleton height={LIST} />

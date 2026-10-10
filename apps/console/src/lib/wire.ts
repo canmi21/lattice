@@ -72,6 +72,11 @@ export interface Held {
 	snapshot: Snapshot;
 	/** Absent from a relay on the build before it; see ./node.ts, `stateOf`. */
 	state?: State;
+	/**
+	 * The console's own mark, never a relay's: held lean for the first paint, events that are not
+	 * running left out, so the socket's whole copy replaces it at an equal version.
+	 */
+	partial?: true;
 }
 
 /** A peer the answering relay has not heard since it started, `waiting` and then `gone`. */

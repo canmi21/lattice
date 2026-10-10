@@ -9,6 +9,7 @@ import { pickUrls } from '@monoflake/sdk';
 import { buildDefine } from '@canmi/web/build';
 import { pluginOptions, sourcemapSetting, uploadsSourceMaps } from '@canmi/web/sentry/build';
 import { sentrySvelteKit } from '@sentry/sveltekit/vite';
+import { facetAddresses } from './scripts/facets.ts';
 
 // The repository root, as the site and the status page set it: StyleX hashes a class from the
 // file's path relative to this.
@@ -26,8 +27,13 @@ const stylexPlugin = stylex({
 });
 
 export default defineConfig(({ mode }) => ({
-	// The commit, the build moment and the disclosure; see lib's spec/web/build.md.
-	define: buildDefine(fileURLToPath(new URL('.', import.meta.url))),
+	define: {
+		// The commit, the build moment and the disclosure; see lib's spec/web/build.md.
+		...buildDefine(fileURLToPath(new URL('.', import.meta.url))),
+		// The facets' addresses, stated to the pages and the Worker by one build, so the two agree;
+		// see spec/architecture/console.md, "A component asks for its facet".
+		...(mode === 'production' ? { STATED_FACET_ADDRESSES: JSON.stringify(facetAddresses()) } : {}),
+	},
 	// Its own pinned port, refused rather than moved when taken, so one console runs at a time; see
 	// spec/toolchain.md, "Dev ports are pinned".
 	server: { port: 26527, strictPort: true },

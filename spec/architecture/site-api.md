@@ -61,7 +61,8 @@ In production a page asks for a route at `/api/{address}`, twelve hex digits of 
 route's name and its contract: the schemas its answer and request are read by, taken as data, and a
 revision for whatever of its shape no schema describes. `apps/site/api/src/contract/contracts.ts` holds the
 contracts, and the site's build states every address to the pages and to the Worker in one
-`define`, so the two agree by construction. A route has a shape as well -- `articles/{slug}/reads`,
+`define`, so the two agree by construction. The shapes and the hashing are `libs/addresses`,
+`@canmi/addresses`, which the console's facets ask by too. A route has a shape as well -- `articles/{slug}/reads`,
 `assets/{name*}`, in `SHAPES` beside the routes -- which puts the thing it is about in the path, as
 the workspace's `spec/addresses.md` has every address do; a production page asks at the route's
 address followed by the shape's placeholders, `/api/{address}/{slug}`, and the Worker reads the

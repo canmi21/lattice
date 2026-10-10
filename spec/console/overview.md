@@ -297,13 +297,24 @@ tip to the next without falling between them; the ring stays on the slot alone, 
 holding now, so a slot is `9 PM`, never `9:27 PM`, and a reload a few minutes on draws the same
 slots.
 
+**The row is laid out again a minute at most, and a slot's tip is worked out on its hover
+alone.** Its slots are whole minutes at their finest, so the clock is read to the minute, and the
+nodes' messages -- every few seconds a node -- are read for the apps each runs and the events it
+holds, which seldom move; a message that changes neither lays nothing out again. Each is a state an
+effect sets when it changes, never a `$derived` handing back the value it held: Svelte still wakes
+every slot downstream of a derived to ask whether it changed, which cost 12 ms four times a second
+and stuttered the place list's reorder until 2026-10-10. Every slot used to
+work out its tip, its days written and its trouble's length counted back, every second: 4,320
+slots by app over six hours spent 1.5 s of every 2.5 on it until 2026-10-10, and now none.
+
 **Each span's history is read once, at its finest slot, and gathered in the page to the row's
-width**: the relays' `/history`, through the console's `/history`, the span a whole number of its
+width**: the relays' `/history`, through the console's `history` facet, the span a whole number of its
 finest slots -- a minute up to a day, an hour past two days, a day past 30 -- so a slot's length
 is always one the relays answer. A slot of history goes to the row's slot the middle of its part
 inside the span falls in, the last one running past now. The server reads the span the page is
-drawn with; another span is asked when chosen, and the span drawn again each minute, a minute being
-what a relay adds. Past the runs mirror's 30 days, deploys are read from the history's day counts.
+drawn with into the first paint's colors alone; the page asks the span's minutes and steps after
+it, another span's when chosen, and the span's minutes again each minute, a minute being what a
+relay adds -- ../architecture/console.md, "A component asks for its facet". Past the runs mirror's 30 days, deploys are read from the history's day counts.
 Platform's `spec/architecture/relay.md`, "Each node's minutes, kept for a year". Decided with the
 author on 2026-10-09; drawn 2026-10-10.
 

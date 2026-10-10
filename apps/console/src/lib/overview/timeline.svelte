@@ -11,14 +11,12 @@
 	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { written } from '../chart/series.ts';
 	import type { Live } from '../live.svelte.ts';
-	import { nameOf, partOf } from '../map/places.ts';
-	import { CODES } from '../nodes/facts.ts';
+	import { partOf } from '../map/places.ts';
 	import { scoped } from '../scope/context.ts';
-	import { SCOPES, type Scope, displayOf, scopeOf } from '../scope/scope.ts';
+	import { SCOPES, displayOf } from '../scope/scope.ts';
 	import { type } from '../style.ts';
-	import { LOCATIONS } from '../map/land.generated.ts';
 	import { offsetIn, offsetOf, timeZone } from '../ui/time-zone.ts';
-	import type { History, Slot } from '../wire.ts';
+	import type { History } from '../wire.ts';
 	import Icon from '../design/icon.svelte';
 	import HealthFlag from './health-flag.svelte';
 	import Members from './members.svelte';
@@ -30,51 +28,60 @@
 	import {
 		type Axis,
 		type Dimension,
+		VERDICTS,
 		type Verdict,
 		WORDS,
 		deployed,
 		downFor,
 		downIn,
 		episode,
-		gathered,
-		heard,
-		served,
-		servedOf,
 		lasting,
+		served,
 		unheardIn,
-		worse,
 	} from './history.ts';
-	import type { Step } from './moving.ts';
+	import {
+		ALPHABET,
+		type Dry,
+		type Ground,
+		type Laid,
+		type Named,
+		decoded,
+		hostingOf,
+		judged,
+		laid,
+		opacityOf,
+		runsOf,
+	} from './judge.ts';
+	import type { Trace } from './moving.ts';
 	import {
 		type Cell,
 		DAY,
+		GAP,
 		type Mark,
-		type Outcome,
 		SHADES,
+		SLOT,
 		SPANS,
 		type Span,
 		aligned,
 		fit,
-		marks,
-		shades,
-		slots,
 		slotsIn,
 	} from './timeline.ts';
 	import { painted } from './verdict.ts';
+	import { earlyTag } from './early.ts';
+	import { Settled } from '../settled.svelte.ts';
 
 	let {
 		live,
-		steps,
 		keep,
 		nodes = true,
 		by = 'node',
 		back = '7d',
 		dimension = $bindable('overview'),
+		dry,
+		steps,
 		history,
 	}: {
 		live: Live;
-		/** Every step known, history and live together. */
-		steps: Step[];
 		keep: (app: string) => boolean;
 		/** Whether the view has nodes to draw a line each; without them the lines are apps. */
 		nodes?: boolean;
@@ -84,6 +91,10 @@
 		back?: Span;
 		/** What a slot is the verdict of. */
 		dimension?: Dimension;
+		/** The first paint's lines and letters, drawn until the span is read whole. */
+		dry?: Dry;
+		/** Every step known of the span, read and live together; the span is read whole with it. */
+		steps?: Trace[];
 		/** Every node's minutes over the span, gathered here to the row's slots. */
 		history?: History;
 	} = $props();
@@ -97,130 +108,46 @@
 	 */
 	const COLUMNS = 'grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-3';
 
-	/** The row's width once the browser has laid it out; the server draws the usual count. */
+	/** The row's width once the browser has laid it out; until then the early script draws it. */
 	let width = $state(0);
 	const span = $derived(SPANS.find((one) => one.key === back)?.span ?? 0);
 	const layout = $derived(width ? fit(back, width) : undefined);
-	const of = $derived(layout?.of ?? slotsIn(back));
-	/** The row's slots on whole times of the reader's clock, the last holding now. */
+	const of = $derived(layout?.of ?? dry?.counts[0] ?? slotsIn(back));
 	const length = $derived(span / of);
-	const bounds = $derived(aligned(live.now, length, of, offsetIn(zone, live.now)));
-	const reach = $derived(bounds.end - bounds.start);
-	/** Past the mirror's 30 days a deploy is read from the history's day counts, not its runs. */
-	const counted = $derived(span > 30 * DAY);
-
-	const drawn = $derived(
-		marks(
-			steps.filter((step) => keep(step.app)),
-			bounds.end,
-			reach,
-		),
-	);
-
-	interface Line {
-		key: string;
-		href: string;
-		marks: Mark[];
-		code?: string;
-		app?: string;
-		/** Every app the line stands for, more than one where apps share a name. */
-		apps?: string[];
-		/** An app's layer, which its line is grouped under. */
-		layer?: Scope;
-		label: string;
-		/** The whole name, on the label's hover. */
-		whole: string;
-	}
-
-	/** The nodes west to east, as the map lays them out left to right, a place's nodes together. */
-	const WEST_TO_EAST = CODES.toSorted((a, b) => LOCATIONS[a][1] - LOCATIONS[b][1]);
-	/** The layers an app line is grouped in, in the order the console's views name them. */
-	const LAYERS = ['infra', 'platform', 'services'] as const;
-
-	const lines = $derived.by((): Line[] => {
-		if (nodes && by === 'node') {
-			return WEST_TO_EAST.map((code) => ({
-				key: code,
-				href: toNode(code),
-				marks: drawn.filter((mark) => mark.node === code),
-				code,
-				label: partOf(code),
-				whole: nameOf(code).full,
-			}));
-		}
-		// Every app the view shows: what the nodes run now, and what ran in the span besides.
-		const apps = new Set([
-			...Object.values(live.view.nodes).flatMap((entry) =>
-				(entry.snapshot?.apps ?? []).map((app) => app.name),
-			),
-			...drawn.flatMap((mark) => mark.apps),
-		]);
-		// Apps one name, as apk and apt are both Package Updates, are one line, as a place's nodes
-		// are one line of the place list; the line's name opens a choice between them.
-		const named = Map.groupBy(
-			[...apps].filter((app) => keep(app)),
-			(app) => displayOf(app),
-		);
-		return [...named]
-			.map(([name, members]) => ({ name, members: members.toSorted() }))
-			.toSorted(
-				(a, b) =>
-					LAYERS.indexOf(scopeOf(a.members[0] ?? '')) -
-						LAYERS.indexOf(scopeOf(b.members[0] ?? '')) || a.name.localeCompare(b.name),
-			)
-			.map(({ name, members }) => ({
-				key: members.join(' '),
-				href: toApp(members[0] ?? ''),
-				marks: drawn.filter((mark) => mark.apps.some((app) => members.includes(app))),
-				app: members[0],
-				apps: members,
-				layer: scopeOf(members[0] ?? ''),
-				label: name,
-				whole: members.length > 1 ? `${name}: ${members.join(', ')}` : name,
-			}));
-	});
-
-	/** Each node's history gathered to the row's slots, once for every line. */
-	const minutes = $derived(
-		new Map<string, (Slot | undefined)[]>(
-			CODES.map((code) => [code, gathered(history, code, bounds.end, reach, of)]),
-		),
-	);
 
 	/**
-	 * When each node's history begins, its first minute due: a slot before it is one nothing was
-	 * recording, which its hover says rather than reading as a node with nothing to report.
+	 * The moment and the nodes the span is laid out at, each changing only when what the slots read
+	 * of it does: the minute, not the second, and the apps each node runs, not every message a node
+	 * sends, so the span is laid out again a minute at most, not every time a node reports.
 	 */
-	const began = $derived(
-		new Map(
-			Object.entries(history?.nodes ?? {}).flatMap(([code, its]) => {
-				const first = its.find((one) => one.due);
-				return first ? [[code, Date.parse(first.at)] as const] : [];
-			}),
-		),
-	);
-	const earliest = $derived(began.size ? Math.min(...began.values()) : undefined);
+	const minute = new Settled(() => Math.floor(live.now / 60_000) * 60_000);
+	const hosting = new Settled(() => hostingOf(live.view.nodes), JSON.stringify);
 
-	/**
-	 * An app's services as the overview weighs them across the nodes that run it: down where it is
-	 * down on every one of them, degraded where on some, as a node's are weighed among its apps.
-	 */
-	function hostsOf(apps: string[], across: { code: string; slot: Slot }[]): Verdict {
-		const pairs = across.flatMap((one) => apps.map((app) => served(one.slot, app)));
-		const worst = pairs.reduce<Verdict>(worse, 'none');
-		if (worst !== 'down') return worst;
-		const hosts = runs(apps).length;
-		const down = pairs.filter((one) => one === 'down').length;
-		return hosts > 0 && down >= hosts ? 'down' : 'degraded';
-	}
+	/** The span read whole, and laid out in the row's slots. */
+	const ground: Ground | undefined = $derived(
+		steps && {
+			steps,
+			history,
+			nodes: hosting.current,
+			keep,
+			withNodes: nodes,
+			by,
+			back,
+			now: minute.current,
+			offset: (at) => offsetIn(zone, at),
+		},
+	);
+	const lay = $derived(ground && laid(ground, of));
+	/** Until then, the slots fall where the first paint's did, ending at the moment it was cut. */
+	const bounds = $derived(
+		lay?.bounds ?? aligned(dry?.at ?? live.now, length, of, offsetIn(zone, dry?.at ?? live.now)),
+	);
+	const lines: Named[] = $derived(lay?.lines ?? dry?.lines ?? []);
+	/** The first paint's letters for the count drawn, a string a line. */
+	const letters = $derived(dry?.rows[dry.counts.indexOf(of)]);
 
 	/** Each place `apps` run now, one entry a node and app, those held on purpose aside. */
-	const runs = (apps: string[]) =>
-		CODES.flatMap((code) =>
-			(live.view.nodes[code]?.snapshot?.apps ?? []).filter(
-				(one) => apps.includes(one.name) && !one.held,
-			),
-		);
+	const runs = (apps: string[]) => runsOf(live.view.nodes, apps);
 
 	/**
 	 * How an app is now across the nodes that run it, as a node's flag says how the node is: well
@@ -234,35 +161,18 @@
 		return down === 0 ? 'well' : down < held.length ? 'leaving' : 'down';
 	}
 
-	/** How many apps a node runs as it is read now, those held on purpose aside. */
-	const running = (code: string) =>
-		live.view.nodes[code]?.snapshot?.apps.filter((app) => !app.held).length ?? 0;
-
-	/** A deploy's outcome from a slot's day counts, as a run's would be. */
-	function counts(slot: Slot | undefined): Outcome | undefined {
-		const runs = slot?.runs;
-		if (!runs) return undefined;
-		if (runs.running) return 'running';
-		const failed = runs.failed ?? 0;
-		const done = runs.succeeded ?? 0;
-		if (runs.partly_failed || (failed && done)) return 'mixed';
-		if (failed) return 'failed';
-		return done ? 'succeeded' : undefined;
-	}
-
-	/** One slot as drawn: its verdict, how strong, its tip, and where it leads. */
+	/** One slot as drawn: its verdict, how strong, what it says, and where it leads. */
 	interface Drawn {
 		key: string;
 		verdict: Verdict;
 		opacity: number;
-		tip: Tip;
+		/** Its time and its verdicts' words, for assistive technology. */
+		label: string;
 		href?: string;
 	}
 
-	const rows = $derived(lines.map((line) => ({ line, cells: slots(line.marks, of) })));
 	/** Whether the app lines span more than one layer, so each layer is headed. */
 	const layered = $derived(new Set(lines.map((line) => line.layer)).size > 1);
-	const shaded = $derived(shades(rows.flatMap((row) => row.cells)));
 
 	/** How long, in its one largest unit: `42s`, `3m`. */
 	function took(mark: Mark): string {
@@ -277,10 +187,10 @@
 	const leadOf = (cell: Cell): Mark =>
 		cell.marks.find((one) => one.outcome === 'failed' || one.outcome === 'mixed') ??
 		(cell.marks.at(-1) as Mark);
-	/** A shade's opacity: a quarter at the palest, whole at the darkest, in even steps between. */
-	const opacityOf = (shade: number) => 0.25 + (0.75 * (shade - 1)) / (SHADES - 1);
 	const hrefOf = (mark: Mark) =>
 		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
+	/** Where a line's label leads: its node's page, or its app's. */
+	const lineHref = (line: Named) => (line.code ? toNode(line.code) : toApp(line.app ?? ''));
 
 	const dayOf = (at: number) => written(at, zone, 'day');
 	/**
@@ -288,90 +198,117 @@
 	 * the zone it is written in, the reader's, as its offset then.
 	 */
 	function timeOf(start: number): Pick<Tip, 'when' | 'zone'> {
-		const zoned = offsetOf(zone, start);
-		if (length < DAY) {
-			const hour = written(start, zone, 'hour').replace(':00', '');
-			return { when: `${dayOf(start)}, ${hour}`, zone: zoned };
-		}
-		if (length === DAY) return { when: dayOf(start), zone: zoned };
-		const last = start + length - 1;
-		const [from, to] = [dayOf(start), dayOf(last)];
+		return { when: whenOf(start), zone: offsetOf(zone, start) };
+	}
+	function whenOf(start: number): string {
+		if (length < DAY) return `${dayOf(start)}, ${written(start, zone, 'hour').replace(':00', '')}`;
+		if (length === DAY) return dayOf(start);
+		const [from, to] = [dayOf(start), dayOf(start + length - 1)];
 		const [month, day] = to.split(' ');
-		return {
-			when: from.startsWith(`${month} `) ? `${from} – ${day}` : `${from} – ${to}`,
-			zone: zoned,
-		};
+		return from.startsWith(`${month} `) ? `${from} – ${day}` : `${from} – ${to}`;
 	}
 
 	/** Names shown in a tip at most; the rest are counted. */
 	const NAMED = 4;
 
-	/** The slot at `index` of `line`, as the card's dimension draws it. */
-	function slotOf(line: Line, cell: Cell | undefined, index: number): Drawn {
-		const start = bounds.start + index * length;
-		const end = start + length;
-		const own = line.code ? minutes.get(line.code)?.[index] : undefined;
-		// An app's services are the worst any node had of it.
-		const members = line.apps ?? [];
-		const across = members.length
-			? CODES.flatMap((code) => {
-					const slot = minutes.get(code)?.[index];
-					return slot ? [{ code, slot }] : [];
-				})
-			: [];
+	/** The first paint's verdict of a slot, while the span is not yet read whole. */
+	function letterOf(at: number, index: number): { verdict: Verdict; shade: number; facts: Fact[] } {
+		const { verdict, shade } = decoded(letters?.[at]?.[index] ?? ALPHABET[0] ?? 'a');
+		const facts: Fact[] =
+			dimension === 'overview' ? [] : [{ what: dimension, verdict, word: WORDS[dimension][verdict] }];
+		return { verdict, shade, facts };
+	}
 
-		const outcome = counted ? counts(own) : cell?.outcome;
-		const deploys = deployed(outcome);
-		const services = members.length
-			? across
-					.flatMap((one) => members.map((app) => served(one.slot, app)))
-					.reduce<Verdict>(worse, 'none')
-			: served(own);
-		const connectivity = line.code ? heard(own) : 'none';
-
-		const from = line.code ? began.get(line.code) : earliest;
-		const unrecorded = from === undefined || end <= from;
+	/** The slot at `index` of the line at `at`, judged, with the facts its card asks for. */
+	function judgedAt(at: number, index: number) {
+		const line = lines[at] as Named;
+		const row = (lay as Laid).rows[at];
+		const cell = row?.cells[index];
+		const one = judged(
+			ground as Ground,
+			lay as Laid,
+			row?.line ?? { ...line, marks: [] },
+			cell,
+			index,
+			dimension,
+		);
 		const wordOf = (what: Fact['what'], verdict: Verdict) =>
-			verdict === 'none' && what !== 'deploys' && unrecorded ? 'Unrecorded' : WORDS[what][verdict];
+			verdict === 'none' && what !== 'deploys' && one.unrecorded
+				? 'Unrecorded'
+				: WORDS[what][verdict];
 		const facts: Fact[] = [
-			{ what: 'deploys' as const, verdict: deploys },
-			{ what: 'services' as const, verdict: services },
-			...(line.code ? [{ what: 'connectivity' as const, verdict: connectivity }] : []),
+			{ what: 'deploys' as const, verdict: one.deploys },
+			{ what: 'services' as const, verdict: one.services },
+			...(line.code ? [{ what: 'connectivity' as const, verdict: one.connectivity }] : []),
 		]
 			.filter((fact) => dimension === 'overview' || fact.what === dimension)
 			.map((fact) => ({ ...fact, word: wordOf(fact.what, fact.verdict) }));
+		return { line, cell, one, facts };
+	}
 
+	/**
+	 * The slot at `index` of the line at `at` as the card's dimension draws it: judged where the
+	 * span is read whole, else the first paint's letter. Its tip is worked out on a hover alone.
+	 */
+	function slotOf(at: number, index: number): Drawn {
+		const key = `${(lines[at] as Named).key} ${index}`;
+		if (!lay || !ground) {
+			const { verdict, shade, facts } = letterOf(at, index);
+			const label = [whenOf(bounds.start + index * length), ...facts.map((fact) => fact.word)];
+			return { key, verdict, opacity: opacityOf(shade), label: label.join(', ') };
+		}
+		const { cell, one, facts } = judgedAt(at, index);
+		// The overview leads to a run where the deploys are what it draws; the rest, to any run.
+		const leads = dimension !== 'overview' || one.changed;
+		return {
+			key,
+			verdict: one.verdict,
+			opacity: opacityOf(one.shade),
+			label: [whenOf(one.start), ...facts.map((fact) => fact.word)].join(', '),
+			href: cell && leads ? hrefOf(leadOf(cell)) : undefined,
+		};
+	}
+
+	/** The tip of the slot at `index` of the line at `at`: its time, its facts, what was in it. */
+	function tipOf(at: number, index: number): Tip {
+		if (!lay || !ground) {
+			const { facts } = letterOf(at, index);
+			return { ...timeOf(bounds.start + index * length), facts, items: [], more: 0 };
+		}
+		const { line, cell, one, facts } = judgedAt(at, index);
+		const members = line.apps ?? [];
 		const asks = (what: Fact['what']) => dimension === 'overview' || dimension === what;
 		/** One node's history as asked, and where this slot stands in it. */
 		const raw = (code: string) => history?.nodes[code] ?? [];
 		const step = (history?.slot ?? 0) * 1000;
 		/** How long the trouble this slot is part of lasted, to its end or, going on, to now. */
-		const lastedIn = (code: string, of: (slot: Slot) => number, fallback: number) =>
-			lasting(episode(raw(code), step, start, end, of) ?? fallback);
+		const lastedIn = (code: string, of: Parameters<typeof episode>[4], fallback: number) =>
+			lasting(episode(raw(code), step, one.start, one.end, of) ?? fallback);
+		const own = one.own;
 		const items: Item[] = [
 			...(asks('services')
 				? members.length
-					? across.flatMap(({ code, slot }) =>
+					? one.across.flatMap(({ code, slot }) =>
 							members.flatMap((app) =>
-								downIn(slot, app).map((one) => ({
+								downIn(slot, app).map((down) => ({
 									key: `down ${code} ${app}`,
 									icon: glyphOf(app),
 									flag: code,
 									// Where the line stands for several apps, which of them it was.
 									name: members.length > 1 ? `${partOf(code)} · ${app}` : partOf(code),
 									href: toNode(code),
-									lasted: lastedIn(code, downFor(app), one.seconds),
+									lasted: lastedIn(code, downFor(app), down.seconds),
 									verdict: served(slot, app),
 								})),
 							),
 						)
-					: downIn(own).map((one) => ({
-							key: `down ${one.app}`,
-							icon: glyphOf(one.app),
-							name: displayOf(one.app),
-							href: toApp(one.app),
-							lasted: lastedIn(line.code ?? '', downFor(one.app), one.seconds),
-							verdict: services,
+					: downIn(own).map((down) => ({
+							key: `down ${down.app}`,
+							icon: glyphOf(down.app),
+							name: displayOf(down.app),
+							href: toApp(down.app),
+							lasted: lastedIn(line.code ?? '', downFor(down.app), down.seconds),
+							verdict: one.services,
 						}))
 				: []),
 			...(asks('connectivity') && own?.missing && line.code
@@ -382,7 +319,7 @@
 							name: 'Unheard',
 							href: `${toNode(line.code)}?tab=events`,
 							lasted: lastedIn(line.code, unheardIn, own.missing * 60),
-							verdict: connectivity,
+							verdict: one.connectivity,
 						},
 					]
 				: []),
@@ -397,37 +334,11 @@
 					}))
 				: []),
 		];
-		const tip: Tip = {
-			...timeOf(start),
+		return {
+			...timeOf(one.start),
 			facts,
 			items: items.slice(0, NAMED),
 			more: Math.max(0, items.length - NAMED),
-		};
-		const deployShade = cell ? opacityOf(shaded.get(cell) ?? SHADES) : 1;
-
-		if (dimension !== 'overview') {
-			const verdict = { deploys, services, connectivity }[dimension];
-			return {
-				verdict,
-				// Deploys are shaded by how many ran; the rest are drawn whole.
-				opacity: dimension === 'deploys' ? deployShade : 1,
-				key: `${line.key} ${index}`,
-				tip,
-				href: cell ? hrefOf(leadOf(cell)) : undefined,
-			};
-		}
-		// A deploy that went well is still a change made, so the overview draws it blue with what
-		// is planned; green is left for a slot where nothing changed and nothing went wrong.
-		const changed = deploys === 'fine' ? 'planned' : deploys;
-		// A node's services weighed among all it runs: some down is degraded, every one down is down.
-		const weighed = line.code ? servedOf(own, running(line.code)) : hostsOf(members, across);
-		const verdict = [changed, weighed, connectivity].reduce(worse, 'none');
-		return {
-			verdict,
-			opacity: 1,
-			key: `${line.key} ${index}`,
-			tip,
-			href: cell && verdict === changed ? hrefOf(leadOf(cell)) : undefined,
 		};
 	}
 
@@ -442,10 +353,10 @@
 	 * does not open another until the pointer has left it.
 	 */
 	let hushed = false;
-	const point = (one: Drawn) => (event: Event) => {
+	const point = (key: string, at: number, index: number) => (event: Event) => {
 		if (hushed && event.type === 'pointerenter') return;
 		const slot = event.currentTarget as HTMLElement;
-		pointed = { key: one.key, tip: one.tip, at: slot.getBoundingClientRect(), slot };
+		pointed = { key, tip: tipOf(at, index), at: slot.getBoundingClientRect(), slot };
 	};
 	const leave = () => (pointed = undefined);
 	/** Off the slot, unless onto its tip. */
@@ -480,7 +391,7 @@
 	});
 </script>
 
-{#snippet slot(one: Drawn)}
+{#snippet slot(one: Drawn, at: number, index: number)}
 	<!-- Three layers: what the pointer holds, the slot and half the gap either side of it, so a
 	     pointer moving along the row never falls between two; the ring, on the slot alone; and the
 	     shade, on what it holds, so the ring is drawn whole. -->
@@ -488,16 +399,16 @@
 		this={one.href ? 'a' : 'span'}
 		href={one.href}
 		role={one.href ? undefined : 'img'}
-		aria-label={[one.tip.when, ...one.tip.facts.map((fact) => fact.word)].join(', ')}
+		aria-label={one.label}
 		tabindex={one.href ? undefined : -1}
 		class="group relative block h-full min-w-0 outline-none hover:z-10 focus-visible:z-10 {layout
 			? 'shrink-0'
 			: 'flex-1'}"
 		style:width={layout ? `${layout.slot + layout.gap}px` : undefined}
 		style:padding-inline={layout ? `${layout.gap / 2}px` : undefined}
-		onpointerenter={point(one)}
+		onpointerenter={point(one.key, at, index)}
 		onpointerleave={off}
-		onfocus={point(one)}
+		onfocus={point(one.key, at, index)}
 		onblur={leave}
 	>
 		<span
@@ -516,9 +427,8 @@
 
 {#if nodes || lines.length}
 	<div class="{COLUMNS} gap-y-1.5">
-		{#each rows as row, at (row.line.key)}
-			{@const line = row.line}
-			{#if line.layer && line.layer !== rows[at - 1]?.line.layer && layered}
+		{#each lines as line, at (line.key)}
+			{#if line.layer && line.layer !== lines[at - 1]?.layer && layered}
 				<!-- Where a layer's apps begin, said once and quietly, as the place list's heads are. -->
 				<div class="col-span-2 flex h-6 items-end {stylex.attrs(type.label).class}">
 					{SCOPES.find((one) => one.key === line.layer)?.label}
@@ -548,7 +458,7 @@
 					</div>
 				{:else}
 					<a
-						href={line.href}
+						href={lineHref(line)}
 						title={line.whole}
 						class="flex min-w-0 items-center gap-2.5 {stylex.attrs(styles.label).class}"
 					>
@@ -566,18 +476,36 @@
 							bind:clientWidth={width}
 						></div>
 					{/if}
-					<div
-						class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
-						style:margin-inline={layout ? `${-layout.gap / 2}px` : undefined}
-					>
-						{#each row.cells as cell, index (index)}
-							{@render slot(slotOf(line, cell, index))}
-						{/each}
-					</div>
+					{#if layout}
+						<div class="flex h-5 justify-end" style:margin-inline="{-layout.gap / 2}px">
+							{#each { length: layout.of }, index (index)}
+								{@render slot(slotOf(at, index), at, index)}
+							{/each}
+						</div>
+					{:else}
+						<!-- Drawn by the early script below before the first paint; see ./early.ts. -->
+						<div data-early class="flex h-5 justify-end"></div>
+					{/if}
 				</div>
 			</div>
 		{/each}
 	</div>
+	{#if dry}
+		{@html earlyTag({
+			counts: dry.counts,
+			bounds: { slot: SLOT, gap: GAP },
+			layers: [
+				'group relative block h-full min-w-0 shrink-0 outline-none',
+				'block size-full rounded-[2px]',
+				'block size-full rounded-[2px]',
+			],
+			paints: VERDICTS.map((verdict) => stylex.attrs(painted[verdict]).class ?? ''),
+			opacities: Array.from({ length: SHADES }, (_, shade) => opacityOf(shade + 1).toFixed(3)),
+			alphabet: ALPHABET,
+			rows: dry.rows,
+			budget: 10,
+		})}
+	{/if}
 	{#if pointed}
 		<SlotTip
 			tip={pointed.tip}

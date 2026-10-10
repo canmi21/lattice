@@ -22,9 +22,11 @@
 		"deploy": "vite build && wrangler deploy"
 	},
 	"dependencies": {
-		"@twemoji/svg": "15.0.0"
+		"@twemoji/svg": "15.0.0",
+		"hono": "^4.13.12"
 	},
 	"devDependencies": {
+		"@canmi/addresses": "workspace:*",
 		"@canmi/fonts": "workspace:*",
 		"@canmi/kit": "^2026.1010.0",
 		"@canmi/me": "^2026.1008.0",

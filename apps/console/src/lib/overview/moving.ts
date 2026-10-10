@@ -29,6 +29,30 @@ export interface Step {
 	commit?: string;
 }
 
+/**
+ * A step as the timeline reads it: where it stands, what came of it and when, and why where it
+ * failed; nothing a run's page or a node's events read besides.
+ */
+export type Trace = Pick<
+	Step,
+	'run' | 'source' | 'node' | 'app' | 'outcome' | 'started_at' | 'finished_at' | 'detail' | 'id'
+>;
+
+/** `step` as a trace: its why kept where it failed alone, and nothing left undefined. */
+export function traced(step: Step): Trace {
+	const { run, source, node, app, outcome, started_at, finished_at, detail } = step;
+	return {
+		...(run === undefined ? {} : { run }),
+		source,
+		node,
+		app,
+		outcome,
+		started_at,
+		...(finished_at ? { finished_at } : {}),
+		...(outcome === 'failed' && detail ? { detail } : {}),
+	};
+}
+
 /** An event as a step: a run's within it, anything else apart. */
 function stepOf(node: string, event: Event): Step {
 	const { kind, run, commit } = event.source;
@@ -105,7 +129,7 @@ export function fromLive(nodes: Readonly<Record<string, Entry>>): Step[] {
 }
 
 /** One step's place: within its run, or, apart from any, its source's on its node. */
-const keyOf = (step: Step): string =>
+const keyOf = (step: Trace): string =>
 	step.run === undefined
 		? `${step.source}/${step.node}/${step.app}`
 		: `run ${step.run}/${step.node}/${step.app}`;
@@ -145,8 +169,8 @@ function latest(a: Step, b: Step): number {
 }
 
 /** `seed` overtaken by `live` wherever both hold a step: a snapshot's event is the newer. */
-export function merged(seed: Step[], live: Step[]): Step[] {
-	const held = new Map<string, Step>();
+export function merged<T extends Trace>(seed: T[], live: T[]): T[] {
+	const held = new Map<string, T>();
 	for (const step of seed) held.set(keyOf(step), step);
 	for (const step of live) {
 		const kept = held.get(keyOf(step));

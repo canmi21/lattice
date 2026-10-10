@@ -8,6 +8,7 @@
 	import { levelOf, titleOf } from '#lib/levels.js';
 	import { viewOf } from '#lib/scope/scope.js';
 	import { trackFocusSource } from '@canmi/kit/behavior/focus-source';
+	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { CLIENT_TITLE, pageOf, statusText } from '@canmi/web/error';
 	import Sidebar from '#lib/design/sidebar.svelte';
 	import SkipLink from '#lib/design/skip-link.svelte';
@@ -129,11 +130,16 @@
 				: `${page.status} ${statusText(page.status)}`
 			: titleOf(level, where),
 	);
+
+	// What the app is made of, said for Wappalyzer from the build; see lib's spec/web/disclose.md.
+	const disclosure = import.meta.env.VITE_DISCLOSURE;
+	discloseGlobals(disclosure);
 </script>
 
 <svelte:head>
 	<!-- First in the head on purpose: it declares the order the layers below it take. -->
 	{#if dev}{@html DEV_STYLEX}{/if}
+	{@html disclosureHead(disclosure)}
 	<title>{name}</title>
 	<!-- The main area held back while a reload finds its place; see src/lib/ui/place.ts. -->
 	{@html holdTag}

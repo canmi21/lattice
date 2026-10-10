@@ -51,5 +51,7 @@ function after(kept: Entry | undefined, entry: Entry): Entry {
 		return kept.state === entry.state ? kept : { ...kept, state: entry.state };
 	}
 	if (kept.version === undefined || entry.version > kept.version) return entry;
+	// A lean first paint's node, given whole at last.
+	if (kept.partial && !entry.partial && entry.version === kept.version) return entry;
 	return entry.version === kept.version && entry.state !== kept.state ? entry : kept;
 }

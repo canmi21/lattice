@@ -5,7 +5,8 @@
  * with none is empty. A skip draws nothing. See spec/console/overview.md, "The week is a line a
  * node".
  */
-import type { Step } from './moving.ts';
+import { type Fitted, fitted } from './early-draw.js';
+import type { Trace } from './moving.ts';
 
 export const DAY = 86_400_000;
 export const WEEK = 7 * DAY;
@@ -121,15 +122,15 @@ export function slotsIn(key: Span): number {
  * narrowest, that count, overflowing; where the finest stops short at its widest, that count,
  * short of the edge.
  */
-export function fit(key: Span, width: number): { of: number; slot: number; gap: number } {
-	const counts = LENGTHS[key].map((length) => Math.round(spanOf(key) / length));
-	const of =
-		counts.find((count) => count * SLOT.min + (count - 1) * GAP.min <= width) ?? counts.at(-1) ?? 1;
-	// The slots as wide as the row allows at the closest gap, then the gap as wide as what is left.
-	const slot = Math.max(SLOT.min, Math.min(SLOT.max, (width - (of - 1) * GAP.min) / of));
-	const gap = Math.max(GAP.min, Math.min(GAP.max, (width - of * slot) / Math.max(1, of - 1)));
-	return { of, slot, gap };
+export function fit(key: Span, width: number): Fitted {
+	return fitted(countsOf(key), width, { slot: SLOT, gap: GAP });
 }
+
+export type { Fitted };
+
+/** The counts `key`'s span may be drawn in, finest first. */
+export const countsOf = (key: Span): number[] =>
+	LENGTHS[key].map((length) => Math.round(spanOf(key) / length));
 
 /** What became of a run on a node, or of a slot's runs: `mixed` where some failed, some not. */
 export type Outcome = 'running' | 'failed' | 'mixed' | 'succeeded';
@@ -162,16 +163,16 @@ function together(outcomes: readonly Outcome[]): Outcome {
 	return failed ? 'failed' : 'succeeded';
 }
 
-const outcomeOf = (step: Step): Outcome =>
+const outcomeOf = (step: Trace): Outcome =>
 	step.outcome === 'running' || step.outcome === 'failed' ? step.outcome : 'succeeded';
 
 const share = (at: number, start: number, span: number) =>
 	Math.min(1, Math.max(0, (at - start) / span));
 
 /** `steps` as a mark a run a node over the `span` ending at `now`, oldest first. */
-export function marks(steps: readonly Step[], now: number, span = DAY): Mark[] {
+export function marks(steps: readonly Trace[], now: number, span = DAY): Mark[] {
 	const start = now - span;
-	const gathered = new Map<string, Step[]>();
+	const gathered = new Map<string, Trace[]>();
 	for (const step of steps) {
 		if (step.outcome === 'skipped') continue;
 		// What no run started is its own mark, by its app and its moment.
@@ -188,7 +189,7 @@ export function marks(steps: readonly Step[], now: number, span = DAY): Mark[] {
 			const finishes = group.map((one) => Date.parse(one.finished_at ?? one.started_at));
 			const ended = outcome === 'running' ? now : Math.max(...finishes);
 			if (Number.isNaN(began) || ended < start || began > now) return [];
-			const first = group[0] as Step;
+			const first = group[0] as Trace;
 			const failed = group.find((one) => one.outcome === 'failed');
 			return [
 				{

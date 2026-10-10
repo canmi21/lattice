@@ -47,6 +47,19 @@ still fan out across the nodes from the Worker, each to become one read of the n
 - **The fleet's readings**: `fleetNow` and `fleetSeries` on Nodes.
 - **The database's primary**: `primaryOf`, which asks each node's proxy in turn.
 
+## The console's facets
+
+[../architecture/console.md](../architecture/console.md), "A component asks for its facet", is the
+overview's. The rest follow it:
+
+- **The routes still answered by name move under `/api/`**: `/state` and `/nearest`, the app
+  page's `health`, and `/live`, whose socket is answered before any page and wants care.
+- **Every other page's load reads facets**, the nodes lean wherever no events are drawn; the
+  node's page, which draws them, keeps the whole.
+- **The timeline's steps are written once and referred to after**: nodes, apps and sources named
+  once and each step by number, its times as numbers; 308 KB and 42 KB compressed for a week on
+  2026-10-10, read after the first paint.
+
 ## The console's depth
 
 What the console's pages draw around today, each waiting on the service that holds the fact --

@@ -1,4 +1,4 @@
-import { env } from 'cloudflare:workers';
+import { env, waitUntil } from 'cloudflare:workers';
 import { dev } from '$app/env';
 import { fillTheme } from '@canmi/kit/theme';
 import { EXTERNAL } from '@canmi/me/urls';
@@ -6,22 +6,40 @@ import { serverHandles } from '@canmi/web/sentry/server';
 import { stamp } from '@canmi/web/error';
 import { handleErrorWithSentry } from '@sentry/sveltekit';
 import { sequence, type Handle } from '@sveltejs/kit/hooks';
+import { PREFIX } from '#lib/facets.js';
+import api from '#lib/server/api.js';
 import { handle as edge, isRoute } from '#lib/server/edge.js';
 
 /** Every page, through Sentry's handles first; development loads them and sends nothing. */
 const pages = sequence(
 	...serverHandles({ dsn: EXTERNAL.sentry.console, dev }),
-	({ event, resolve }) => resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) }),
+	async ({ event, resolve }) => {
+		const page = await resolve(event, { transformPageChunk: ({ html }) => fillTheme(html) });
+		// A patch for Wappalyzer, which knows Hono only by this header and reads the page's alone; the
+		// API this Worker answers with is Hono. A page's only: a mark passed through from a `fetch`
+		// has headers nobody may change. See lib's spec/web/disclose.md.
+		if (page.headers.get('content-type')?.startsWith('text/html')) {
+			page.headers.set('X-Powered-By', 'Hono');
+		}
+		return page;
+	},
 );
 
+/** The API's context: `waitUntil`, from the Worker's own module, is all a Hono app asks of it. */
+const context = { waitUntil, passThroughOnException: () => {}, props: {} } as ExecutionContext;
+
 /**
- * `/live`, `/state` and `/nearest` before any page, and before Sentry too: a response this hook
- * returns itself leaves SvelteKit as it was made, which the socket's 101 must, and nothing may wrap
- * it first. See src/lib/server/edge.ts and spec/architecture/console.md, "Errors go to Sentry, and
- * development sends nothing".
+ * `/live`, `/state` and `/nearest`, and the API under `/api/`, before any page and before Sentry
+ * too: a response this hook returns itself leaves SvelteKit as it was made, which the socket's 101
+ * must, and nothing may wrap it first. See src/lib/server/edge.ts and spec/architecture/console.md,
+ * "Errors go to Sentry, and development sends nothing".
  */
-export const handle: Handle = (input) =>
-	isRoute(input.event.url.pathname) ? edge(input.event.request, env) : pages(input);
+export const handle: Handle = (input) => {
+	const { pathname } = input.event.url;
+	if (isRoute(pathname)) return edge(input.event.request, env);
+	if (pathname.startsWith(PREFIX)) return api.fetch(input.event.request, env, context);
+	return pages(input);
+};
 
 /** An unexpected error stamped as the server's; see lib's spec/web/error.md. */
 export const handleError = handleErrorWithSentry(stamp('server'));

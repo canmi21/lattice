@@ -16,6 +16,7 @@
 		"database:migrate:remote": "wrangler d1 migrations apply api --remote"
 	},
 	"dependencies": {
+		"@canmi/addresses": "workspace:*",
 		"@canmi/compile": "workspace:*",
 		"@canmi/fonts": "workspace:*",
 		"@canmi/hints": "workspace:*",

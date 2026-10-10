@@ -1,4 +1,5 @@
-import { fill, placeholders, read, ROUTES, type Route, SHAPES } from '@canmi/site-api/routes';
+import { asking, pathOf, routeOf } from '@canmi/addresses';
+import { type Route, SHAPES } from '@canmi/site-api/routes';
 
 /** Stated by a production build; see vite.config.ts. Absent in development and in tests. */
 declare const STATED_API_ADDRESSES: Readonly<Record<Route, string>> | undefined;
@@ -9,27 +10,17 @@ declare const STATED_API_ADDRESSES: Readonly<Record<Route, string>> | undefined;
  * development the route's shape itself. See spec/architecture/site-api.md, "The pages
  * ask by contract, not by name", and the workspace's spec/addresses.md.
  */
-const ASKED: Readonly<Record<Route, string>> = Object.fromEntries(
-	ROUTES.map((route) => {
-		if (typeof STATED_API_ADDRESSES !== 'object' || STATED_API_ADDRESSES === null) {
-			return [route, SHAPES[route]];
-		}
-		const after = placeholders(SHAPES[route]).map(
-			({ name, rest }) => `/{${name}${rest ? '*' : ''}}`,
-		);
-		return [route, `${STATED_API_ADDRESSES[route]}${after.join('')}`];
-	}),
-) as Record<Route, string>;
+const ASKED = asking<Route>(
+	SHAPES,
+	typeof STATED_API_ADDRESSES === 'object' ? STATED_API_ADDRESSES : undefined,
+);
 
 /**
  * The site's own address for one of its API's routes: the thing it is about in the path, and the
  * rest of `parameters` as its search.
  */
 export function apiPath(route: Route, parameters?: Record<string, string>): string {
-	const filled = fill(ASKED[route], parameters);
-	if (!filled) throw new Error(`the ${route} route is asked without what its path names`);
-	const search = new URLSearchParams(filled.query).toString();
-	return `/api/${filled.path}${search ? `?${search}` : ''}`;
+	return pathOf(ASKED, '/api/', route, parameters);
 }
 
 /**
@@ -39,9 +30,5 @@ export function apiPath(route: Route, parameters?: Record<string, string>): stri
 export function readAddress(
 	path: string,
 ): { route: Route; query: Record<string, string> } | undefined {
-	for (const route of ROUTES) {
-		const query = read(ASKED[route], path);
-		if (query) return { route, query };
-	}
-	return undefined;
+	return routeOf(ASKED, path);
 }

@@ -153,6 +153,77 @@ console's. Source maps are not uploaded yet: the console's Worker is packaged by
 repository's workflow and deployed by the platform's deployer, and neither holds a Sentry token, so
 the build emits none.
 
+## A component asks for its facet
+
+**What a page carries is the least each component draws, cut on the server from whole reads, and
+nobody writes the route that serves it.** Three layers, decided with the author on 2026-10-10:
+
+- **Sources** are the backend's reads whole and typed -- the cluster, a span's history, the
+  view's runs -- each asked at most once a request however many facets take it,
+  `src/lib/server/sources.ts`. Nothing else reads the backend.
+- **A facet is a function** from the sources to what one component draws: a cut of fields where
+  that is all it needs -- the nodes without their past events -- and a derivation where it draws
+  something the reads do not hold -- the timeline's colors, one letter a slot. A field list could
+  say the first and never the second, so the unit is the function. Facets are `FACETS` in
+  `src/lib/server/facets.ts`; a facet's parameters and answer are its type, and its type is the
+  contract.
+- **The routes are worked out, not written.** A page's load reads a facet for the first paint and
+  only its answer enters the page; the browser asks the same facet at `/api/{address}` for
+  whatever comes after. In production the address is twelve hex digits of a SHA-256 over the
+  facet's name, a `revision`, and its parameters' and answer's types written out whole by
+  TypeScript at build time -- `scripts/facets.ts` -- so it moves when what the facet takes or gives
+  does and with nothing else, the site's rule in [site-api.md](site-api.md), "The pages ask by
+  contract, not by name", with the same `@canmi/addresses`. `revision` is raised only where a
+  meaning changes under an unchanged type. Development asks at the facet's name.
+
+**`/api/` is a Hono app**, `src/lib/server/api.ts`, as the site's API is: the facets first, and
+whatever the console answers itself later -- a third party's API passed on -- beside them, in the
+same app. Its first middleware is `poweredBy()`, and the console's pages carry `X-Powered-By: Hono`
+too, lib's `spec/web/disclose.md`.
+
+**What the first paint does not draw is read after it, not carried in it.** The timeline's hover
+reads the span's minutes and its runs' steps; those are asked once the page is idle at low
+priority, at once where the pointer comes to the card first, and for each span picked after,
+`src/lib/overview/detail.svelte.ts`. On 2026-10-10 this took the overview's document from 1.09 MB
+to 150 KB, 126 KB to 28 KB compressed: its runs' steps alone had been 811 KB of it.
+
+**A facet's answer is written for its reader, defined once and referred to after**: a slot is a
+letter rather than an object, a step drops every field no hover reads. A small answer compresses
+well; a nested one barely does.
+
+## Drawn before the first paint
+
+**What only the browser can measure is drawn by the page itself before its first paint -- never
+guessed by the server and redrawn by the browser.** The server holds every fact a page shows but
+not how wide anything is. Where what is drawn depends on a width -- how many slots the overview's
+timeline fits in its row -- the server sends everything the drawing needs, for every way it may be
+drawn: the timeline's lines, and each line's slots as letters for every count its span may be
+drawn in, a few hundred bytes compressed. A short script
+written right after the element draws it from the measured width while the document is still
+being parsed, so the first paint is the finished picture. No cookie keeps the last width and no
+hint header guesses it: either leaves the server holding a measurement for each element, right
+only until the window changes. Decided with the author on 2026-10-10; any later drawing that
+depends on a measurement follows the same pattern.
+
+- **The server draws all that does not depend on the width**, and the part that does as an empty
+  element at its final height, so nothing around it moves whichever way it ends up drawn.
+- **The script is a plain JavaScript file's own text**, read with `?raw`, never a function's
+  `toString()`: the server and the browser compile a function separately, the two texts differ --
+  by a semicolon in development, by a minifier in production -- and hydration warns about an
+  `{@html}` whose text changed. The component imports the same file as a module, so the script and
+  the component draw with one function. The overview's is `lib/overview/early-draw.js`, written out
+  by `lib/overview/early.ts`.
+- **It has a budget of 10 ms** from its start; past it the script empties what it drew and leaves
+  the element to the component, which draws it after hydration. On a move between pages the same
+  happens without the script, since a script written by `{@html}` there never runs. Measured in
+  development on 2026-10-10: 8 rows of 168 slots in 3 ms, done 40 ms before the first paint.
+- **The component takes over in one update**: its drawing replaces the script's in a single DOM
+  change, from the same measurement and the same function, so nothing moves -- the same to the
+  pixel, measured on 2026-10-10.
+- **The script follows the element directly**, so the only point where the parser could paint the
+  element still empty is the one between them, which it rarely takes; a frame there shows the empty
+  element at its final height, never a drawing that is then corrected.
+
 ## Live, through the nearest node
 
 **A reader's browser holds one WebSocket, to the node nearest it, and the nodes hold connections to
