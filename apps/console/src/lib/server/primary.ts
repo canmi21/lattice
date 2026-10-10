@@ -5,6 +5,7 @@
  * spec/console/overview.md, "A place's card says what the list does not".
  */
 import { order } from './nodes.ts';
+import { kept } from './cache.ts';
 import type { Edge } from './read.ts';
 import { appHealth } from './reads.ts';
 
@@ -18,6 +19,17 @@ interface Routing {
 type Answered = { data?: { routing?: Routing }; routing?: Routing } | undefined;
 
 export async function primaryOf(edge: Edge): Promise<string | undefined> {
+	// Half a minute: the primary moves seldom, and asking walks the nodes one by one.
+	return kept(
+		edge,
+		'primary',
+		30,
+		() => asked(edge),
+		(one) => one !== undefined,
+	);
+}
+
+async function asked(edge: Edge): Promise<string | undefined> {
 	for (const name of order(edge.where)) {
 		// oxlint-disable-next-line no-await-in-loop -- the first that answers is the answer
 		const read = await appHealth(edge, name, 'primary');

@@ -8,6 +8,7 @@ import type { Code } from '@canmi/response';
 import { URLS } from '@monoflake/sdk';
 import type { Cluster, History } from '../wire.ts';
 import type { FleetEvent } from './fleet.ts';
+import { type Store, kept, toMinute } from './cache.ts';
 import { type Env, TIMEOUT, TRIES, bindingOf, reach } from './edge.ts';
 import { NODES, type Node, type Whereabouts, order } from './nodes.ts';
 
@@ -22,7 +23,14 @@ export const PANEL = `http://${LABEL}.${new URL(URLS.internal.app).hostname}`;
 export interface Edge {
 	env: Env;
 	where?: Whereabouts;
+	/** Where reads are kept a little while; none, and every read goes to the backend. */
+	store?: Store;
+	/** Whether the request asks past the store, a hard reload or a read after a write. */
+	fresh?: boolean;
 }
+
+/** A read worth keeping: one that answered. */
+const answered = (read: Read<unknown>) => read.ok;
 
 export interface Failure {
 	status: number;
@@ -78,7 +86,8 @@ export interface Mirrored {
  * every relay's disk".
  */
 export async function mirrored(edge: Edge, timeout = TIMEOUT): Promise<Read<Mirrored>> {
-	return nearest<Mirrored>(edge, '/runs', timeout);
+	// Five seconds, the place list's own step: a run's start is in the socket before then.
+	return kept(edge, 'runs', 5, () => nearest<Mirrored>(edge, '/runs', timeout), answered);
 }
 
 /**
@@ -92,7 +101,9 @@ export async function history(
 	slot: number,
 	timeout = TIMEOUT,
 ): Promise<Read<History>> {
-	return nearest<History>(edge, `/history?span=${span}&slot=${slot}`, timeout);
+	const path = `/history?span=${span}&slot=${slot}` as const;
+	// Until the next whole minute, before which a relay has no new one to add.
+	return kept(edge, path, toMinute(), () => nearest<History>(edge, path, timeout), answered);
 }
 
 /**

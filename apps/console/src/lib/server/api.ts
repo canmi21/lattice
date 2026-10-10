@@ -14,6 +14,8 @@ import type { Env } from './edge.ts';
 import { FACETS, type FacetName, STREAMS, type StreamName } from './facets.ts';
 import type { Whereabouts } from './nodes.ts';
 import { sourcesOf } from './sources.ts';
+import { dev } from '$app/env';
+import { asksFresh, storeOf } from './cache.ts';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -29,7 +31,12 @@ app.get(`${PREFIX}*`, async (c) => {
 	if (!params) return failure(400, 'invalid_route');
 	const where = c.req.raw.cf as Whereabouts | undefined;
 	const context = {
-		sources: sourcesOf(c.req.raw, { env: c.env, where }),
+		sources: sourcesOf(c.req.raw, {
+			env: c.env,
+			where,
+			store: storeOf(dev, new URL(c.req.url).origin),
+			fresh: asksFresh(c.req.raw),
+		}),
 		zone: served(
 			{ get: (name) => getCookie(c, name) },
 			c.req.raw.cf as { timezone?: string } | undefined,

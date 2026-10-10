@@ -61,8 +61,8 @@ export class Detail {
 		this.#asking = key;
 		const { view } = this.of();
 		const [history, steps] = await Promise.all([
-			ask('history', { span: key }, priority),
-			ask('steps', { span: key, view }, priority),
+			ask('history', { span: key }, { priority }),
+			ask('steps', { span: key, view }, { priority }),
 		]);
 		if (this.#asking === key) this.#asking = undefined;
 		// Kept only while it is still the span drawn, and only whole.
@@ -70,7 +70,7 @@ export class Detail {
 	}
 
 	async #minutes(key: Span): Promise<void> {
-		const history = await ask('history', { span: key }, 'low');
+		const history = await ask('history', { span: key }, { priority: 'low' });
 		if (history && this.current?.key === key) this.current = { ...this.current, history };
 	}
 }

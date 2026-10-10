@@ -34,17 +34,31 @@ export const ASKED = asking<RouteName>(
 	typeof STATED_FACET_ADDRESSES === 'object' ? STATED_FACET_ADDRESSES : undefined,
 );
 
+/** How a facet is asked: the fetch's priority, and whether past the edge's cache. */
+export interface Asking {
+	/** Low for what is read ahead of being wanted. */
+	priority?: RequestPriority;
+	/**
+	 * Past the cache, read from the backend and kept for everyone after: what a read after the
+	 * console's own write asks, so the change it made is what it sees.
+	 */
+	fresh?: boolean;
+}
+
 /**
  * `name`'s answer for `params`; undefined where it could not be read, which the caller draws as
- * not yet known. `priority` is the fetch's: low for what is read ahead of being wanted.
+ * not yet known.
  */
 export async function ask<N extends FacetName>(
 	name: N,
 	params: ParamsOf<N>,
-	priority: RequestPriority = 'auto',
+	{ priority = 'auto', fresh = false }: Asking = {},
 ): Promise<AnswerOf<N> | undefined> {
 	try {
-		const answer = await fetch(pathOf(ASKED, PREFIX, name, params), { priority });
+		const answer = await fetch(pathOf(ASKED, PREFIX, name, params), {
+			priority,
+			...(fresh ? { headers: { 'cache-control': 'no-cache' } } : {}),
+		});
 		if (!answer.ok) return undefined;
 		const body = (await answer.json()) as { status: string; data?: AnswerOf<N> };
 		return body.status === 'success' ? body.data : undefined;

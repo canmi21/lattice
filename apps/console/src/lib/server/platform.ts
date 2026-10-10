@@ -5,13 +5,20 @@ import type { Whereabouts } from './nodes.ts';
 import { served } from '../ui/time-zone.ts';
 import type { Context } from './facets.ts';
 import { sourcesOf } from './sources.ts';
+import { dev } from '$app/env';
+import { asksFresh, storeOf } from './cache.ts';
 
 /**
  * The bindings come from `cloudflare:workers`, which the adapter emulates under `vite dev`;
  * `event.platform` carries none since SvelteKit 3. Kept apart so the readers stay testable.
  */
 export function edgeOf(event: Pick<RequestEvent, 'request'>): Edge {
-	return { env, where: event.request.cf as Whereabouts | undefined };
+	return {
+		env,
+		where: event.request.cf as Whereabouts | undefined,
+		store: storeOf(dev, new URL(event.request.url).origin),
+		fresh: asksFresh(event.request),
+	};
 }
 
 /** What a page's load cuts its facets with: this request's reads, the reader's zone, and now. */

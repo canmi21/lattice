@@ -65,6 +65,27 @@ fails or comes late, rarely seen but never removed. The reads that still fan out
 break this rule until they move, in [../todo/todo.md](../todo/todo.md), "The console's reads move to
 the backend". Decided with the author on 2026-10-09.
 
+**Its reads are kept a little while at the edge, each for as long as its own data takes to move --
+a smart cache, which leaves it as stateless as before.** It holds no fact of its own, assumes
+nothing and makes nothing: a read kept is the backend's answer as it was, and losing every one of
+them -- a restart, a purge -- costs a read and changes nothing drawn. Decided with the author on
+2026-10-10:
+
+- **Each read has its own time**: the runs five seconds, the place list's own step, a run's start
+  being in the socket sooner; a span's minutes until the next whole minute, before which a relay
+  has none to add; the primary half a minute. The cluster is not kept: it is read in 100 ms and
+  the socket overtakes it at once. A read that failed is never kept.
+- **A request that says `Cache-Control: no-cache` goes past it** and keeps what it brings for
+  everyone after: a hard reload does, and so does the console's own read after a write it made --
+  `ask(name, params, { fresh: true })` in `src/lib/facets.ts` -- so a change the reader made is
+  what they see next, and another reader's is at most a read's time old.
+- **It is Cloudflare's cache**, `caches.default`, shared by the Worker's isolates in one place, not
+  an isolate's memory, which one of several holds and any may lose. Under `vite dev`, whose
+  platform stands in a `caches` that keeps nothing, it is a map in the one process --
+  `src/lib/server/cache.ts`.
+- **Measured on 2026-10-10 in development**: the overview's first byte in 0.14-0.19 s with the
+  reads kept, against 0.21-0.39 s past them; a kept facet answers in 1-10 ms.
+
 **A node is shown by its city, and its code is the key.** What the console writes for a node is a
 display name, its city and its country, written whole -- `Tokyo, Japan`, `Raleigh, United States`,
 and the country alone where the two are one name, `Singapore`. A node in the European Union is its
