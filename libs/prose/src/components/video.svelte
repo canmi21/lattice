@@ -53,6 +53,7 @@
 <script lang="ts">
 	import { DEV as dev } from 'esm-env';
 	import { positionOf } from '@canmi/kit/behavior/progress';
+	import { tab } from '@canmi/records';
 	import { pageUrls } from '@monoflake/sdk';
 	import { onMount } from 'svelte';
 	import { discloseVideoJs } from '../disclose';
@@ -141,7 +142,7 @@
 	$effect(() => {
 		const element = el;
 		if (!element) return;
-		const wanted = positionOf(sessionStorage, src)?.at ?? 0;
+		const wanted = positionOf(tab, sessionStorage, src)?.at ?? 0;
 		const near = () => Math.abs(element.currentTime - wanted) < SETTLE_WITHIN;
 		const ready = () => element.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
 		const look = () => {

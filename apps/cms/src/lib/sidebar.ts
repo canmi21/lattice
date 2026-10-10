@@ -1,4 +1,5 @@
 import type { Divider } from '@canmi/kit/behavior/resize';
+import { reader } from '@canmi/records';
 
 /**
  * The sidebar's narrowest width, measured rather than chosen: the widest single-line section row
@@ -38,6 +39,7 @@ export const FOLD_BELOW = CHROME + SIDEBAR_MIN + PANE_MIN;
  * visit sees, and the one the server renders. See spec/architecture/local.md.
  */
 export const SIDEBAR: Divider = {
+	record: reader,
 	key: 'cms.sidebar.width',
 	property: '--sidebar-width',
 	span: { min: SIDEBAR_MIN, max: 28, fallback: 15 },

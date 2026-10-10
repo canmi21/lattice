@@ -8,7 +8,8 @@
 
 import { BROWSER as browser } from 'esm-env';
 import { arriving } from '@canmi/kit/behavior/arrival';
-import { tab, type Store } from '@canmi/kit/behavior/state';
+import type { Store } from '@canmi/kit/behavior/state';
+import { tab } from '@canmi/records';
 
 /**
  * How long a measurement may wait for the fonts it is about to measure in.

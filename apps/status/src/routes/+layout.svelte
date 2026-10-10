@@ -101,6 +101,7 @@
 	import { APP_ICON_MARKS } from '#lib/manifest.js';
 	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
 	import { settleBrevity } from '@canmi/kit/behavior/brevity';
+	import { reader } from '@canmi/records';
 	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { hints } from '@canmi/hints';
 	import { URLS } from '@monoflake/sdk';
@@ -132,7 +133,7 @@
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
 	onMount(() => {
 		takeArrivalParameters();
-		settleBrevity();
+		settleBrevity(reader);
 	});
 
 	/** Whether the page has scrolled, read off a zero-height sentinel above the nav; false in SSR. */

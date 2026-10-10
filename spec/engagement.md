@@ -349,9 +349,11 @@ favor has been done, and the first of those arrived as a loose key of its own. A
 have arrived the same way, and a tenth -- which is how a reader's storage becomes a scatter of
 names nothing owns and nothing can move together.
 
-The container is `@canmi/kit/behavior/state`, and how it works -- flat dotted keys, an integer
-version from the first write, migrations, a later version left alone -- is the package's, in the lib
-repository's `spec/kit/state.md`. What follows is which facts this site keeps in it.
+The two records are declared in `libs/records` (`@canmi/records`) as data -- each one's key, and
+its steps from one version to the next -- shared by the site, the CMS, prose, landing and status.
+The mechanism that runs them -- flat dotted keys, an integer version from the first write, steps
+run in order, a later version left alone -- is `@canmi/kit/behavior/state`'s, in the lib
+repository's `spec/kit/state.md`. What follows is which facts this site keeps in them.
 
 **Per-tab facts stay out of it, and have a record of their own.** `sessionStorage["state"]` is the
 same container with the same mechanism, and the difference is whose fact it is: the `reader`

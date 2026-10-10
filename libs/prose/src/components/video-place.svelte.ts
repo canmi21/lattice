@@ -5,6 +5,7 @@
  * spec/architecture/video/player.md, "A reload finds a clip where the tab left it".
  */
 import { keepPosition, positionOf, stillOf } from '@canmi/kit/behavior/progress';
+import { tab } from '@canmi/records';
 
 /**
  * A seek small enough to land inside the first frame, and large enough to be a seek.
@@ -47,7 +48,7 @@ export class Place {
 		this.#clip = clip;
 
 		$effect(() => {
-			this.#restored = positionOf(sessionStorage, this.#clip())?.at;
+			this.#restored = positionOf(tab, sessionStorage, this.#clip())?.at;
 			const element = this.#video();
 			if (this.#restored === undefined || !element) return;
 			/**
@@ -160,7 +161,7 @@ export class Place {
 		const clip = this.#clip();
 		if (!video || !clip) return;
 		this.#kept = performance.now();
-		keepPosition(sessionStorage, clip, video.currentTime, video.duration, stillOf(video));
+		keepPosition(tab, sessionStorage, clip, video.currentTime, video.duration, stillOf(video));
 	};
 
 	#keepWhileRunning = (): void => {

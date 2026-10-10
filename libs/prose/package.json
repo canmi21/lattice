@@ -29,9 +29,10 @@
 		"./prose-root.svelte": "./src/prose-root.svelte"
 	},
 	"dependencies": {
-		"@canmi/kit": "^2026.1008.1",
+		"@canmi/kit": "^2026.1010.0",
 		"@canmi/me": "^2026.1008.0",
 		"@canmi/messages": "workspace:*",
+		"@canmi/records": "workspace:*",
 		"@canmi/ui": "^2026.1005.0",
 		"@canmi/web": "^2026.1008.0",
 		"@chenglou/pretext": "^0.0.9",

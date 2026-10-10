@@ -10,7 +10,7 @@
 	import MessageSquare from '@lucide/svelte/icons/message-square';
 	import Settings from '@lucide/svelte/icons/settings';
 	import { edgeReveal } from '@canmi/kit/behavior/edge';
-	import { reader } from '@canmi/kit/behavior/state';
+	import { reader } from '@canmi/records';
 	import { resizeHandle } from '@canmi/kit/behavior/resize';
 	import { surfaces } from '@canmi/kit/tokens/surfaces';
 	import { border, radius } from '@canmi/kit/tokens/vocabulary.stylex';

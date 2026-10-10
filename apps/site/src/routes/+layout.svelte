@@ -7,6 +7,7 @@
 	import { afterNavigate, beforeNavigate } from '$app/navigation';
 	import { page } from '$app/state';
 	import { settleBrevity, shortenTitles } from '@canmi/kit/behavior/brevity';
+	import { reader } from '@canmi/records';
 	import { takeArrivalParameters } from '@canmi/web/referer';
 	import { graph, ldJson, person, profiles } from '@canmi/social/structured';
 	import { websiteEntity } from '#lib/entities.js';
@@ -115,7 +116,7 @@
 	// What a link carried in for analytics, out of the address. See spec/architecture/referer.md.
 	onMount(() => {
 		takeArrivalParameters();
-		settleBrevity();
+		settleBrevity(reader);
 	});
 
 	$effect(() => trackFocusSource());

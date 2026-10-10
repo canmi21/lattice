@@ -99,7 +99,7 @@
 	import Heart from '@lucide/svelte/icons/heart';
 	import Star from '@lucide/svelte/icons/star';
 	import { animate } from 'motion';
-	import { reader, tab } from '@canmi/kit/behavior/state';
+	import { reader, tab } from '@canmi/records';
 	import { remFromMeasuredPixels } from '#lib/client/units.js';
 	import { page } from '$app/state';
 	import {
