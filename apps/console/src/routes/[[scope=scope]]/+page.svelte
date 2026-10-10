@@ -15,7 +15,7 @@
 	import { current, fromLive, merged } from '#lib/overview/moving.js';
 	import Timeline from '#lib/overview/timeline.svelte';
 	import TimelineLegend from '#lib/overview/timeline-legend.svelte';
-	import { DAY, WEEK } from '#lib/overview/timeline.js';
+	import { SPANS, type Span } from '#lib/overview/timeline.js';
 	import TitleChoice from '#lib/ui/title-choice.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
@@ -61,9 +61,8 @@
 			: holds(data.cluster, data.deploys),
 	);
 	const { to } = scoped();
-	/** How far back the timeline reaches; a week until the author settles it. */
-	let back: '24h' | '7d' = $state('7d');
-	const span = $derived(back === '7d' ? WEEK : DAY);
+	/** How far back the timeline reaches; a week until the reader chooses. */
+	let back: Span = $state('7d');
 	const styles = stylex.create({});
 
 	/** The place list's and the timeline's height before their reads land. */
@@ -78,22 +77,19 @@
 </script>
 
 {#snippet lists()}
-	<Card title={span === WEEK ? 'Last 7 days' : 'Last 24 hours'} flush>
+	<Card title={SPANS.find((one) => one.key === back)?.title} flush>
 		{#snippet heading()}
 			<TitleChoice
 				label="How far back"
 				bind:value={back}
 				links={[{ title: 'View all deployments', href: to('/deployments') }]}
-				options={[
-					{ key: '7d', title: 'Last 7 days' },
-					{ key: '24h', title: 'Last 24 hours' },
-				]}
+				options={SPANS}
 			/>
 		{/snippet}
 		{#snippet aside()}<TimelineLegend />{/snippet}
 		<div class="px-5 pb-4">
 			{#if seed.value}
-				<Timeline {live} steps={day} {keep} nodes={data.nodes} {span} />
+				<Timeline {live} steps={day} {keep} nodes={data.nodes} {back} />
 			{:else}
 				<Skeleton height={LIST} />
 			{/if}

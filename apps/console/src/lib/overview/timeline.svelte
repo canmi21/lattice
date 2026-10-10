@@ -21,7 +21,8 @@
 	import type { Step } from './moving.ts';
 	import {
 		type Cell,
-		DAY,
+		SPANS,
+		type Span,
 		type Mark,
 		SHADES,
 		fit,
@@ -37,7 +38,7 @@
 		steps,
 		keep,
 		nodes = true,
-		span = DAY,
+		back = '7d',
 	}: {
 		live: Live;
 		/** Every step known, history and live together. */
@@ -45,8 +46,8 @@
 		keep: (app: string) => boolean;
 		/** A line a node; else a line an app, its busiest first. */
 		nodes?: boolean;
-		/** How far back the line reaches, in milliseconds: a day or a week. */
-		span?: number;
+		/** How far back the line reaches, by its name. */
+		back?: Span;
 	} = $props();
 
 	const { to, node: toNode, app: toApp } = scoped();
@@ -58,8 +59,9 @@
 
 	/** The row's width once the browser has laid it out; the server draws the usual count. */
 	let width = $state(0);
-	const layout = $derived(width ? fit(span, width) : undefined);
-	const of = $derived(layout?.of ?? slotsIn(span));
+	const span = $derived(SPANS.find((one) => one.key === back)?.span ?? 0);
+	const layout = $derived(width ? fit(back, width) : undefined);
+	const of = $derived(layout?.of ?? slotsIn(back));
 
 	const drawn = $derived(
 		marks(

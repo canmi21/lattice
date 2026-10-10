@@ -16,10 +16,8 @@
 
 	const styles = stylex.create({
 		control: {
+			// Told from the muted sentence by its ink alone, with no underline.
 			color: { default: 'var(--color-text)', ':hover': 'var(--color-text-strong)' },
-			textDecorationLine: 'underline',
-			textDecorationColor: 'var(--color-line-strong)',
-			textUnderlineOffset: '0.2em',
 			transitionProperty: 'color',
 			transitionDuration: duration.base,
 		},

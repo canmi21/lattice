@@ -23,8 +23,8 @@
 		label,
 		links = [],
 	}: {
-		/** Each option's key, and the title it gives the card. */
-		options: readonly { key: Key; title: string }[];
+		/** Each option's key, the title it gives the card, and whether a rule stands over it. */
+		options: readonly { key: Key; title: string; rule?: boolean }[];
 		value: Key;
 		/** What the choice is of, for assistive technology: `How far back`. */
 		label: string;
@@ -67,6 +67,15 @@
 	});
 </script>
 
+<!-- A rule drawn, not laid out: no height and no gap of its own, so the menu is as tall with it
+     as without. -->
+{#snippet rule()}
+	<span
+		aria-hidden="true"
+		class="absolute inset-x-1 -top-[0.5px] h-px {stylex.attrs(styles.rule).class}"
+	></span>
+{/snippet}
+
 <DropdownMenu.Root>
 	<!-- Pulled left by its padding, so the words stand where a plain title's would. -->
 	<DropdownMenu.Trigger
@@ -88,7 +97,7 @@
 			alignOffset={-6}
 			loop
 			aria-label={label}
-			class="z-40 flex w-max min-w-(--bits-floating-anchor-width) flex-col p-1 {stylex.attrs(
+			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto p-1 {stylex.attrs(
 				styles.menu,
 			).class}"
 			{@attach unfold}
@@ -97,11 +106,12 @@
 				{@const here = one.key === value}
 				<DropdownMenu.Item
 					onSelect={() => (value = one.key)}
-					class="flex h-8 cursor-pointer items-center justify-between gap-3 px-2 {stylex.attrs(
+					class="relative flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 px-2 {stylex.attrs(
 						styles.item,
 						here && styles.checked,
 					).class}"
 				>
+					{#if one.rule}{@render rule()}{/if}
 					{one.title}
 					{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
 				</DropdownMenu.Item>
@@ -113,18 +123,11 @@
 							<a
 								{...props}
 								href={one.href}
-								class="relative flex h-8 items-center justify-between gap-3 px-2 {stylex.attrs(
+								class="relative flex h-7 shrink-0 items-center justify-between gap-3 px-2 {stylex.attrs(
 									styles.item,
 								).class}"
 							>
-								<!-- The rule over the first link is drawn, not laid out: no height and no gap of
-								     its own, so the menu is as tall with it as without. -->
-								{#if index === 0}
-									<span
-										aria-hidden="true"
-										class="absolute inset-x-1 -top-[0.5px] h-px {stylex.attrs(styles.rule).class}"
-									></span>
-								{/if}
+								{#if index === 0}{@render rule()}{/if}
 								{one.title}
 								<Icon icon={ArrowUpRightIcon} size={14} class={stylex.attrs(styles.away).class} />
 							</a>

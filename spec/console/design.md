@@ -117,13 +117,15 @@ own: the site's layout -- the status, a hairline, a sentence for a person on one
 and the way out at the foot -- in the console's tokens, and its English sentences written in place,
 since the console speaks no other language: `This page could not be found`, `Something went wrong`,
 and for a browser that broke, with no status, `This page crashed in the browser. Describing what you
-were doing helps`. The way out is the site's: Sentry's report form and the support address. The tab
-is named `404 Not Found`, or `Unexpected Client Behavior`. **Where the frame itself fails,
-`src/error.html` stands in**: SvelteKit draws `+error.svelte` inside the root layout, so an error in
-that layout, or a module it cannot load, falls to the static page, which was SvelteKit's bare `500
-Internal Error` until 2026-10-09. It is the same page as static HTML -- the console's colors written
-out and following the reader's light or dark, the address written out, a way to try again -- and
-needs nothing else to load. Decided with the author on 2026-10-09.
+were doing helps`. The way out is the site's: Sentry's report form and the support address, each
+told from the muted sentence around it by its ink alone, with no underline -- the site's underlines
+are its own work, which the console does not carry. The tab is named `404 Not Found`, or `Unexpected
+Client Behavior`. **Where the frame itself fails, `src/error.html` stands in**: SvelteKit draws
+`+error.svelte` inside the root layout, so an error in that layout, or a module it cannot load,
+falls to the static page, which was SvelteKit's bare `500 Internal Error` until 2026-10-09. It is
+the same page as static HTML -- the console's colors written out and following the reader's light or
+dark, the address written out, a way to try again -- and needs nothing else to load. Decided with
+the author on 2026-10-09.
 
 ## A choice in a card's head is its title
 

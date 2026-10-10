@@ -151,35 +151,39 @@ one**: a row of slots left to right, grey where nothing ran and, where one did, 
 while one goes, amber where a run partly failed -- some of its apps or nodes failing and the rest
 not -- and red where it failed, so only what went wrong or is going carries a color; no line runs
 through them and no tick between, the way the map above lays the nodes out in space. Its title is
-the choice of span, `Last 7 days` or `Last 24 hours`, and the same menu ends, under a rule, with
-`View all deployments` and an arrow off its edge -- [design.md](design.md), "A choice in a card's
-head is its title" -- and the legend stands on the head's right, a bar of each color as a slot is
-drawn, in the reader's words -- `Done`, `In progress`, `Partly failed`, `Failed`, never host's
-`succeeded` or `running` -- its words giving way to the bars alone where the head is narrow, each
-naming itself on its hover. Each line is headed by the node's flag, its dot saying how the node is
--- "A flag's dot is how its node is" -- and the part of its place that tells it from the others
-there, `Tokyo`, `Narita`, `Haneda`. A run is one mark a node however many of its apps it placed
-there, in the slot it started in, and a slot takes the worst of its runs; one run's slots stand one
-above another, so a rollout reads down the card. A skip draws nothing. **A slot is as dark as its
-runs rank among the slots of its color**, in ten shades: the share of them holding as many runs or
-fewer, taken in tenths, a quarter's opacity at the palest and whole at the darkest. Ranked rather
-than measured against the busiest, so one hour of forty deploys is the darkest without washing every
-other out to the palest, and not cut out of the range either; equal counts share a shade, and each
-color ranks apart, so the few red slots have their own range. A slot's hover says the time it
-covers, then the apps of each run in it, what became of them, when, how long it took and why where
-it failed; it links to the run in it that failed, else its latest. Nothing is written under the
-rows: the title says where they start, and a slot's hover when it is. **The slots fit the row**:
-each 3 to 8 pixels wide and 1 to 3 apart, the slots widening first and the gap after them, and where
-neither can stretch far enough the count changes, the finest that fits -- over a week 336 to 28
-slots, half an hour to six hours each, and over a day 144 to 24, ten minutes to an hour -- so a
-narrow window draws coarser slots rather than slivers. The server draws an hour or a quarter each
-until the row is measured. In a view without nodes the lines are its eight busiest apps instead. It
-took the place on 2026-10-09 of two cards, the latest runs as lines beside the apps not running,
-which repeated one app's runs down the card and left the other mostly empty: the history is the
-deployments page's, and the overview's is the shape of the week. It was ticks on a hairline first,
-then hourly cells shaded by how busy they were, before the slots. The load carries every step of the
-last week for it beside the verdict's; see `fromHistory`'s `since`. Decided with the author on
-2026-10-09.
+the choice of span, `Last 7 days` until the reader chooses another of ten -- an hour, 6 and 12
+hours, 24 hours, 3 and 7 days, 30 days, 3 and 6 months and a year -- ruled into the hours, the days
+and the months, and the same menu ends, under a rule, with `View all deployments` and an arrow off
+its edge -- [design.md](design.md), "A choice in a card's head is its title" -- and the legend
+stands on the head's right, a bar of each color as a slot is drawn, in the reader's words -- `Done`,
+`In progress`, `Partly failed`, `Failed`, never host's `succeeded` or `running` -- its words giving
+way to the bars alone where the head is narrow, each naming itself on its hover. Each line is headed
+by the node's flag, its dot saying how the node is -- "A flag's dot is how its node is" -- and the
+part of its place that tells it from the others there, `Tokyo`, `Narita`, `Haneda`. A run is one
+mark a node however many of its apps it placed there, in the slot it started in, and a slot takes
+the worst of its runs; one run's slots stand one above another, so a rollout reads down the card. A
+skip draws nothing. **A slot is as dark as its runs rank among the slots of its color**, in ten
+shades: the share of them holding as many runs or fewer, taken in tenths, a quarter's opacity at the
+palest and whole at the darkest. Ranked rather than measured against the busiest, so one hour of
+forty deploys is the darkest without washing every other out to the palest, and not cut out of the
+range either; equal counts share a shade, and each color ranks apart, so the few red slots have
+their own range. A slot's hover says the time it covers, then the apps of each run in it, what
+became of them, when, how long it took and why where it failed; it links to the run in it that
+failed, else its latest. Nothing is written under the rows: the title says where they start, and a
+slot's hover when it is. **The slots fit the row**: each 3 to 8 pixels wide and 1 to 3 apart, the
+slots widening first and the gap after them, and where neither can stretch far enough the count
+changes, the finest that fits -- each span with lengths of its own, whole seconds, minutes or days
+-- 15 seconds to 5 minutes over an hour, half an hour to 6 hours over a week, a day to a week over a
+year -- so a narrow window draws coarser slots rather than slivers. The server draws an hour or a
+quarter each until the row is measured. In a view without nodes the lines are its eight busiest apps
+instead. It took the place on 2026-10-09 of two cards, the latest runs as lines beside the apps not
+running, which repeated one app's runs down the card and left the other mostly empty: the history is
+the deployments page's, and the overview's is the shape of the week. It was ticks on a hairline
+first, then hourly cells shaded by how busy they were, before the slots. The load carries every step
+the relay's mirror holds for it, 30 days, beside the verdict's; a span longer than that is drawn
+from the mirror until the relay's `/history` answers the rest -- platform's
+`spec/architecture/relay.md`, "Each node's minutes, kept for a year"; see `fromHistory`'s `since`.
+Decided with the author on 2026-10-09.
 
 ## Charts are their pages'
 

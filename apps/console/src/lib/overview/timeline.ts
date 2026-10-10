@@ -10,28 +10,63 @@ import type { Step } from './moving.ts';
 export const DAY = 86_400_000;
 export const WEEK = 7 * DAY;
 export const HOUR = 3_600_000;
-/** How many slots a span may be drawn in, the finest first: each a whole number of minutes. */
-const COUNTS = {
-	day: [144, 96, 72, 48, 24],
-	week: [336, 168, 84, 56, 42, 28],
-} as const;
+const MINUTE = 60_000;
+
+/** The spans the timeline is read over, the shortest first, what each is called, and a rule over
+ * the first of the days and of the months. */
+export const SPANS = [
+	{ key: '1h', title: 'Last hour', span: HOUR },
+	{ key: '6h', title: 'Last 6 hours', span: 6 * HOUR },
+	{ key: '12h', title: 'Last 12 hours', span: 12 * HOUR },
+	{ key: '24h', title: 'Last 24 hours', span: DAY, rule: true },
+	{ key: '3d', title: 'Last 3 days', span: 3 * DAY },
+	{ key: '7d', title: 'Last 7 days', span: 7 * DAY },
+	{ key: '30d', title: 'Last 30 days', span: 30 * DAY, rule: true },
+	{ key: '90d', title: 'Last 3 months', span: 90 * DAY },
+	{ key: '180d', title: 'Last 6 months', span: 180 * DAY },
+	{ key: '1y', title: 'Last year', span: 365 * DAY },
+] as const;
+
+export type Span = (typeof SPANS)[number]['key'];
+
+/**
+ * How long a slot may be over each span, the finest first: a slot's length is a whole number of
+ * seconds, minutes or days, so its hover reads as a time a person says.
+ */
+const LENGTHS: Readonly<Record<Span, readonly number[]>> = {
+	'1h': [15_000, 30_000, MINUTE, 2 * MINUTE, 3 * MINUTE, 5 * MINUTE],
+	'6h': [MINUTE, 2 * MINUTE, 3 * MINUTE, 5 * MINUTE, 10 * MINUTE, 15 * MINUTE],
+	'12h': [2 * MINUTE, 3 * MINUTE, 5 * MINUTE, 10 * MINUTE, 15 * MINUTE, 30 * MINUTE],
+	'24h': [5 * MINUTE, 10 * MINUTE, 15 * MINUTE, 20 * MINUTE, 30 * MINUTE, HOUR],
+	'3d': [10 * MINUTE, 15 * MINUTE, 30 * MINUTE, HOUR, 2 * HOUR, 3 * HOUR],
+	'7d': [30 * MINUTE, HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 6 * HOUR],
+	'30d': [HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 6 * HOUR, 12 * HOUR, DAY],
+	'90d': [6 * HOUR, 12 * HOUR, DAY, 2 * DAY, 3 * DAY],
+	'180d': [12 * HOUR, DAY, 2 * DAY, 3 * DAY, 5 * DAY],
+	'1y': [DAY, 2 * DAY, 3 * DAY, 5 * DAY, 7 * DAY],
+};
+
+const spanOf = (key: Span): number => SPANS.find((one) => one.key === key)?.span ?? DAY;
 
 /** A slot's width and the gap between two, each in pixels, as far as each may stretch. */
 export const SLOT = { min: 3, max: 8 } as const;
 export const GAP = { min: 1, max: 3 } as const;
 
-/** How many slots `span` is drawn in before its width is known: an hour each, or a quarter. */
-export const slotsIn = (span: number): number => (span > DAY ? 168 : 96);
+/** How many slots `key` is drawn in before its width is known: the middle of its lengths. */
+export function slotsIn(key: Span): number {
+	const lengths = LENGTHS[key];
+	return Math.round(spanOf(key) / (lengths[Math.floor(lengths.length / 2)] ?? HOUR));
+}
 
 /**
- * The slots `span` is drawn in across `width` pixels: the finest count whose slots, at their
+ * The slots `key`'s span is drawn in across `width` pixels: the finest count whose slots, at their
  * narrowest and closest, still fit, then a width and a gap within their bounds that fill it -- the
  * slots widening first, and the gap after them. Where even the coarsest count does not fit at its
  * narrowest, that count, overflowing; where the finest stops short at its widest, that count,
  * short of the edge.
  */
-export function fit(span: number, width: number): { of: number; slot: number; gap: number } {
-	const counts = span > DAY ? COUNTS.week : COUNTS.day;
+export function fit(key: Span, width: number): { of: number; slot: number; gap: number } {
+	const counts = LENGTHS[key].map((length) => Math.round(spanOf(key) / length));
 	const of =
 		counts.find((count) => count * SLOT.min + (count - 1) * GAP.min <= width) ?? counts.at(-1) ?? 1;
 	// The slots as wide as the row allows at the closest gap, then the gap as wide as what is left.

@@ -108,9 +108,9 @@ describe('timeline', () => {
 		expect(gathered[0]?.marks).toHaveLength(2);
 	});
 
-	it('lays a line out as every slot of its span, a quarter over a day and an hour over a week', () => {
-		expect(slotsIn(DAY)).toBe(96);
-		expect(slotsIn(WEEK)).toBe(168);
+	it('lays a line out as every slot of its span, the middle length before the width is known', () => {
+		expect(slotsIn('24h')).toBe(72);
+		expect(slotsIn('7d')).toBe(56);
 		const drawn = marks([step({ started_at: at(1), finished_at: at(0.99) })], NOW, DAY);
 		const line = slots(drawn, 96);
 		expect(line).toHaveLength(96);
@@ -119,11 +119,11 @@ describe('timeline', () => {
 	});
 
 	it('fits the finest count of slots the width holds, stretching the gap and then the slots', () => {
-		const roomy = fit(WEEK, 1400);
+		const roomy = fit('7d', 1400);
 		expect(roomy.of).toBe(336);
-		const narrow = fit(WEEK, 600);
+		const narrow = fit('7d', 600);
 		expect(narrow.of).toBe(84);
-		for (const one of [roomy, narrow, fit(DAY, 700), fit(DAY, 300)]) {
+		for (const one of [roomy, narrow, fit('24h', 700), fit('24h', 300), fit('1y', 900)]) {
 			expect(one.gap).toBeGreaterThanOrEqual(GAP.min);
 			expect(one.gap).toBeLessThanOrEqual(GAP.max);
 			expect(one.slot).toBeGreaterThanOrEqual(SLOT.min);
