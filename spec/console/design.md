@@ -140,7 +140,7 @@ same frame is a box set in a box, crowding the title it sits beside, so **a choi
 title itself** -- the chosen option's words, a chevron after them, and a menu of the others under
 it, `Last 7 days ⌄` -- in `ui/title-choice.svelte`; the pages the card leads to end the same menu,
 under a rule that is drawn and not laid out -- no height and no gap of its own, so the menu is as
-tall with it as without -- each with an arrow off its edge, `View all deployments`, so the head
+tall with it as without -- each with an arrow, `View all deployments`, so the head
 keeps only the title and a legend. A page's own range, the deployments page's `1h` to `30d`, stands
 in the page's head, where there is room for a framed switch. The overview's `All` and `Failed`
 beside a card's title, and its `24h` and `7d`, were framed switches inside a card's head until
@@ -149,9 +149,11 @@ beside a card's title, and its `24h` and `7d`, were framed switches inside a car
 **The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
 not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
-the pointer's row on the hover's wash, **each row the menu's whole width, edge to edge, as the
-site's menus run**, its wash cut only by the menu's own corners, so a rule between two groups meets
-no rounded row beside it and the menu needs no inset of its own. It unfolds from a step smaller at
+the pointer's row on the hover's wash. **The frame keeps its own inset, and each row inside it is
+square and the inside's whole width**, as the site's menus run their rows, so a rule between two
+groups meets no rounded row beside it; the site's frame itself, rows touching its line, is not
+taken. **Every row keeps a column on its left for a mark** -- a head's chevron, a link's arrow, an
+option's nothing -- so every row's words start at one edge, the check staying at the right. It unfolds from a step smaller at
 its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit each, one
 open at a time**: a group's head, its unit and a chevron, opens it in place and closes the one open,
 choosing nothing, the one opening and the one closing carried together by GSAP over 180 ms, a closed

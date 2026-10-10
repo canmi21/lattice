@@ -86,7 +86,7 @@
 			boxShadow: '0 4px 12px rgb(0 0 0 / 0.25), 0 1px 3px rgb(0 0 0 / 0.2)',
 			fontSize: text.px13,
 		},
-		/** A row the menu's width, edge to edge, its wash cut only by the menu's own corners. */
+		/** A row the width of the menu's inside, square, so a rule runs on from its edge. */
 		item: {
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 			backgroundColor: {
@@ -113,6 +113,17 @@
 	></span>
 {/snippet}
 
+<!-- The column every row keeps on its left, a mark in it or none, so every row's words start at
+     one edge: a head's chevron, a link's arrow. -->
+{#snippet mark(icon?: typeof CheckIcon)}
+	<span
+		aria-hidden="true"
+		class="flex w-3.5 shrink-0 justify-center {stylex.attrs(styles.away).class}"
+	>
+		{#if icon}<Icon {icon} size={14} />{/if}
+	</span>
+{/snippet}
+
 <DropdownMenu.Root bind:open={menu}>
 	<!-- Pulled left by its padding, so the words stand where a plain title's would. -->
 	<DropdownMenu.Trigger
@@ -134,7 +145,7 @@
 			alignOffset={-6}
 			loop
 			aria-label={label}
-			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto {stylex.attrs(
+			class="z-40 flex max-h-(--bits-floating-available-height) w-max min-w-(--bits-floating-anchor-width) flex-col overflow-y-auto p-1 {stylex.attrs(
 				styles.menu,
 			).class}"
 			{@attach unfold}
@@ -146,13 +157,13 @@
 					closeOnSelect={false}
 					onSelect={() => (opened = group.name)}
 					aria-expanded={open}
-					class="relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-3 {stylex.attrs(
+					class="relative flex h-7 shrink-0 cursor-pointer items-center gap-2 px-2 {stylex.attrs(
 						styles.item,
 						styles.head,
 					).class}"
 				>
 					{#if at > 0}{@render rule()}{/if}
-					<Icon icon={open ? ChevronDownIcon : ChevronRightIcon} size={14} />
+					{@render mark(open ? ChevronDownIcon : ChevronRightIcon)}
 					{group.name}
 				</DropdownMenu.Item>
 				<!-- Every group's options stand in the menu, a closed group's folded to nothing and out of
@@ -166,13 +177,14 @@
 								value = one.key;
 								from = group.name;
 							}}
-							class="flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 pr-3 pl-8 {stylex.attrs(
+							class="flex h-7 shrink-0 cursor-pointer items-center gap-2 px-2 {stylex.attrs(
 								styles.item,
 								here && styles.checked,
 							).class}"
 						>
-							{one.label}
-							{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
+							{@render mark()}
+							<span class="flex-1">{one.label}</span>
+							{#if here}<Icon icon={CheckIcon} size={14} stroke={2} class="ml-3" />{/if}
 						</DropdownMenu.Item>
 					{/each}
 				</div>
@@ -184,13 +196,12 @@
 							<a
 								{...props}
 								href={one.href}
-								class="relative flex h-7 shrink-0 items-center justify-between gap-3 px-3 {stylex.attrs(
-									styles.item,
-								).class}"
+								class="relative flex h-7 shrink-0 items-center gap-2 px-2 {stylex.attrs(styles.item)
+									.class}"
 							>
 								{#if index === 0}{@render rule()}{/if}
+								{@render mark(ArrowUpRightIcon)}
 								{one.title}
-								<Icon icon={ArrowUpRightIcon} size={14} class={stylex.attrs(styles.away).class} />
 							</a>
 						{/snippet}
 					</DropdownMenu.Item>
