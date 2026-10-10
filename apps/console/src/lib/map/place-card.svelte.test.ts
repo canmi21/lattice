@@ -40,14 +40,16 @@ describe('a place card on the server', () => {
 			props: { site: site(members, { memory: 25.4 * GIB, apps: 21, state: 'gone' }), now: NOW },
 		});
 		// The country in the corner, over the rows' names; no title above the table.
-		expect(body).toMatch(/<th scope="col"[^>]*>Japan<\/th>/);
+		expect(body).toMatch(
+			/<th scope="col"[^>]*>(?:(?!<\/th>).)*<img[^>]*>(?:(?!<\/th>).)*>Japan<\/span>/,
+		);
 		expect(body).not.toContain('Tokyo, Japan<');
 		for (const code of ['tyo', 'nrt', 'hnd']) {
 			expect(body).toMatch(new RegExp(`href="/nodes/${code}"[^>]*data-row="${code}"`));
 		}
 		for (const part of ['Tokyo', 'Narita', 'Haneda']) expect(body).toContain(`>${part}</a>`);
 		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency']) {
-			expect(body.match(new RegExp(`>${row}</th>`, 'g'))).toHaveLength(1);
+			expect(body.match(new RegExp(`${row}(?:<!---->)?</th>`, 'g'))).toHaveLength(1);
 		}
 		expect(body).toContain('3d 0h');
 		expect(body).toContain('Not heard');
@@ -80,7 +82,7 @@ describe('a place card on the server', () => {
 		// The name is the country's and the union's; the card adds no city to it.
 		expect(body).not.toContain('Gävle');
 		for (const row of ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency']) {
-			expect(body).toContain(`>${row}</dt>`);
+			expect(body).toMatch(new RegExp(`</svg>(?:<!--[^>]*-->)*${row}(?:<!---->)?</dt>`));
 		}
 		expect(body).toContain('1.5%');
 		expect(body).toContain('0.5G');

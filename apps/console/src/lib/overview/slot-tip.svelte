@@ -50,6 +50,7 @@
 	import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 	import Icon from '../design/icon.svelte';
+	import Bridge from '../design/bridge.svelte';
 	import Point from '../design/point.svelte';
 	import { heightBeside } from '../design/optics.ts';
 	import Flag from '../map/flag.svelte';
@@ -186,17 +187,13 @@
 		size={POINT}
 		ground={lastHeld && !below ? 'var(--color-selected-solid)' : undefined}
 	/>
-	<!-- Unseen, the gap between it and its slot, as wide as the slot: the pointer crossing from
-	     the one to the other never leaves them, so the tip need not wait to see if it returns. -->
-	<span
-		aria-hidden="true"
-		class="absolute"
-		style:left="{at.left - left - BRIDGE}px"
-		style:width="{at.width + 2 * BRIDGE}px"
-		style:height="{GAP + 1}px"
-		style:top={below ? undefined : '100%'}
-		style:bottom={below ? '100%' : undefined}
-	></span>
+	<!-- Unseen, the gap between it and its slot, as wide as the slot, on the side its point is. -->
+	<Bridge
+		edge={below ? 'top' : 'bottom'}
+		along={at.left - left - BRIDGE}
+		span={at.width + 2 * BRIDGE}
+		reach={GAP + 1}
+	/>
 	<!-- When, its date first, strong; the zone it is written in quiet beside it. -->
 	<div class="flex items-baseline justify-between gap-4 px-2 pt-2 pb-[3px]">
 		<span class="whitespace-nowrap {START} {stylex.attrs(styles.time).class}">{tip.when}</span>

@@ -19,6 +19,8 @@
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
 	import { opacity, period, radius as size, SIZES, type Shown } from './marks.ts';
 	import { prefer } from '../ui/preference.ts';
+	import Bridge from '../design/bridge.svelte';
+	import { Held } from '../design/held.ts';
 	import Point from '../design/point.svelte';
 	import PlaceCard from './place-card.svelte';
 	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
@@ -77,6 +79,8 @@
 	const HIT = SIZES[SIZES.length - 1]?.radius ?? 12;
 	/** Pixels between a mark's edge and its card, and between the card and the map's edge. */
 	const GAP = 8;
+	/** How far the bridge back to a mark reaches past its target, for a hand not quite true. */
+	const BRIDGE = 2;
 	const EDGE = 4;
 	/** How near a corner a card's point may come, past its rounding. */
 	const POINT_INSET = 14;
@@ -144,6 +148,18 @@
 		clearTimeout(linger);
 		linger = setTimeout(() => (active = undefined), LINGER_MS);
 	}
+	/**
+	 * The mark, its card and the bridge between, one place to hold: the card stays while the
+	 * pointer is in any of them and goes the moment it leaves all three. See ../design/held.ts.
+	 */
+	const hold = new Held(() => {
+		clearTimeout(linger);
+		active = undefined;
+	});
+	const reach = (key: string) => (event: PointerEvent) => {
+		hold.anchor = event.currentTarget as HTMLElement;
+		open(key);
+	};
 	// A line of the list beside the map opens its place's card, and closes it when it lets go.
 	$effect(() => {
 		const code = pointed;
@@ -314,13 +330,20 @@
 		const left = right + cardWidth <= mapWidth - EDGE ? right : x - reach - cardWidth;
 		const clamp = (value: number, most: number) => Math.min(Math.max(value, EDGE), most - EDGE);
 		const top = clamp(y - cardHeight / 2, mapHeight - cardHeight);
+		const placedLeft = clamp(left, mapWidth - cardWidth);
 		return {
-			left: clamp(left, mapWidth - cardWidth),
+			left: placedLeft,
 			top,
 			/** Which side of its mark the card stands, which its point is on the other edge of. */
 			side: left === right ? ('right' as const) : ('left' as const),
 			/** How far down the card its point is: level with the mark, kept off the corners. */
 			point: Math.min(Math.max(y - top, POINT_INSET), cardHeight - POINT_INSET),
+			/** The unseen bridge back to the mark: as tall as the mark's target, out to its middle. */
+			bridge: {
+				along: y - top - HIT * scale - BRIDGE,
+				span: 2 * (HIT * scale + BRIDGE),
+				reach: left === right ? placedLeft - x : x - placedLeft - cardWidth,
+			},
 		};
 	});
 
@@ -433,8 +456,8 @@
 				style:visibility={spot.alpha < 0.05 ? 'hidden' : undefined}
 				style:width={across(HIT)}
 				style:height={across(HIT)}
-				onpointerenter={() => open(site.key)}
-				onpointerleave={leave}
+				onpointerenter={reach(site.key)}
+				onpointerleave={hold.offAnchor}
 				onfocus={() => open(site.key)}
 				onfocusout={blur}
 			>
@@ -468,21 +491,29 @@
 				<div
 					role="tooltip"
 					data-place={site.key}
-					class="absolute top-0 left-0 z-20 {shared ? '' : 'pointer-events-none'} {stylex.attrs(
-						styles.lifted,
-					).class}"
+					class="absolute top-0 left-0 z-20 {stylex.attrs(styles.lifted).class}"
 					style:visibility={placed ? 'visible' : 'hidden'}
 					style:transform={placed ? `translate(${placed.left}px, ${placed.top}px)` : undefined}
 					bind:clientWidth={cardWidth}
 					bind:clientHeight={cardHeight}
 					onpointerenter={() => open(site.key)}
-					onpointerleave={leave}
+					onpointerleave={hold.offSurface}
 					onfocusout={blur}
-					{@attach (node) => void (framed = node.firstElementChild as HTMLElement)}
+					{@attach (node) => {
+						hold.surface = node;
+						framed = node.firstElementChild as HTMLElement;
+					}}
 				>
 					<PlaceCard {site} {now} />
 					<!-- A small point at the card's edge, toward its mark. -->
 					{#if placed}
+						<!-- Unseen, the gap back to its mark, on the side its point is. -->
+						<Bridge
+							edge={placed.side === 'right' ? 'left' : 'right'}
+							along={placed.bridge.along}
+							span={placed.bridge.span}
+							reach={placed.bridge.reach}
+						/>
 						<Point
 							card={framed}
 							edge={placed.side === 'right' ? 'left' : 'right'}

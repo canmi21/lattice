@@ -9,7 +9,16 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { duration as hover, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import AppsIcon from '@tabler/icons-svelte-runes/icons/apps';
+	import ClockUpIcon from '@tabler/icons-svelte-runes/icons/clock-up';
+	import CpuIcon from '@tabler/icons-svelte-runes/icons/cpu';
+	import MemoryIcon from '@tabler/icons-svelte-runes/icons/memory';
+	import TopologyIcon from '@tabler/icons-svelte-runes/icons/topology-star-3';
+	import SpeedtestIcon from '@tabler/icons-svelte-runes/icons/brand-speedtest';
 	import Gauge from '../chart/gauge.svelte';
+	import Icon from '../design/icon.svelte';
+	import type { IconComponent } from '../design/optics.ts';
+	import Flag from './flag.svelte';
 	import { reshape } from '../design/motion.ts';
 	import { uptime } from '../nodes/machine.ts';
 	import { scoped } from '../scope/context.ts';
@@ -69,6 +78,15 @@
 	};
 
 	const ROWS = ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency'] as const;
+	/** Each row's mark, before its name, as a menu's rows carry theirs. */
+	const GLYPHS: Readonly<Record<(typeof ROWS)[number], IconComponent>> = {
+		Uptime: ClockUpIcon,
+		Role: TopologyIcon,
+		Apps: AppsIcon,
+		CPU: CpuIcon,
+		RAM: MemoryIcon,
+		Latency: SpeedtestIcon,
+	};
 	const LAST = ROWS.at(-1);
 	/**
 	 * The card's first and last words cut to their ink, cap height above and baseline below, so
@@ -141,10 +159,16 @@
 	{/if}
 {/snippet}
 
+{#snippet named(row: (typeof ROWS)[number])}
+	<Icon icon={GLYPHS[row]} size={14} words={row} class="mr-1.5" />{row}
+{/snippet}
+
 {#snippet rows(member: Member)}
 	<dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
 		{#each ROWS as row (row)}
-			<dt class="{row === LAST ? END : ''} {stylex.attrs(styles.muted).class}">{row}</dt>
+			<dt class="{row === LAST ? END : ''} {stylex.attrs(styles.muted).class}">
+				{@render named(row)}
+			</dt>
 			<dd
 				class="{row === LAST ? END : ''} {stylex.attrs(styles.value, row !== 'Role' && type.shell)
 					.class}"
@@ -163,7 +187,13 @@
 >
 	<div class="flex w-max flex-col gap-1.5">
 		{#if lone}
-			<span class="block {START} {stylex.attrs(styles.title).class}">{nameOf(lone.code).full}</span>
+			<!-- Its country's flag before its name, as the timeline and the place list wear it. -->
+			<span class="flex items-center gap-2">
+				<Flag code={lone.code} size={14} />
+				<span class="block {START} {stylex.attrs(styles.title).class}"
+					>{nameOf(lone.code).full}</span
+				>
+			</span>
 			{@render rows(lone)}
 		{:else}
 			<!-- One table: the rows named once at the left, a little apart, and the place's nodes as
@@ -175,7 +205,12 @@
 						<th
 							scope="col"
 							class="border-0 p-0 pr-5 text-left font-normal {START} {stylex.attrs(styles.muted)
-								.class}">{countryOf(site.members[0]?.code ?? site.key)}</th
+								.class}"
+							><span class="inline-flex items-center gap-2"
+								><Flag code={site.members[0]?.code ?? site.key} size={14} /><span class={START}
+									>{countryOf(site.members[0]?.code ?? site.key)}</span
+								></span
+							></th
 						>
 						{#each site.members as member (member.code)}
 							<th scope="col" class="border-0 pt-0 pr-0 pb-0.5 pl-3 text-right font-normal {START}">
@@ -196,7 +231,7 @@
 								scope="row"
 								class="border-0 p-0 py-0.5 pr-5 text-left font-normal {row === LAST
 									? `pb-0 ${END}`
-									: ''} {stylex.attrs(styles.muted).class}">{row}</th
+									: ''} {stylex.attrs(styles.muted).class}">{@render named(row)}</th
 							>
 							{#each site.members as member (member.code)}
 								<td

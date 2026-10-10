@@ -15,13 +15,14 @@
 	import ChevronRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
 	import { DropdownMenu } from 'bits-ui';
 	import Icon from '../design/icon.svelte';
+	import type { IconComponent } from '../design/optics.ts';
 	import { type Fold, fold, still } from '../design/motion.ts';
 	import { type } from '../style.ts';
 	import MenuContent from './menu-content.svelte';
 	import MenuRow from './menu-row.svelte';
 
-	/** An option: its key, the title it gives the card, and its words in the menu. */
-	type Option = { key: Key; title: string; label: string };
+	/** An option: its key, the title it gives the card, its words in the menu, and its mark. */
+	type Option = { key: Key; title: string; label: string; icon?: IconComponent };
 
 	let {
 		groups,
@@ -51,6 +52,8 @@
 	const chosen = $derived(home?.options.find((one) => one.key === value));
 	/** One group alone is a plain list: no head to open it, and no column for a head's chevron. */
 	const lone = $derived(groups.length === 1);
+	/** Whether the options carry marks, which take the left column a head's chevron would. */
+	const marked = $derived(groups.some((group) => group.options.some((one) => one.icon)));
 	/** The group open in the menu: the chosen one's, each time the menu opens. */
 	let menu = $state(false);
 	let opened: string | undefined = $state();
@@ -129,7 +132,8 @@
 					{@const here = one.key === value && group.name === home?.name}
 					<MenuRow
 						disabled={!open}
-						marks={!lone}
+						marks={!lone || marked}
+						lead={one.icon}
 						trail={here ? CheckIcon : undefined}
 						current={here}
 						onselect={() => {
@@ -141,7 +145,7 @@
 			</div>
 		{/each}
 		{#each links as one, index (one.href)}
-			<MenuRow href={one.href} marks={!lone} ruled={index === 0} trail={ArrowUpRightIcon}
+			<MenuRow href={one.href} marks={!lone || marked} ruled={index === 0} trail={ArrowUpRightIcon}
 				>{one.title}</MenuRow
 			>
 		{/each}

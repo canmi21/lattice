@@ -340,6 +340,23 @@ of every close for the sake of a path the bridge already covers. The overview's 
 the first, spec/console/overview.md, "A line is any of three things, or the worst of them".
 Decided with the author on 2026-10-10.
 
+**Every such surface holds the pointer one way**: `Held` in `src/lib/design/held.ts` -- its anchor,
+the surface, and `close`, which the anchor's and the surface's leaving call unless the pointer went
+from the one into the other -- and `Bridge` in `src/lib/design/bridge.svelte`, inside the surface.
+**The bridge goes the way the point does**: out from the edge the point is on, across the gap to
+the anchor and as long as the anchor is along that edge, so a tip pointing down at its slot
+bridges below it and a card pointing left at its mark bridges to the left. The map's card is the
+second: every place's card holds the pointer now, a lone node's as well as a shared place's, and
+no longer waits 150 ms before closing once the pointer has left both.
+
+**A size changed inside a resize callback is changed before layout instead.** A frame carried to
+its words' new size -- `reshape` in `motion.ts` -- is held at its old size when its words change,
+not in the callback that sees them, and to the fraction: the browser reports a `ResizeObserver
+loop` error when a callback resizes anything an observer watches higher up, and the map's watch on
+its card is higher up. Rounding is a resize too: `offsetWidth` and GSAP's own `autoRound` each moved
+a frame held at 310.05 px to 310, which raised the error on every value the card's nodes sent until
+2026-10-10.
+
 ## Motion is GSAP
 
 **The console animates with GSAP, and a reader who asks for reduced motion sees none of it.** The

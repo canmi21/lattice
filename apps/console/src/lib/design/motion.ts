@@ -110,42 +110,71 @@ export function still(menu: HTMLElement): void {
 
 /**
  * A frame whose words change its size carried there over 160 ms rather than cut: its first child,
- * laid out at its own size, is watched, and on a change the frame is set back to the size it
- * stood at and taken to the new one, its padding and border kept. An attachment; the frame clips
- * what it does not yet hold. See spec/console/design.md, "Motion is GSAP".
+ * laid out at its own size, is watched, and on a change the frame is taken from the size it stood
+ * at to the new one, its padding and border kept. It is held at that size as its words change,
+ * before layout, not in the resize callback, where resizing it would leave the map's own watch on
+ * the card undelivered that frame. An attachment; the frame clips what it does not yet hold.
  */
 export function reshape(frame: HTMLElement): () => void {
 	const inner = frame.firstElementChild;
 	if (!(inner instanceof HTMLElement)) return () => {};
-	let stood = { width: frame.offsetWidth, height: frame.offsetHeight };
+	/** A box's size to the fraction, which `offsetWidth` would round and so move a held frame. */
+	const sized = (box: Element) => {
+		const { width, height } = box.getBoundingClientRect();
+		return { width, height };
+	};
+	let stood = sized(frame);
+	/** Lets go of the held size where no tween took it up: the same size, so nothing moves. */
+	const release = () => {
+		if (gsap.isTweening(frame)) return;
+		frame.style.width = '';
+		frame.style.height = '';
+	};
+	const held = new MutationObserver(() => {
+		if (stilled() || gsap.isTweening(frame)) return;
+		frame.style.width = `${stood.width}px`;
+		frame.style.height = `${stood.height}px`;
+		// The frame after next: a frame's animation callbacks run before its layout and its resize
+		// callbacks, so one frame would let go before the size it holds was ever compared.
+		requestAnimationFrame(() => requestAnimationFrame(release));
+	});
 	const observer = new ResizeObserver(() => {
 		const style = getComputedStyle(frame);
 		const around = (...sides: string[]) =>
 			sides.reduce((sum, side) => sum + Number.parseFloat(style.getPropertyValue(side)), 0);
+		const words = sized(inner);
 		const to = {
 			width:
-				inner.offsetWidth +
+				words.width +
 				around('padding-left', 'padding-right', 'border-left-width', 'border-right-width'),
 			height:
-				inner.offsetHeight +
+				words.height +
 				around('padding-top', 'padding-bottom', 'border-top-width', 'border-bottom-width'),
 		};
-		const from = gsap.isTweening(frame)
-			? { width: frame.offsetWidth, height: frame.offsetHeight }
-			: stood;
+		const from = gsap.isTweening(frame) ? sized(frame) : stood;
 		stood = to;
+		// Nothing is changed in here but by a tween that starts where the frame is held: a frame
+		// resized inside the callback would leave the map's watch on the card undelivered.
 		if (stilled() || (from.width === to.width && from.height === to.height)) return;
 		gsap.killTweensOf(frame);
-		gsap.fromTo(frame, from, {
-			...to,
-			duration: 0.16,
-			ease: 'power2.out',
-			clearProps: 'width,height',
-		});
+		// Unrounded both ways, so its first frame is the size held to the fraction, not a pixel off.
+		gsap.fromTo(
+			frame,
+			{ ...from, autoRound: false },
+			{
+				...to,
+				duration: 0.16,
+				ease: 'power2.out',
+				autoRound: false,
+				clearProps: 'width,height',
+			},
+		);
 	});
 	observer.observe(inner);
+	held.observe(inner, { subtree: true, childList: true, characterData: true, attributes: true });
 	return () => {
 		observer.disconnect();
+		held.disconnect();
 		gsap.killTweensOf(frame);
 	};
 }

@@ -12,6 +12,7 @@
 	import { DropdownMenu } from 'bits-ui';
 	import { hrefIn, type Section } from '../sections.ts';
 	import Icon from './icon.svelte';
+	import { VIEW_GLYPHS } from '../scope/glyphs.ts';
 	import { VIEWS, type View, labelOf } from '../scope/scope.ts';
 	import MenuContent from '../ui/menu-content.svelte';
 	import MenuRow from '../ui/menu-row.svelte';
@@ -51,7 +52,7 @@
 			{@const here = one.key === view}
 			<MenuRow
 				href={hrefIn(one.key, section)}
-				marks={false}
+				lead={VIEW_GLYPHS[one.key]}
 				trail={here ? CheckIcon : undefined}
 				current={here}>{one.label}</MenuRow
 			>

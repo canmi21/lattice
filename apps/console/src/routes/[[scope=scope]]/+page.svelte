@@ -16,6 +16,7 @@
 	import { type Step, type Trace, current, fromLive, merged } from '#lib/overview/moving.js';
 	import { Settled } from '#lib/settled.svelte.js';
 	import { Detail } from '#lib/overview/detail.svelte.js';
+	import { DIMENSION_GLYPHS } from '#lib/overview/glyphs.js';
 	import Timeline from '#lib/overview/timeline.svelte';
 	import TimelineLegend from '#lib/overview/timeline-legend.svelte';
 	import { SPANS, SPAN_GROUPS, type Span } from '#lib/overview/timeline.js';
@@ -88,7 +89,10 @@
 	const asking = $derived([
 		{
 			name: 'What',
-			options: DIMENSIONS.filter((one) => data.nodes || one.key !== 'connectivity'),
+			options: DIMENSIONS.filter((one) => data.nodes || one.key !== 'connectivity').map((one) => ({
+				...one,
+				icon: DIMENSION_GLYPHS[one.key],
+			})),
 		},
 	]);
 	/** What a line is, in a view with nodes: a node until the reader picks apps. */

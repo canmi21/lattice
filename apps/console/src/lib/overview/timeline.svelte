@@ -69,6 +69,7 @@
 	import { painted } from './verdict.ts';
 	import { earlyTag } from './early.ts';
 	import { Settled } from '../settled.svelte.ts';
+	import { Held } from '../design/held.ts';
 
 	let {
 		live,
@@ -215,7 +216,9 @@
 	function letterOf(at: number, index: number): { verdict: Verdict; shade: number; facts: Fact[] } {
 		const { verdict, shade } = decoded(letters?.[at]?.[index] ?? ALPHABET[0] ?? 'a');
 		const facts: Fact[] =
-			dimension === 'overview' ? [] : [{ what: dimension, verdict, word: WORDS[dimension][verdict] }];
+			dimension === 'overview'
+				? []
+				: [{ what: dimension, verdict, word: WORDS[dimension][verdict] }];
 		return { verdict, shade, facts };
 	}
 
@@ -353,25 +356,18 @@
 	 * does not open another until the pointer has left it.
 	 */
 	let hushed = false;
+	const leave = () => (pointed = undefined);
+	/** The slot, its tip and the bridge between, one place to hold; see ../design/held.ts. */
+	const hold = new Held(leave);
 	const point = (key: string, at: number, index: number) => (event: Event) => {
 		if (hushed && event.type === 'pointerenter') return;
 		const slot = event.currentTarget as HTMLElement;
+		hold.anchor = slot;
 		pointed = { key, tip: tipOf(at, index), at: slot.getBoundingClientRect(), slot };
 	};
-	const leave = () => (pointed = undefined);
-	/** Off the slot, unless onto its tip. */
-	let tipped: HTMLElement | undefined = $state();
 	const off = (event: PointerEvent) => {
 		hushed = false;
-		const to = event.relatedTarget as Node | null;
-		if (to && tipped?.contains(to)) return;
-		leave();
-	};
-	/** Off the tip, unless back onto its slot. */
-	const away = (event: PointerEvent) => {
-		const to = event.relatedTarget as Node | null;
-		if (to && pointed?.slot.contains(to)) return;
-		leave();
+		hold.offAnchor(event);
 	};
 	// A scroll moves the slot from under its tip, so the tip goes with the scroll.
 	$effect(() => {
@@ -510,8 +506,8 @@
 		<SlotTip
 			tip={pointed.tip}
 			at={pointed.at}
-			bind:root={tipped}
-			onleave={away}
+			bind:root={hold.surface}
+			onleave={hold.offSurface}
 			onpick={dimension === 'overview'
 				? (what) => {
 						dimension = what;
