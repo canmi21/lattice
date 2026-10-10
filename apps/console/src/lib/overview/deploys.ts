@@ -51,7 +51,7 @@ export function figures(of: Run[], now: number, since: number): Figures {
 		rate: aggregates(day).success_rate,
 		median: window.median,
 		p95: window.p95,
-		durations: durations.slice(0, 12).reverse(),
+		durations: durations.slice(0, 12).toReversed(),
 	};
 }
 

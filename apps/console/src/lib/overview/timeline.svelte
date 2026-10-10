@@ -121,12 +121,12 @@
 	const said = (mark: Mark) =>
 		`${appsOf(mark)}: ${OUTCOME[mark.outcome]}, ${localTime(mark.started_at, zone)}${took(mark)}` +
 		(mark.detail ? `\n${mark.detail}` : '');
+	const clock = (ms: number) => localTime(new Date(ms).toISOString(), zone);
 	/** A slot's hover: the time it covers, then each of its runs. */
 	function told(cell: Cell): string {
 		const start = live.now - span + (cell.index * span) / cell.of;
 		const end = start + span / cell.of;
-		const at = (ms: number) => localTime(new Date(ms).toISOString(), zone);
-		return [`${at(start)} to ${at(end)}`, ...cell.marks.map(said)].join('\n');
+		return [`${clock(start)} to ${clock(end)}`, ...cell.marks.map(said)].join('\n');
 	}
 	/** Where a slot leads: the run in it that failed, else the latest. */
 	const leadOf = (cell: Cell): Mark =>

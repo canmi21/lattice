@@ -29,6 +29,16 @@ const step = (over: Partial<Step>): Step => ({
 	...over,
 });
 
+/** A slot of `runs` runs of one outcome. */
+const slot = (runs: number, outcome: Cell['outcome'] = 'succeeded'): Cell => ({
+	key: `${runs} ${outcome}`,
+	node: 'tyo',
+	index: runs,
+	of: 168,
+	outcome,
+	marks: Array.from({ length: runs }, () => marks([step({})], NOW)[0]!),
+});
+
 describe('timeline', () => {
 	it('places a run by its start and end as shares of the day', () => {
 		const [mark] = marks([step({})], NOW);
@@ -123,14 +133,6 @@ describe('timeline', () => {
 	});
 
 	it('shades a slot by its rank among its outcome, so one busy hour does not pale the rest', () => {
-		const slot = (runs: number, outcome: Cell['outcome'] = 'succeeded'): Cell => ({
-			key: `${runs} ${outcome}`,
-			node: 'tyo',
-			index: runs,
-			of: 168,
-			outcome,
-			marks: Array.from({ length: runs }, () => marks([step({})], NOW)[0]!),
-		});
 		const row = [slot(1), slot(2), slot(3), slot(40), undefined, slot(1, 'failed')];
 		const shaded = shades(row);
 		expect(shaded.get(row[3] as Cell)).toBe(SHADES);

@@ -129,10 +129,10 @@ export interface Cell {
 	marks: Mark[];
 }
 
-/** `marks` gathered into the `of` cells of their span, a cell by where each mark starts. */
-export function cells(marks: readonly Mark[], of: number): Cell[] {
+/** `drawn` gathered into the `of` cells of their span, a cell by where each mark starts. */
+export function cells(drawn: readonly Mark[], of: number): Cell[] {
 	const gathered = new Map<string, Mark[]>();
-	for (const mark of marks) {
+	for (const mark of drawn) {
 		const index = Math.min(of - 1, Math.floor(mark.from * of));
 		const key = `${mark.node} ${index}`;
 		gathered.set(key, [...(gathered.get(key) ?? []), mark]);
@@ -147,9 +147,9 @@ export function cells(marks: readonly Mark[], of: number): Cell[] {
 	}));
 }
 
-/** Every one of the `of` slots of a line drawn from `marks`, oldest first, one with none empty. */
-export function slots(marks: readonly Mark[], of: number): (Cell | undefined)[] {
-	const filled = new Map(cells(marks, of).map((cell) => [cell.index, cell]));
+/** Every one of the `of` slots of a line drawn from `drawn`, oldest first, one with none empty. */
+export function slots(drawn: readonly Mark[], of: number): (Cell | undefined)[] {
+	const filled = new Map(cells(drawn, of).map((cell) => [cell.index, cell]));
 	return Array.from({ length: of }, (_, index) => filled.get(index));
 }
 
@@ -163,8 +163,8 @@ export const SHADES = 10;
  * other out to the palest; and equal counts share a shade. See spec/console/overview.md, "The
  * week is a line a node".
  */
-export function shades(slots: readonly (Cell | undefined)[]): Map<Cell, number> {
-	const filled = slots.filter((one): one is Cell => one !== undefined);
+export function shades(row: readonly (Cell | undefined)[]): Map<Cell, number> {
+	const filled = row.filter((one): one is Cell => one !== undefined);
 	const shaded = new Map<Cell, number>();
 	for (const outcome of new Set(filled.map((one) => one.outcome))) {
 		const counts = filled
