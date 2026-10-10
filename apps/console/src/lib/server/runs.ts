@@ -3,7 +3,7 @@
  * them. See spec/architecture/console.md, "The pipeline".
  */
 import { ALL, type FleetEvent } from './fleet.ts';
-import { type Edge, type Failure, mirrored } from './read.ts';
+import { type Bounded, type Edge, type Failure, mirrored } from './read.ts';
 import type { Node } from './nodes.ts';
 
 /** Where one app on one node got to in a run: its latest event. */
@@ -123,8 +123,9 @@ export type Runs = Grouped & { failures: Partial<Record<Node, Failure>> };
  */
 export async function rows(
 	edge: Edge,
+	ask: Bounded = {},
 ): Promise<{ events: FleetEvent[]; failures: Runs['failures'] }> {
-	const read = await mirrored(edge);
+	const read = await mirrored(edge, ask);
 	if (read.ok) return { events: read.data.runs, failures: {} };
 	return { events: [], failures: Object.fromEntries(ALL.map((node) => [node, read.failure])) };
 }

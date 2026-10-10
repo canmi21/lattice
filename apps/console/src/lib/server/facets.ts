@@ -26,7 +26,7 @@ import type { Cluster, Entry, History, Live } from '../wire.ts';
 import { type Env, openLive } from './edge.ts';
 import { order } from './nodes.ts';
 import { primaryOf } from './primary.ts';
-import type { Read } from './read.ts';
+import { type Read, minuteOf } from './read.ts';
 import type { Sources } from './sources.ts';
 
 /** What every facet is cut with: the request's reads, the reader's zone, and the moment. */
@@ -61,9 +61,17 @@ async function minutes(context: Context, span: Span): Promise<History | undefine
 	return read.ok ? read.data : undefined;
 }
 
-/** The view's steps since `since`, and every one still running. */
-async function stepsSince(context: Context, view: View, since: number): Promise<Step[]> {
-	const { runs, apart } = await context.sources.runs(view);
+/**
+ * The view's steps since `since`, and every one still running: the mirror read from the minute
+ * `since` falls in, lean where no step's stage or image is read.
+ */
+async function stepsSince(
+	context: Context,
+	view: View,
+	since: number,
+	lean = false,
+): Promise<Step[]> {
+	const { runs, apart } = await context.sources.runs(view, { since: minuteOf(since), lean });
 	return fromHistory(runs, apart, 0, 0, since);
 }
 
@@ -101,7 +109,7 @@ export const FACETS = {
 			return span && view && { span, view };
 		},
 		read: async (context, { span, view }): Promise<Packed> => {
-			const steps = await stepsSince(context, view, context.now - reachOf(span));
+			const steps = await stepsSince(context, view, context.now - reachOf(span), true);
 			// A skip draws nothing; see spec/console/overview.md.
 			return packed(steps.filter((step) => step.outcome !== 'skipped').map(traced));
 		},
@@ -115,7 +123,7 @@ export const FACETS = {
 			return view && { view };
 		},
 		read: async (context, { view }) => {
-			const steps = await stepsSince(context, view, context.now - DAY);
+			const steps = await stepsSince(context, view, context.now - DAY, true);
 			return steps.filter((step) => step.outcome === 'running' || step.outcome === 'failed');
 		},
 	}),
@@ -145,7 +153,8 @@ export const FACETS = {
 			return view && { view };
 		},
 		read: async (context, { view }) => {
-			const { runs, failures } = await context.sources.runs(view);
+			// The month whole, as the figures count it, lean of all they do not read.
+			const { runs, failures } = await context.sources.runs(view, { lean: true });
 			return {
 				seen: runs.length,
 				figures: figures(runs, context.now, context.now - 30 * DAY),
@@ -191,7 +200,7 @@ export const FACETS = {
 		read: async (context, { span, view, dimension, by }): Promise<Dry> => {
 			const [history, steps, cluster] = await Promise.all([
 				minutes(context, span),
-				stepsSince(context, view, context.now - reachOf(span)),
+				stepsSince(context, view, context.now - reachOf(span), true),
 				context.sources.cluster(),
 			]);
 			const nodes = cluster.ok ? cluster.data.nodes : {};

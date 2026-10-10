@@ -6,7 +6,7 @@
 import { runsIn } from '../scope/runs.ts';
 import type { View } from '../scope/scope.ts';
 import type { Cluster, History } from '../wire.ts';
-import { type Edge, type Read, cluster, history } from './read.ts';
+import { type Bounded, type Edge, type Read, cluster, history } from './read.ts';
 import type { Runs } from './runs.ts';
 
 export class Sources {
@@ -32,9 +32,10 @@ export class Sources {
 		return this.#once(`history ${span} ${slot}`, () => history(this.edge, span, slot));
 	}
 
-	/** The runs of `view`, the mirror's 30 days. */
-	runs(view: View): Promise<Runs> {
-		return this.#once(`runs ${view}`, () => runsIn(this.edge, view));
+	/** The runs of `view`: the mirror's 30 days, or from `ask.since`, lean where it asks. */
+	runs(view: View, ask: Bounded = {}): Promise<Runs> {
+		const key = `runs ${view} ${ask.since ?? ''} ${ask.lean ? 'lean' : ''}`;
+		return this.#once(key, () => runsIn(this.edge, view, ask));
 	}
 }
 

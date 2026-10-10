@@ -85,10 +85,32 @@ export interface Mirrored {
  * from the relay's own disk. See platform's spec/architecture/relay.md, "The runs, mirrored on
  * every relay's disk".
  */
-export async function mirrored(edge: Edge, timeout = TIMEOUT): Promise<Read<Mirrored>> {
+export async function mirrored(
+	edge: Edge,
+	ask: Bounded = {},
+	timeout = TIMEOUT,
+): Promise<Read<Mirrored>> {
+	const query = new URLSearchParams({
+		...(ask.since === undefined ? {} : { since: String(ask.since) }),
+		...(ask.lean ? { lean: 'true' } : {}),
+	}).toString();
+	const path = `/runs${query ? `?${query}` : ''}` as const;
 	// Five seconds, the place list's own step: a run's start is in the socket before then.
-	return kept(edge, 'runs', 5, () => nearest<Mirrored>(edge, '/runs', timeout), answered);
+	return kept(edge, path, 5, () => nearest<Mirrored>(edge, path, timeout), answered);
 }
+
+/**
+ * Which of the mirror's rows a read takes: those from `since`, in milliseconds, and every one still
+ * running; `lean` of what no span or count reads. A relay before these answers every row whole,
+ * which a reader that filters by its own moment reads the same.
+ */
+export interface Bounded {
+	since?: number;
+	lean?: boolean;
+}
+
+/** `at` taken down to its minute, so a span asked through one minute is one read to keep. */
+export const minuteOf = (at: number): number => Math.floor(at / 60_000) * 60_000;
 
 /**
  * Every node's history over `span` seconds ending now, in slots of `slot` seconds, from the nearest
