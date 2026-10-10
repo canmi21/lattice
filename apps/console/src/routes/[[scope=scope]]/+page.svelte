@@ -122,7 +122,8 @@
 			</span>
 		{/snippet}
 		{#snippet aside()}<TimelineLegend {dimension} />{/snippet}
-		<div class="px-5 pb-4">
+		<!-- Its last row as far from the card's foot as its words are from the sides. -->
+		<div class="px-5 pb-4.5">
 			{#if seed.value}
 				<Timeline
 					{live}

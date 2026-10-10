@@ -8,6 +8,7 @@ import {
 	heard,
 	merged,
 	served,
+	servedOf,
 	worse,
 } from './history.ts';
 import { DAY, HOUR } from './timeline.ts';
@@ -24,6 +25,16 @@ describe('a slot’s verdict', () => {
 		expect(served({ ...slot, down: { geo: 600 } })).toBe('down');
 		expect(served({ ...slot, down: { geo: 600, mail: 1 } }, 'mail')).toBe('fine');
 		expect(served({ at: at(0) })).toBe('none');
+	});
+
+	it('weighs a node down only where every service it runs is down', () => {
+		const slot: Slot = { at: at(0), beats: 1200, due: 1200, down: { geo: 1200 } };
+		expect(served(slot)).toBe('down');
+		expect(servedOf(slot, 12)).toBe('degraded');
+		expect(servedOf(slot, 1)).toBe('down');
+		expect(servedOf({ ...slot, down: { geo: 1200, mail: 1200 } }, 2)).toBe('down');
+		expect(servedOf({ ...slot, down: { geo: 40 } }, 1)).toBe('degraded');
+		expect(servedOf({ at: at(0), beats: 1200, due: 1200 }, 12)).toBe('fine');
 	});
 
 	it('takes an unheard node as lost unless it said it was leaving', () => {

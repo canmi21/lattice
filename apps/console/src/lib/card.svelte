@@ -23,8 +23,12 @@
 
 <section class="flex min-w-0 flex-col {stylex.attrs(surfaces.card).class}">
 	{#if title || heading}
+		<!-- A title that is a choice carries its own inset, its wash's, so the head gives less above
+		     it: the words stand as far from the card's top as from its side. -->
 		<header
-			class="flex min-h-12 items-center justify-between gap-3 px-5 pt-4 {flush ? 'pb-3' : ''}"
+			class="flex min-h-12 items-center justify-between gap-3 px-5 {heading
+				? 'pt-3'
+				: 'pt-4'} {flush ? (heading ? 'pb-2.25' : 'pb-3') : ''}"
 		>
 			<h2 class={stylex.attrs(type.heading).class}>
 				{#if heading}{@render heading()}{:else}{title}{/if}

@@ -48,6 +48,20 @@ export function served(slot: Slot | undefined, app?: string): Verdict {
 	return down < OUTAGE * slot.due ? 'degraded' : 'down';
 }
 
+/**
+ * A node's services as the overview weighs them, among the `total` it runs: some down is the node
+ * degraded, not down -- it still serves the rest -- and only every one of them down, each for half
+ * the slot or more, is the node down. The services dimension itself keeps any app down red.
+ */
+export function servedOf(slot: Slot | undefined, total: number): Verdict {
+	const alone = served(slot);
+	if (alone !== 'down') return alone;
+	const out = Object.values(slot?.down ?? {}).filter(
+		(rounds) => rounds >= OUTAGE * (slot?.due ?? 0),
+	);
+	return total > 0 && out.length >= total ? 'down' : 'degraded';
+}
+
 /** Whether the node was heard through `slot`: unheard and unannounced is the trouble. */
 export function heard(slot: Slot | undefined): Verdict {
 	if (!slot?.due) return 'none';
@@ -137,7 +151,7 @@ export function asked(key: Span): { span: number; slot: number } {
 
 /** Each dimension's word for each verdict, one word, for its legend and a slot's tip. */
 export const WORDS: Readonly<Record<Dimension, Readonly<Record<Verdict, string>>>> = {
-	overview: { none: 'None', fine: 'Fine', planned: 'Planned', degraded: 'Degraded', down: 'Down' },
+	overview: { none: 'None', fine: 'Fine', planned: 'Changed', degraded: 'Degraded', down: 'Down' },
 	services: { none: 'Unread', fine: 'Up', planned: 'Planned', degraded: 'Dipped', down: 'Down' },
 	deploys: { none: 'None', fine: 'Done', planned: 'Running', degraded: 'Partial', down: 'Failed' },
 	connectivity: {

@@ -149,9 +149,10 @@ author on 2026-10-09.
 ## The week is a line a node
 
 **Under the map, the last seven days are one card, a line a node, drawn as a status page draws
-one**: a row of slots left to right, grey where nothing ran and, where one did, white done, blue
+one**: a row of slots left to right, grey where nothing ran and, where one did, green done, blue
 while one goes, amber where a run partly failed -- some of its apps or nodes failing and the rest
-not -- and red where it failed, so only what went wrong or is going carries a color; no line runs
+not -- and red where it failed; done was the ink itself until 2026-10-10, when the author had it
+green, the color the reader reads as fine; no line runs
 through them and no tick between, the way the map above lays the nodes out in space. Its title is
 the choice of span, `Last 7 days` until the reader chooses another, its menu folded into `Hours`,
 `Days` and `Months`, each said in its own unit -- 1, 6, 12 and 24 hours; 1, 3, 7 and 30 days; 3, 6
@@ -203,18 +204,24 @@ is, in a cookie the server draws with:
   was leaving are announced, drawn as planned; one or two unheard minutes unannounced are missed,
   three or more lost.
 - **Overview**, the default: the worst of the three, in five steps mildest first -- nothing to say,
-  fine, planned, degraded, down -- drawn grey, white, blue, amber and red. Its hover says each of
+  fine, changed, degraded, down -- drawn grey, green, blue, amber and red, each whole. **A deploy
+  that went well is a change, blue**, with what was planned or announced, so green is left for a
+  slot where nothing changed and nothing went wrong, and the overview reads in four colors alone.
+  **A node's services are weighed among all it runs**: some down -- each counted against the
+  apps it runs now, those held aside -- is the node degraded, amber, since it still serves the
+  rest; only every one of them down for half the slot or more is the node down, red. The services
+  dimension itself keeps any app down red, being about that app. Its hover says each of
   the three, so a red slot names which went wrong.
 
 **Services and connectivity are never empty once a node's history begins**: a node down for a whole
 slot is lost there, not blank, since a minute is due whether or not it is heard. Only a slot before
 the node's first minute is grey for them, and its tip says so -- `Unrecorded` -- rather than
 reading as a node with nothing to report; deploys alone have slots with
-nothing in them. **Fine is drawn quiet, at four tenths, so trouble is what the eye finds**; a slot fine because a
-deploy ran there is as dark as its runs make it. A view without nodes draws its busiest apps, each
+nothing in them. **Fine is green, `--color-good`, drawn whole in every dimension but deploys**, where a slot is as
+dark as its runs rank among its outcome's. A view without nodes draws its busiest apps, each
 app's services the worst any node had of it, and is not asked about connectivity, having no node
 to hear. The legend names the dimension's own steps, one word each, the words its tip uses: `Fine,
-Planned, Degraded, Down`; `Done, Running, Partial, Failed`; `Up, Dipped, Down`; `Heard,
+Changed, Degraded, Down`; `Done, Running, Partial, Failed`; `Up, Dipped, Down`; `Heard,
 Announced, Missed, Lost`; and `Unrecorded` before a node's history begins.
 
 **A slot pointed at is ringed flush in the focus ring's color**, two pixels of the accent with no
@@ -224,8 +231,8 @@ console's own, not the browser's title, in as few words as it can**: when, its d
 strong -- `Oct 9, 9 PM`, `Oct 9`, `Oct 7 – 9` -- with the zone it is written in quiet on the right,
 the reader's, as its offset then, `UTC-4`, since every time is written in the reader's zone; a line for each
 thing it says, an icon -- a rocket for deploys, packages for services, an access point for being
-heard -- with its verdict as a dot in the icon's lower corner -- fine there is green, `--color-good`, though
-the row's fine slots keep the quieter ink -- its name, and on the right one word
+heard -- with its verdict as a dot in the icon's lower corner, in the slot's colors and grey where there is
+nothing to say, its name, and on the right one word
 alone; and under a rule what it holds, each by its own icon, the dot in its corner, its name, and
 how long aside in the figures' face: each app down by the app's icon (`src/lib/apps/glyphs.ts`),
 the time unheard, each run by a rocket, four at most and the rest counted. **How long a trouble

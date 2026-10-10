@@ -296,6 +296,18 @@ one-off -- web's `spec/architecture/css/layers.md`. The site decides this compon
 with no rule above it; its departures from these three are recorded in web's `spec/issues/site.md`,
 and it moves to them later.
 
+## A card's inside is even on every side
+
+**A card holds its content as far from each edge as from the others, measured to the ink**: the
+first words' capitals, the last row's foot, and the sides' first and last marks all stand the
+card's side inset, 20 pixels, from its edge, and a title stands as far from the rows under it.
+What a layout adds on its own -- a choice's wash around a title, a row's room around its slots, a
+measuring row taking its share of the gap -- is taken back out of the padding beside it rather than
+left to widen one side, so the timeline's card head gives 12 pixels over a title choice where a
+plain title has 16, and its legend stands as tall as the choice beside it. Measured 2026-10-10:
+the top had been 27, the foot 24.5, the title to the rows 25.5. Decided with the author on
+2026-10-10.
+
 ## A card's point runs on from its rule
 
 **A card that points at what it is about -- the map's card at its mark, the timeline's tip at its

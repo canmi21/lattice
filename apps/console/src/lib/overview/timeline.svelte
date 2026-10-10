@@ -2,7 +2,7 @@
 	/**
 	 * The span, a line a node: its flag and health's dot, its place's telling part, and a row of
 	 * slots, each the verdict of what the card asks -- deploys, services, being heard, or the
-	 * worst -- grey nothing, white fine, blue planned, amber degraded, red down, its hover saying
+	 * worst -- grey nothing, green fine, blue planned, amber degraded, red down, its hover saying
 	 * what it holds. The slots stretch to fill the row, else there are more or fewer; a view
 	 * without nodes draws its busiest apps. See spec/console/overview.md, "A line is any of three
 	 * things, or the worst of them".
@@ -34,6 +34,7 @@
 		gathered,
 		heard,
 		served,
+		servedOf,
 		lasting,
 		unheardIn,
 		worse,
@@ -85,8 +86,6 @@
 	/** Apps' lines at most, in a view without nodes. */
 	const APPS = 8;
 	const COLUMNS = 'grid grid-cols-[8.5rem_minmax(0,1fr)] items-center gap-x-4';
-	/** How strong a fine slot is drawn where no deploy's count shades it: quiet, so trouble shows. */
-	const FINE = 0.4;
 
 	/** The row's width once the browser has laid it out; the server draws the usual count. */
 	let width = $state(0);
@@ -168,6 +167,10 @@
 		),
 	);
 	const earliest = $derived(began.size ? Math.min(...began.values()) : undefined);
+
+	/** How many apps a node runs as it is read now, those held on purpose aside. */
+	const running = (code: string) =>
+		live.view.nodes[code]?.snapshot?.apps.filter((app) => !app.held).length ?? 0;
 
 	/** A deploy's outcome from a slot's day counts, as a run's would be. */
 	function counts(slot: Slot | undefined): Outcome | undefined {
@@ -321,27 +324,31 @@
 			items: items.slice(0, NAMED),
 			more: Math.max(0, items.length - NAMED),
 		};
-		const deployShade = cell ? opacityOf(shaded.get(cell) ?? SHADES) : FINE;
+		const deployShade = cell ? opacityOf(shaded.get(cell) ?? SHADES) : 1;
 
 		if (dimension !== 'overview') {
 			const verdict = { deploys, services, connectivity }[dimension];
 			return {
 				verdict,
-				opacity: dimension === 'deploys' ? deployShade : verdict === 'fine' ? FINE : 1,
+				// Deploys are shaded by how many ran; the rest are drawn whole.
+				opacity: dimension === 'deploys' ? deployShade : 1,
 				key: `${line.key} ${index}`,
 				tip,
 				href: cell ? hrefOf(leadOf(cell)) : undefined,
 			};
 		}
-		const verdict = [deploys, services, connectivity].reduce(worse, 'none');
+		// A deploy that went well is still a change made, so the overview draws it blue with what
+		// is planned; green is left for a slot where nothing changed and nothing went wrong.
+		const changed = deploys === 'fine' ? 'planned' : deploys;
+		// A node's services weighed among all it runs: some down is degraded, every one down is down.
+		const weighed = line.code ? servedOf(own, running(line.code)) : services;
+		const verdict = [changed, weighed, connectivity].reduce(worse, 'none');
 		return {
 			verdict,
-			// Fine is as strong as its deploys made it, else quiet; trouble is drawn whole.
-			opacity:
-				verdict === 'fine' ? (cell ? deployShade : FINE) : verdict === deploys ? deployShade : 1,
+			opacity: 1,
 			key: `${line.key} ${index}`,
 			tip,
-			href: cell && verdict === deploys ? hrefOf(leadOf(cell)) : undefined,
+			href: cell && verdict === changed ? hrefOf(leadOf(cell)) : undefined,
 		};
 	}
 
@@ -416,7 +423,7 @@
 {/snippet}
 
 {#if nodes || lines.length}
-	<div class="flex flex-col gap-1.5">
+	<div class="relative flex flex-col gap-1.5">
 		{#each rows as row (row.line.key)}
 			{@const line = row.line}
 			<div class="h-6 {COLUMNS}">
@@ -446,8 +453,9 @@
 				</div>
 			</div>
 		{/each}
-		<!-- What the slots are measured against: the rows' second column, empty and as wide. -->
-		<div aria-hidden="true" class="h-0 {COLUMNS}">
+		<!-- What the slots are measured against: the rows' second column, empty and as wide, laid
+		     over the rows so it adds no gap under the last. -->
+		<div aria-hidden="true" class="absolute inset-x-0 top-0 h-0 {COLUMNS}">
 			<span></span>
 			<div bind:clientWidth={width}></div>
 		</div>

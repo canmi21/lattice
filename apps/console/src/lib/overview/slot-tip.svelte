@@ -64,11 +64,9 @@
 	} = $props();
 
 	const ICONS = { deploys: RocketIcon, services: PackagesIcon, connectivity: AccessPointIcon };
-	/** A verdict as the dot in an icon's corner; nothing to say draws none. */
+	/** A verdict as the dot in an icon's corner; nothing to say is a grey one. */
 	const badgeOf = (verdict: Verdict) =>
-		verdict === 'none'
-			? undefined
-			: stylex.attrs(verdict === 'fine' ? styles.good : painted[verdict]).class;
+		stylex.attrs(verdict === 'none' ? styles.idle : painted[verdict]).class;
 	const NAMES = { deploys: 'Deploys', services: 'Services', connectivity: 'Connectivity' };
 
 	/**
@@ -115,8 +113,8 @@
 		},
 		time: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
 		muted: { color: 'var(--color-text-muted)' },
-		/** Fine, in a tip's dot, as the good it is; the row's slots keep the quieter ink. */
-		good: { backgroundColor: 'var(--color-good)' },
+		/** Nothing to say, as a dot: the muted ink, plain where a slot's grey would be too faint. */
+		idle: { backgroundColor: 'var(--color-text-muted)' },
 		word: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
 		rule: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--color-line)' },
 	});

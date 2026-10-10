@@ -19,7 +19,7 @@
 <!-- Measured by the room the title leaves it: the words go where they would not fit, the bars stay,
      each naming itself on its hover. -->
 <div class="@container min-w-0 flex-1">
-	<div class="flex h-8 items-center justify-end gap-x-4 {stylex.attrs(styles.word).class}">
+	<div class="flex h-7 items-center justify-end gap-x-4 {stylex.attrs(styles.word).class}">
 		{#each LEGENDS[dimension] as verdict (verdict)}
 			<span class="flex items-center gap-1.5" title={WORDS[dimension][verdict]}>
 				<span class="h-3 w-[3px] rounded-[1px] {stylex.attrs(painted[verdict]).class}"></span>
