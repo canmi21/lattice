@@ -6,7 +6,7 @@
  */
 import type { Code } from '@canmi/response';
 import { URLS } from '@monoflake/sdk';
-import type { Cluster } from '../wire.ts';
+import type { Cluster, History } from '../wire.ts';
 import type { FleetEvent } from './fleet.ts';
 import { type Env, TIMEOUT, TRIES, bindingOf, reach } from './edge.ts';
 import { NODES, type Node, type Whereabouts, order } from './nodes.ts';
@@ -79,6 +79,20 @@ export interface Mirrored {
  */
 export async function mirrored(edge: Edge, timeout = TIMEOUT): Promise<Read<Mirrored>> {
 	return nearest<Mirrored>(edge, '/runs', timeout);
+}
+
+/**
+ * Every node's history over `span` seconds ending now, in slots of `slot` seconds, from the nearest
+ * relay that answers it whole. Platform's spec/architecture/relay.md, "Each node's minutes, kept
+ * for a year".
+ */
+export async function history(
+	edge: Edge,
+	span: number,
+	slot: number,
+	timeout = TIMEOUT,
+): Promise<Read<History>> {
+	return nearest<History>(edge, `/history?span=${span}&slot=${slot}`, timeout);
 }
 
 /**

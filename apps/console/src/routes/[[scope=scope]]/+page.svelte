@@ -26,6 +26,8 @@
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Silent from '#lib/ui/silent.svelte';
+	import { DIMENSIONS, type Dimension } from '#lib/overview/history.js';
+	import { Histories } from '#lib/overview/histories.svelte.js';
 	import { prefer } from '#lib/ui/preference.js';
 	import Skeleton from '#lib/ui/skeleton.svelte';
 	import Unread from '#lib/unread.svelte';
@@ -74,6 +76,21 @@
 	// svelte-ignore state_referenced_locally
 	let back: Span = $state(data.back);
 	$effect(() => prefer('span', back));
+	/** What the timeline's slots are the verdict of: the overview of all three until chosen. */
+	// svelte-ignore state_referenced_locally
+	let dimension: Dimension = $state(data.dimension);
+	$effect(() => prefer('dimension', dimension));
+	/** A view without nodes has no node to hear, so it is not asked about connectivity. */
+	const asking = $derived([
+		{
+			name: 'What',
+			options: DIMENSIONS.filter((one) => data.nodes || one.key !== 'connectivity'),
+		},
+	]);
+	const histories = new Histories(() => ({ key: data.back, history: data.minutes }));
+	$effect(() => {
+		if (histories.current?.key !== back) void histories.ask(back);
+	});
 
 	/** The place list's and the timeline's height before their reads land. */
 	const LIST = 9 * 28;
@@ -87,19 +104,35 @@
 </script>
 
 {#snippet lists()}
-	<Card title={SPANS.find((one) => one.key === back)?.title} flush>
+	<Card
+		title="{DIMENSIONS.find((one) => one.key === dimension)?.title}, {SPANS.find(
+			(one) => one.key === back,
+		)?.title}"
+		flush
+	>
 		{#snippet heading()}
-			<TitleChoice
-				label="How far back"
-				bind:value={back}
-				links={[{ title: 'View all deployments', href: to('/deployments') }]}
-				groups={SPAN_GROUPS}
-			/>
+			<span class="flex items-center gap-2">
+				<TitleChoice label="What the timeline shows" bind:value={dimension} groups={asking} />
+				<TitleChoice
+					label="How far back"
+					bind:value={back}
+					links={[{ title: 'View all deployments', href: to('/deployments') }]}
+					groups={SPAN_GROUPS}
+				/>
+			</span>
 		{/snippet}
-		{#snippet aside()}<TimelineLegend />{/snippet}
+		{#snippet aside()}<TimelineLegend {dimension} />{/snippet}
 		<div class="px-5 pb-4">
 			{#if seed.value}
-				<Timeline {live} steps={day} {keep} nodes={data.nodes} {back} />
+				<Timeline
+					{live}
+					steps={day}
+					{keep}
+					nodes={data.nodes}
+					{back}
+					{dimension}
+					history={histories.current?.history}
+				/>
 			{:else}
 				<Skeleton height={LIST} />
 			{/if}

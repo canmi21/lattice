@@ -94,3 +94,35 @@ export interface Cluster {
 }
 
 export type Live = ({ type: 'cluster' } & Cluster) | { type: 'node'; node: string; state: Entry };
+
+/**
+ * One slot of one node's history, as `/history` answers it: absent where it holds nothing.
+ * Platform's spec/architecture/relay.md, "Each node's minutes, kept for a year".
+ */
+export interface Slot {
+	at: string;
+	/** The rounds that read host, of those `due`, twenty a minute. */
+	beats?: number;
+	due?: number;
+	/** Minutes unheard, and of them those after a minute that said it was leaving. */
+	missing?: number;
+	announced?: number;
+	/** Minutes that said the node was leaving. */
+	leaving?: number;
+	/** Each app's rounds down. */
+	down?: Record<string, number>;
+	/** Each neighbor's round trip, in seconds. */
+	round_trip?: Record<string, { mean: number; worst: number }>;
+	runs?: { succeeded?: number; failed?: number; running?: number; partly_failed?: number };
+}
+
+/** Every node's history over a span, `/history`'s data. */
+export interface History {
+	version: number;
+	node: string;
+	from: string;
+	until: string;
+	/** Seconds a slot. */
+	slot: number;
+	nodes: Record<string, Slot[]>;
+}

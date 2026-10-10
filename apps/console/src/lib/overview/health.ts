@@ -33,7 +33,10 @@ export function healthOf(entry: Entry | undefined, now: number): Told {
 	const held = stopped.filter((app) => app.held).map((app) => displayOf(app.name));
 	const aside = held.length ? `; ${plural(held.length, 'app')} held: ${held.join(', ')}` : '';
 	if (down.length) {
-		return { health: 'down', said: `${plural(down.length, 'app')} down: ${down.join(', ')}${aside}` };
+		return {
+			health: 'down',
+			said: `${plural(down.length, 'app')} down: ${down.join(', ')}${aside}`,
+		};
 	}
 	return { health: 'well', said: `Every app running${aside}` };
 }

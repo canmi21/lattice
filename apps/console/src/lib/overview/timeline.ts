@@ -66,20 +66,26 @@ export const SPAN_GROUPS = [
 
 /**
  * How long a slot may be over each span, the finest first: a slot's length is a whole number of
- * seconds, minutes or days, so its hover reads as a time a person says.
+ * minutes, hours or days, so its hover reads as a time a person says, and each is one the relays'
+ * `/history` answers for its span -- whole hours past two days, whole days past 30 -- the finest
+ * being the one asked for. Platform's spec/architecture/relay.md, "Each node's minutes, kept for
+ * a year".
  */
 const LENGTHS: Readonly<Record<Span, readonly number[]>> = {
-	'1h': [15_000, 30_000, MINUTE, 2 * MINUTE, 3 * MINUTE, 5 * MINUTE],
+	'1h': [MINUTE, 2 * MINUTE, 3 * MINUTE, 5 * MINUTE],
 	'6h': [MINUTE, 2 * MINUTE, 3 * MINUTE, 5 * MINUTE, 10 * MINUTE, 15 * MINUTE],
 	'12h': [2 * MINUTE, 3 * MINUTE, 5 * MINUTE, 10 * MINUTE, 15 * MINUTE, 30 * MINUTE],
 	'24h': [5 * MINUTE, 10 * MINUTE, 15 * MINUTE, 20 * MINUTE, 30 * MINUTE, HOUR],
-	'3d': [10 * MINUTE, 15 * MINUTE, 30 * MINUTE, HOUR, 2 * HOUR, 3 * HOUR],
-	'7d': [30 * MINUTE, HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 6 * HOUR],
+	'3d': [HOUR, 2 * HOUR, 3 * HOUR],
+	'7d': [HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 6 * HOUR],
 	'30d': [HOUR, 2 * HOUR, 3 * HOUR, 4 * HOUR, 6 * HOUR, 12 * HOUR, DAY],
-	'90d': [6 * HOUR, 12 * HOUR, DAY, 2 * DAY, 3 * DAY],
-	'180d': [12 * HOUR, DAY, 2 * DAY, 3 * DAY, 5 * DAY],
+	'90d': [DAY, 2 * DAY, 3 * DAY],
+	'180d': [DAY, 2 * DAY, 3 * DAY, 5 * DAY],
 	'1y': [DAY, 2 * DAY, 3 * DAY, 5 * DAY, 7 * DAY],
 };
+
+/** The finest slot `key`'s span is drawn in, which is what its history is asked at. */
+export const finestOf = (key: Span): number => LENGTHS[key][0] ?? HOUR;
 
 const spanOf = (key: Span): number => SPANS.find((one) => one.key === key)?.span ?? DAY;
 

@@ -98,7 +98,8 @@
 )}
 	<!-- Each cell measures itself: its drawing goes first as it narrows, then a second figure. -->
 	<div
-		class="@container/cell flex min-w-0 items-center gap-4 px-5 py-4 {stylex.attrs(styles.cell).class}"
+		class="@container/cell flex min-w-0 items-center gap-4 px-5 py-4 {stylex.attrs(styles.cell)
+			.class}"
 	>
 		<div class="flex min-w-0 flex-1 flex-col gap-1">
 			<span class={stylex.attrs(type.label).class}>{label}</span>

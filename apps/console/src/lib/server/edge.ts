@@ -79,7 +79,7 @@ export async function socketOf(
 }
 
 /** The paths answered here rather than by a page. */
-export const ROUTES = ['/live', '/state', '/nearest'] as const;
+export const ROUTES = ['/live', '/state', '/history', '/nearest'] as const;
 
 export function isRoute(path: string): path is (typeof ROUTES)[number] {
 	return (ROUTES as readonly string[]).includes(path);
@@ -90,7 +90,7 @@ export function isRoute(path: string): path is (typeof ROUTES)[number] {
  * outlives any request.
  */
 export async function handle(request: Request, env: Env, timeout = TIMEOUT): Promise<Response> {
-	const { pathname } = new URL(request.url);
+	const { pathname, search } = new URL(request.url);
 	if (request.method !== 'GET') return failure(404, 'no_such_route');
 	const nodes = order(request.cf as Whereabouts | undefined);
 	switch (pathname) {
@@ -109,6 +109,19 @@ export async function handle(request: Request, env: Env, timeout = TIMEOUT): Pro
 				(node) =>
 					reach(env, node, '/state', { method: 'GET', signal: AbortSignal.timeout(timeout) }),
 				(answer) => answer.ok,
+			);
+			return reached?.answer ?? failure(502, 'upstream_unavailable');
+		}
+		// A span of every node's minutes, as the page asks it once the reader picks another.
+		case '/history': {
+			const reached = await first(
+				nodes,
+				(node) =>
+					reach(env, node, `/history${search}`, {
+						method: 'GET',
+						signal: AbortSignal.timeout(timeout),
+					}),
+				(answer) => answer.ok || answer.status === 400,
 			);
 			return reached?.answer ?? failure(502, 'upstream_unavailable');
 		}

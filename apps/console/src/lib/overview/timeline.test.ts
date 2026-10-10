@@ -119,8 +119,9 @@ describe('timeline', () => {
 	});
 
 	it('fits the finest count of slots the width holds, stretching the gap and then the slots', () => {
+		// An hour is the finest a week is drawn in, as the relays answer a span past two days.
 		const roomy = fit('7d', 1400);
-		expect(roomy.of).toBe(336);
+		expect(roomy.of).toBe(168);
 		const narrow = fit('7d', 600);
 		expect(narrow.of).toBe(84);
 		for (const one of [roomy, narrow, fit('24h', 700), fit('24h', 300), fit('1y', 900)]) {

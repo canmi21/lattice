@@ -19,7 +19,10 @@ const node = (apps: ReturnType<typeof app>[], state: Entry['state'] = 'live'): E
 
 describe('health', () => {
 	it('is well where every app runs, and says what is held', () => {
-		expect(healthOf(node([app('relay', true)]), NOW)).toEqual({ health: 'well', said: 'Every app running' });
+		expect(healthOf(node([app('relay', true)]), NOW)).toEqual({
+			health: 'well',
+			said: 'Every app running',
+		});
 		expect(healthOf(node([app('relay', false, true)]), NOW).health).toBe('well');
 	});
 
@@ -30,7 +33,10 @@ describe('health', () => {
 	});
 
 	it('takes the relay word over the apps, and gone over everything', () => {
-		expect(healthOf(node([app('relay', false)], 'upgrading'), NOW)).toEqual({ health: 'leaving', said: 'Upgrading' });
+		expect(healthOf(node([app('relay', false)], 'upgrading'), NOW)).toEqual({
+			health: 'leaving',
+			said: 'Upgrading',
+		});
 		expect(healthOf(undefined, NOW).health).toBe('gone');
 	});
 

@@ -188,6 +188,53 @@ span longer than that is drawn from the mirror until the relay's `/history` answ
 platform's `spec/architecture/relay.md`, "Each node's minutes, kept for a year"; see `fromHistory`'s
 `since`. Decided with the author on 2026-10-09.
 
+## A line is any of three things, or the worst of them
+
+**The timeline's card is asked two things in its title, `Overview ⌄  Last 7 days ⌄`**: what a slot
+is the verdict of, and over how long. What it is of is one of four, the choice kept as the span's
+is, in a cookie the server draws with:
+
+- **Deploys**: what ran on the node, as the runs above say it -- done, in progress, partly failed,
+  failed -- each slot as dark as its runs rank among its outcome's.
+- **Services**: whether every app that should have run did. An app down for a few rounds, under
+  ten seconds, is a blip and the slot stays up; down for part of the slot, the slot dipped; down
+  for half of it or more, the slot is down.
+- **Connectivity**: whether the node was heard. Minutes unheard after a minute that said the node
+  was leaving are announced, drawn as planned; one or two unheard minutes unannounced are missed,
+  three or more lost.
+- **Overview**, the default: the worst of the three, in five steps mildest first -- nothing to say,
+  fine, planned, degraded, down -- drawn grey, white, blue, amber and red. Its hover says each of
+  the three, so a red slot names which went wrong.
+
+**Services and connectivity are never empty once a node's history begins**: a node down for a whole
+slot is lost there, not blank, since a minute is due whether or not it is heard. Only a slot before
+the node's first minute is grey for them, and its hover says so -- `Not recorded before` that
+minute -- rather than reading as a node with nothing to report; deploys alone have slots with
+nothing in them. **Fine is drawn quiet, at four tenths, so trouble is what the eye finds**; a slot fine because a
+deploy ran there is as dark as its runs make it. A view without nodes draws its busiest apps, each
+app's services the worst any node had of it, and is not asked about connectivity, having no node
+to hear. The legend names the dimension's own steps: `Fine, Planned, Degraded, Down`; `Up, Dipped,
+Down`; `Heard, Announced, Missed, Lost`.
+
+**A slot pointed at is ringed flush in the focus ring's color**, two pixels of the accent with no
+gap, as the keyboard's focus is drawn -- the kit's `interaction.css` -- the shade on what the slot
+holds rather than on the slot, so the ring is never faded with it. **What it holds is a tip of the
+console's own, not the browser's title**: the time it covers, then a line for each thing it says,
+each with its icon -- a rocket for deploys, packages for services, an access point for being heard
+-- its verdict's dot and a few words, `2 done`, `2 apps down, longest 57m`, `Heard`; where deploys
+are drawn, the runs in it under a rule, three at most and the rest counted. It stands over the
+slot, under it near the window's top, and inside the window, and goes with a scroll.
+
+**Each span's history is read once, at its finest slot, and gathered in the page to the row's
+width**: the relays' `/history`, through the console's `/history`, the span a whole number of its
+finest slots -- a minute up to a day, an hour past two days, a day past 30 -- so a slot's length
+is always one the relays answer. A slot of history goes to the row's slot the middle of its part
+inside the span falls in, the last one running past now. The server reads the span the page is
+drawn with; another span is asked when chosen, and the span drawn again each minute, a minute being
+what a relay adds. Past the runs mirror's 30 days, deploys are read from the history's day counts.
+Platform's `spec/architecture/relay.md`, "Each node's minutes, kept for a year". Decided with the
+author on 2026-10-09; drawn 2026-10-10.
+
 ## Charts are their pages'
 
 **The overview draws no chart.** Each it held went to the page that owns what it shows: the
