@@ -38,6 +38,21 @@ export function unfold(node: HTMLElement): void {
 	);
 }
 
+/**
+ * A surface growing out of what it stood as -- the sidebar's field into the finding panel -- from
+ * `from`'s size to its own, rightward and downward from its top left, over 220 ms. Its own size is
+ * measured as it stands, then it is set back to `from` and carried there.
+ */
+export function grow(node: HTMLElement, from: { width: number; height: number }): void {
+	if (stilled()) return;
+	const { width, height } = node.getBoundingClientRect();
+	gsap.fromTo(
+		node,
+		{ width: from.width, height: from.height },
+		{ width, height, duration: 0.22, ease: 'power3.out', clearProps: 'width,height' },
+	);
+}
+
 /** How far a level of the sidebar travels as it gives way, in pixels. */
 const STEP = 24;
 

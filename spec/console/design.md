@@ -61,10 +61,11 @@ every zone reads one way, never as a city's name or Intl's `GMT`; its name is on
 **The sidebar's head is the way in to finding.** It is as tall as the top bar, so the two heads read
 as one band without a rule between them, and it holds one control: `Find…` drawn as a field, with
 its shortcut, `⌘K`, beside the word. The view being read stays at the top bar's left, beside the
-page it narrows -- the head is not a second place to choose it. **A press on the field opens finding
-where the field is**, a panel growing from the field's corner over the page, its own field standing
-where the field stood; **the shortcut opens it from anywhere in a palette over the page**, which
-dims behind it, so finding something never loses the place one was at -- one body,
+page it narrows -- the head is not a second place to choose it. **A press on the field makes it live
+where it stands**, its size and its look kept, and **the first letter typed grows it**, right and
+down from its corner by GSAP over 220 ms, into the panel of what is found, which stays grown though
+the field is emptied, until it closes; **the shortcut opens it from anywhere in a palette over the
+page**, which dims behind it, so finding something never loses the place one was at -- one body,
 `find-body.svelte`, in two surfaces, decided with the author on 2026-10-10. What `Find` opens is the
 site's search, its behavior taken into the author's library -- `@canmi/kit`'s shortcut, which opens
 it from anywhere on `⌘K` or `Ctrl K` and closes it on the same keys from its own field, and its list

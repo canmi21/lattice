@@ -24,6 +24,8 @@
 		open,
 		close,
 		name,
+		query = $bindable(''),
+		grown = true,
 	}: {
 		/** Whether the surface holding it is open: it focuses its field then, and empties after. */
 		open: boolean;
@@ -31,13 +33,16 @@
 		close: () => void;
 		/** Told apart from the other surface's, for the list's and the rows' ids. */
 		name: string;
+		/** What is typed, for the surface to grow on. */
+		query?: string;
+		/** The list and the keys shown; the field alone, the sidebar's field's size, until then. */
+		grown?: boolean;
 	} = $props();
 
 	const live = liveOf();
 	const view = currentView();
 	const cursor = new ListCursor();
 
-	let query = $state('');
 	let input: HTMLInputElement | undefined = $state();
 	let list: HTMLElement | undefined = $state();
 
@@ -95,6 +100,8 @@
 			outlineStyle: 'none',
 			'::placeholder': { color: 'var(--color-text-muted)' },
 		},
+		/** The field before it grows, in the sidebar field's own size. */
+		small: { fontSize: text.px13 },
 		heading: { fontSize: text.px12, color: 'var(--color-text-muted)' },
 		row: {
 			borderRadius: radius.md,
@@ -128,8 +135,13 @@
 	>
 {/snippet}
 
-<div class="flex shrink-0 items-center gap-2.5 px-4 {stylex.attrs(styles.field).class}">
-	<Icon icon={SearchIcon} size={16} />
+<!-- Before it grows, the field is the sidebar's made live: its height, its gutter, its type. -->
+<div
+	class="flex shrink-0 items-center {grown ? 'gap-2.5 px-4' : 'gap-2 px-3'} {stylex.attrs(
+		grown && styles.field,
+	).class}"
+>
+	<Icon icon={SearchIcon} size={16} class={grown ? '' : 'mx-px'} />
 	<input
 		bind:this={input}
 		bind:value={query}
@@ -138,49 +150,54 @@
 		type="text"
 		autocomplete="off"
 		spellcheck="false"
-		placeholder="Find a page, a node or an app…"
+		placeholder={grown ? 'Find a page, a node or an app…' : 'Find…'}
 		aria-label="Find"
 		{...aria.input}
-		class="h-12 min-w-0 flex-1 {stylex.attrs(styles.query).class}"
+		class="{grown ? 'h-12' : 'h-8'} min-w-0 flex-1 {stylex.attrs(
+			styles.query,
+			!grown && styles.small,
+		).class}"
 	/>
 </div>
-<div bind:this={list} class="min-h-0 flex-1 overflow-y-auto p-1.5" {...aria.list}>
-	{#each groups as group (group.kind)}
-		<p class="px-2.5 pt-2 pb-1 {stylex.attrs(styles.heading).class}">
-			{HEADINGS[group.kind]}
-		</p>
-		{#each group.rows as one (one.key)}
-			{@const index = rows.indexOf(one)}
-			{@const icon = iconOf(one.key)}
-			<!-- The pointer moves the cursor as the arrows do, so one row is lit, not two. -->
-			<div
-				{...aria.option(index)}
-				class="flex h-8 cursor-pointer items-center gap-2.5 px-2.5 {stylex.attrs(
-					styles.row,
-					index === cursor.active && styles.active,
-				).class}"
-				onpointermove={() => cursor.point(index)}
-				onclick={() => choose(index)}
-				onkeydown={() => {}}
-			>
-				<span class="inline-flex size-4 shrink-0 items-center justify-center">
-					{#if one.kind === 'node' && one.code}
-						<Flag code={one.code} size={14} />
-					{:else}
-						<span class={stylex.attrs(styles.icon).class}>
-							<Icon icon={icon ?? PackageIcon} size={16} />
-						</span>
-					{/if}
-				</span>
-				<span class="truncate">{one.label}</span>
-			</div>
+{#if grown}
+	<div bind:this={list} class="min-h-0 flex-1 overflow-y-auto p-1.5" {...aria.list}>
+		{#each groups as group (group.kind)}
+			<p class="px-2.5 pt-2 pb-1 {stylex.attrs(styles.heading).class}">
+				{HEADINGS[group.kind]}
+			</p>
+			{#each group.rows as one (one.key)}
+				{@const index = rows.indexOf(one)}
+				{@const icon = iconOf(one.key)}
+				<!-- The pointer moves the cursor as the arrows do, so one row is lit, not two. -->
+				<div
+					{...aria.option(index)}
+					class="flex h-8 cursor-pointer items-center gap-2.5 px-2.5 {stylex.attrs(
+						styles.row,
+						index === cursor.active && styles.active,
+					).class}"
+					onpointermove={() => cursor.point(index)}
+					onclick={() => choose(index)}
+					onkeydown={() => {}}
+				>
+					<span class="inline-flex size-4 shrink-0 items-center justify-center">
+						{#if one.kind === 'node' && one.code}
+							<Flag code={one.code} size={14} />
+						{:else}
+							<span class={stylex.attrs(styles.icon).class}>
+								<Icon icon={icon ?? PackageIcon} size={16} />
+							</span>
+						{/if}
+					</span>
+					<span class="truncate">{one.label}</span>
+				</div>
+			{/each}
+		{:else}
+			<p class="py-8 text-center {stylex.attrs(styles.empty).class}">Nothing is called that</p>
 		{/each}
-	{:else}
-		<p class="py-8 text-center {stylex.attrs(styles.empty).class}">Nothing is called that</p>
-	{/each}
-</div>
-<div class="flex shrink-0 items-center gap-4 px-4 py-2 {stylex.attrs(styles.footer).class}">
-	<span class="flex items-center gap-1.5">{@render key('↑')}{@render key('↓')} to move</span>
-	<span class="flex items-center gap-1.5">{@render key('↵')} to open</span>
-	<span class="flex items-center gap-1.5">{@render key('esc')} to close</span>
-</div>
+	</div>
+	<div class="flex shrink-0 items-center gap-4 px-4 py-2 {stylex.attrs(styles.footer).class}">
+		<span class="flex items-center gap-1.5">{@render key('↑')}{@render key('↓')} to move</span>
+		<span class="flex items-center gap-1.5">{@render key('↵')} to open</span>
+		<span class="flex items-center gap-1.5">{@render key('esc')} to close</span>
+	</div>
+{/if}
