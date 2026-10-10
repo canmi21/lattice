@@ -230,9 +230,18 @@ word -- stand a half step apart, four pixels, and everything else a whole step, 
 mark reads as part of its words. It stands over the slot, under it near the window's top, and
 inside the window, its edge eight pixels on every side measured from the ink -- its first and last
 words trimmed to cap height and baseline, as the map's card is, since a line's leading would
-otherwise widen the top and foot past the sides -- with a point toward the slot as the map's
-card has, lifted with it as one
-shape, and goes with a scroll.
+otherwise widen the top and foot past the sides -- with a point toward the slot -- spec/console/design.md, "A card's point runs on
+from its rule" -- lifted with it as one shape, and goes with a scroll. **The slot, its tip and the gap
+between them are one place to hold**: an unseen bridge as wide as the slot fills the gap, so the
+pointer can cross into the tip without leaving, and the tip goes the moment the pointer leaves all
+three -- never after a delay, which would trade the tip's crispness for a grace period. The slot
+keeps its ring while its tip is held. **The tip takes the pointer, and that is the point**: while
+it is open the slots it covers cannot be pointed at through it, because a reader moving the pointer
+toward the tip is following what they are reading, and the tip holding the pointer is what that
+intent asks for. A slot under it is reached by leaving the tip first, which closes it -- a
+deliberate move to something else. This is the behavior wanted, not a cost; the alternative, a
+tip the pointer passes through, would close under a reader still reading it. Decided with the
+author on 2026-10-10.
 
 **The row's slots begin on whole times of the reader's clock** -- the hour, the day -- the last
 holding now, so a slot is `9 PM`, never `9:27 PM`, and a reload a few minutes on draws the same

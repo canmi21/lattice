@@ -177,6 +177,7 @@
 
 	/** One slot as drawn: its verdict, how strong, its tip, and where it leads. */
 	interface Drawn {
+		key: string;
 		verdict: Verdict;
 		opacity: number;
 		tip: Tip;
@@ -305,6 +306,7 @@
 			return {
 				verdict,
 				opacity: dimension === 'deploys' ? deployShade : verdict === 'fine' ? FINE : 1,
+				key: `${line.key} ${index}`,
 				tip,
 				href: cell ? hrefOf(leadOf(cell)) : undefined,
 			};
@@ -315,17 +317,36 @@
 			// Fine is as strong as its deploys made it, else quiet; trouble is drawn whole.
 			opacity:
 				verdict === 'fine' ? (cell ? deployShade : FINE) : verdict === deploys ? deployShade : 1,
+			key: `${line.key} ${index}`,
 			tip,
 			href: cell && verdict === deploys ? hrefOf(leadOf(cell)) : undefined,
 		};
 	}
 
-	/** The slot pointed at or focused, and where it stands on the screen, for its tip. */
-	let pointed: { tip: Tip; at: DOMRect } | undefined = $state();
+	/**
+	 * The slot pointed at or focused, which its tip stands for. The slot, the tip and the unseen
+	 * bridge between them are one place to hold: the tip stays while the pointer is in any of
+	 * them and goes the moment it leaves all three, with no delay to wait out.
+	 */
+	let pointed: { key: string; tip: Tip; at: DOMRect; slot: HTMLElement } | undefined = $state();
 	const point = (one: Drawn) => (event: Event) => {
-		pointed = { tip: one.tip, at: (event.currentTarget as HTMLElement).getBoundingClientRect() };
+		const slot = event.currentTarget as HTMLElement;
+		pointed = { key: one.key, tip: one.tip, at: slot.getBoundingClientRect(), slot };
 	};
 	const leave = () => (pointed = undefined);
+	/** Off the slot, unless onto its tip. */
+	let tipped: HTMLElement | undefined = $state();
+	const off = (event: PointerEvent) => {
+		const to = event.relatedTarget as Node | null;
+		if (to && tipped?.contains(to)) return;
+		leave();
+	};
+	/** Off the tip, unless back onto its slot. */
+	const away = (event: PointerEvent) => {
+		const to = event.relatedTarget as Node | null;
+		if (to && pointed?.slot.contains(to)) return;
+		leave();
+	};
 	// A scroll moves the slot from under its tip, so the tip goes with the scroll.
 	$effect(() => {
 		addEventListener('scroll', leave, { capture: true, passive: true });
@@ -343,6 +364,8 @@
 			position: 'relative',
 			zIndex: { default: 'auto', ':hover': 1 },
 		},
+		/** Ringed while its tip is held, the pointer gone up into it. */
+		held: { outlineStyle: 'solid', zIndex: 1 },
 		none: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 	});
 </script>
@@ -357,10 +380,13 @@
 			.filter(Boolean)
 			.join(', ')}
 		tabindex={one.href ? undefined : -1}
-		class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(styles.slot).class}"
+		class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(
+			styles.slot,
+			pointed?.key === one.key && styles.held,
+		).class}"
 		style:width={layout ? `${layout.slot}px` : undefined}
 		onpointerenter={point(one)}
-		onpointerleave={leave}
+		onpointerleave={off}
 		onfocus={point(one)}
 		onblur={leave}
 	>
@@ -407,7 +433,9 @@
 			<div bind:clientWidth={width}></div>
 		</div>
 	</div>
-	{#if pointed}<SlotTip tip={pointed.tip} at={pointed.at} />{/if}
+	{#if pointed}
+		<SlotTip tip={pointed.tip} at={pointed.at} bind:root={tipped} onleave={away} />
+	{/if}
 {:else}
 	<p class="flex min-h-40 items-center justify-center {stylex.attrs(styles.none).class}">
 		Nothing deployed in this span

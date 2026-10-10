@@ -279,6 +279,31 @@ one-off -- web's `spec/architecture/css/layers.md`. The site decides this compon
 with no rule above it; its departures from these three are recorded in web's `spec/issues/site.md`,
 and it moves to them later.
 
+## A card's point runs on from its rule
+
+**A card that points at what it is about -- the map's card at its mark, the timeline's tip at its
+slot -- does it with one point, `lib/design/point.svelte`**: a triangle of the card's rule, and
+over it a triangle of the card's ground standing in by the rule's width, both from the card's
+inner edge, the ground's reaching a pixel into the card to cover the rule across the opening. The
+slanted sides run on from the card's rule with no step at the joint. **The rule's width is read
+off the card as the browser drew it**, since the browser snaps a rule to whole device pixels --
+one at 1.8x, two at 2x -- and a width written once would be right on one screen only; the slant
+takes half a device pixel more, because a slanted line smoothed over its neighbors reads thinner
+than a straight one as wide. A square turned a quarter with two sides ruled, as the map's card had
+first, sat its corners on the rule's inner edge and stood a pixel proud of it at the joint, and
+its slanted rule read thin. Decided with the author on 2026-10-10.
+
+## A surface the pointer opened holds the pointer
+
+**What the pointer opens -- a tip, a card over a mark -- stays while the pointer is on it, on what
+opened it, or on the unseen bridge between, and goes the moment it leaves all of them**, with no
+delay to wait out. It takes the pointer rather than letting it through to what lies under it:
+a reader moving toward it is following what they read, so it holding the pointer is the intent
+met, and what it covers is reached by leaving it first. A grace period would blunt the crispness
+of every close for the sake of a path the bridge already covers. The overview's timeline tip is
+the first, spec/console/overview.md, "A line is any of three things, or the worst of them".
+Decided with the author on 2026-10-10.
+
 ## Motion is GSAP
 
 **The console animates with GSAP, and a reader who asks for reduced motion sees none of it.** The

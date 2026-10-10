@@ -43,10 +43,22 @@
 	import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 	import Icon from '../design/icon.svelte';
+	import Point from '../design/point.svelte';
 	import { type } from '../style.ts';
 	import { painted } from './verdict.ts';
 
-	let { tip, at }: { tip: Tip; at: DOMRect } = $props();
+	let {
+		tip,
+		at,
+		root = $bindable(),
+		onleave,
+	}: {
+		tip: Tip;
+		at: DOMRect;
+		/** The tip itself, bridge and all, which the slot's leaving checks it went into. */
+		root?: HTMLElement;
+		onleave?: (event: PointerEvent) => void;
+	} = $props();
 
 	const ICONS = { deploys: RocketIcon, services: PackagesIcon, connectivity: AccessPointIcon };
 	const NAMES = { deploys: 'Deploys', services: 'Services', connectivity: 'Connectivity' };
@@ -61,7 +73,12 @@
 
 	/** How far it stands off the window's edges, and off the slot past its point, in pixels. */
 	const OFF = 8;
-	const GAP = OFF + 6;
+	const GAP = OFF + 7;
+	/** How far its point stands out, half as far as it is wide. */
+	const POINT = 7;
+
+	/** How far the bridge to the slot reaches past the slot's sides, for a hand not quite true. */
+	const BRIDGE = 2;
 	/** How near a corner its point may come, past the card's rounding. */
 	const INSET = 14;
 	let width = $state(0);
@@ -92,19 +109,6 @@
 		muted: { color: 'var(--color-text-muted)' },
 		word: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
 		rule: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--color-line)' },
-		/**
-		 * Its point: a square of its ground turned a quarter, half out past its edge toward the
-		 * slot, ruled on the two sides that face out so the card's own rule runs on into it.
-		 */
-		point: {
-			backgroundColor: 'var(--color-surface)',
-			borderStyle: 'solid',
-			borderColor: 'var(--color-line)',
-			borderWidth: 0,
-			transform: 'translateX(-50%) rotate(45deg)',
-		},
-		down: { bottom: -6, borderRightWidth: 1, borderBottomWidth: 1 },
-		up: { top: -6, borderLeftWidth: 1, borderTopWidth: 1 },
 	});
 </script>
 
@@ -114,19 +118,26 @@
 
 <div
 	role="tooltip"
-	class="pointer-events-none fixed z-50 flex w-max max-w-64 min-w-44 flex-col {stylex.attrs(
-		styles.card,
-	).class}"
+	bind:this={root}
+	onpointerleave={onleave}
+	class="fixed z-50 flex w-max max-w-64 min-w-44 flex-col {stylex.attrs(styles.card).class}"
 	style:left="{left}px"
 	style:top="{top}px"
 	style:visibility={width ? 'visible' : 'hidden'}
 	bind:clientWidth={width}
 	bind:clientHeight={height}
 >
+	<Point card={root} edge={below ? 'top' : 'bottom'} along={point} size={POINT} />
+	<!-- Unseen, the gap between it and its slot, as wide as the slot: the pointer crossing from
+	     the one to the other never leaves them, so the tip need not wait to see if it returns. -->
 	<span
 		aria-hidden="true"
-		class="absolute size-3 {stylex.attrs(styles.point, below ? styles.up : styles.down).class}"
-		style:left="{point}px"
+		class="absolute"
+		style:left="{at.left - left - BRIDGE}px"
+		style:width="{at.width + 2 * BRIDGE}px"
+		style:height="{GAP + 1}px"
+		style:top={below ? undefined : '100%'}
+		style:bottom={below ? '100%' : undefined}
 	></span>
 	<!-- When, the time strong and what it leaves out quiet beside it. -->
 	<div class="flex items-baseline justify-between gap-4 px-2 pt-2 pb-1.5">
@@ -163,7 +174,9 @@
 					<span class="flex min-w-0 items-center gap-1">
 						{@render dot(item.verdict)}
 						<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
-						<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}">{item.name}</span>
+						<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
+							>{item.name}</span
+						>
 					</span>
 					<span class="text-right {end} {stylex.attrs(type.shell, styles.muted).class}"
 						>{item.lasted}</span

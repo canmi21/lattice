@@ -19,6 +19,7 @@
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
 	import { opacity, period, radius as size, SIZES, type Shown } from './marks.ts';
 	import { prefer } from '../ui/preference.ts';
+	import Point from '../design/point.svelte';
 	import PlaceCard from './place-card.svelte';
 	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
 
@@ -298,6 +299,8 @@
 	let mapWidth = $state(0);
 	let cardWidth = $state(0);
 	let cardHeight = $state(0);
+	/** The open card's own frame, whose rule its point runs on from. */
+	let framed: HTMLElement | undefined = $state();
 
 	/** Beside its mark, on whichever side has room, and never past the map's edges. */
 	const placed = $derived.by(() => {
@@ -349,21 +352,6 @@
 		leaving: { backgroundColor: 'var(--color-warn)' },
 		waiting: { backgroundColor: 'var(--color-text-muted)' },
 		gone: { backgroundColor: 'var(--color-danger)' },
-		/**
-		 * The card's point: a square of its ground turned a quarter, half out past its edge, ruled on
-		 * the two sides that face out so the card's own rule runs on into it.
-		 */
-		point: {
-			backgroundColor: 'var(--color-surface)',
-			borderStyle: 'solid',
-			borderColor: 'var(--color-line)',
-			borderWidth: 0,
-			transform: 'translateY(-50%) rotate(45deg)',
-		},
-		/** Pointing left, from the card's left edge, at a mark to its left. */
-		pointLeft: { left: -6, borderLeftWidth: 1, borderBottomWidth: 1 },
-		/** Pointing right, from the card's right edge, at a mark to its right. */
-		pointRight: { right: -6, borderRightWidth: 1, borderTopWidth: 1 },
 		/** The card and its point lifted as one shape, so the point casts the card's shadow too. */
 		lifted: {
 			filter: 'drop-shadow(0 4px 10px rgb(0 0 0 / 0.16)) drop-shadow(0 1px 2px rgb(0 0 0 / 0.12))',
@@ -490,18 +478,17 @@
 					onpointerenter={() => open(site.key)}
 					onpointerleave={leave}
 					onfocusout={blur}
+					{@attach (node) => void (framed = node.firstElementChild as HTMLElement)}
 				>
 					<PlaceCard {site} {now} />
 					<!-- A small point at the card's edge, toward its mark. -->
 					{#if placed}
-						<span
-							aria-hidden="true"
-							class="absolute size-3 {stylex.attrs(
-								styles.point,
-								placed.side === 'right' ? styles.pointLeft : styles.pointRight,
-							).class}"
-							style:top="{placed.point}px"
-						></span>
+						<Point
+							card={framed}
+							edge={placed.side === 'right' ? 'left' : 'right'}
+							along={placed.point}
+							outside
+						/>
 					{/if}
 				</div>
 			{/if}
