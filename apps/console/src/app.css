@@ -3,68 +3,39 @@
 @layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
 @import '@canmi/kit/theme/palettes/nord.css';
-@import '@canmi/kit/theme/palettes/mono.css';
+@import '@canmi/design/styles/mono.css';
 @import '@canmi/kit/tokens/interaction.css';
 @source '.';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
 
-/* Mono's light and dark values under the names the console draws with; Nord keeps the series. */
+/* The console's own names, each the contract's value in mono, read where a part is not yet on the
+   contract; Nord keeps the series. See lib's spec/design/styles.md and spec/console/design.md, "A
+   card is lifted, not outlined" and "Hover and choice are one wash at two strengths". */
 :root {
-	/* In the light a card is white on a ground a step grey, lifted by a shadow too faint to see as
-	   one; in the dark the ground is black and a card a step above it. A card's rule is a share of
-	   the text's own color rather than a gray of its own, so it sits as lightly on any ground. See
-	   spec/console/design.md, "A card is lifted, not outlined". */
-	--color-ground: var(--color-page);
-	--color-sunken: var(--color-page);
-	--color-surface: var(--color-paper);
-	--color-raised: var(--color-paper-hover);
-	/* What the pointer is over and what is chosen, as one wash of the text's own color at two
-	   strengths: the wash's ink and its full strength are a theme's, the tiers' shares of it are
-	   not. See spec/console/design.md, "Hover and choice are one wash at two strengths". */
-	/* The sans's capital height, as `H` is drawn: what CSS's `cap` should be, which Chrome reads
-	   from this webfont as 0.86em. An `em` here is the user's, so it scales with the type. See
-	   spec/console/design.md, "An icon is drawn in layers". */
-	--cap: 0.714em;
-	--wash-ink: 0;
-	--wash: 0.05;
-	--color-hover: oklch(var(--wash-ink) 0 0 / calc(var(--wash) * 0.7));
-	--color-selected: oklch(var(--wash-ink) 0 0 / var(--wash));
-	/* The selection's wash laid on the surface, as one opaque color: for what must match a washed
-	   row and cannot be washed itself, a dot's ring or a card's point beside it. */
-	--color-selected-solid: color-mix(
-		in srgb,
-		var(--color-surface),
-		oklch(var(--wash-ink) 0 0) calc(var(--wash) * 100%)
-	);
-	--color-line-faint: var(--color-paper-hover);
-	--color-line: oklch(0 0 0 / 0.08);
-	--shadow-card: 0 1px 2px oklch(0 0 0 / 0.04), 0 1px 3px oklch(0 0 0 / 0.02);
-	--color-line-strong: var(--color-border-strong);
-	--color-text-faint: var(--color-text-soft);
-	--color-primary: var(--color-accent);
-	--color-good: var(--color-green);
-	--color-warn: var(--color-amber);
-	--color-danger: var(--color-red);
-	--color-busy: var(--color-blue);
+	--color-ground: var(--background-base);
+	--color-sunken: var(--background-inset);
+	--color-surface: var(--background-surface);
+	--color-raised: var(--background-raised);
+	--cap: var(--font-sans-cap-height);
+	--color-hover: var(--interaction-hover);
+	--color-selected: var(--interaction-selected);
+	--color-selected-solid: var(--interaction-selected-opaque);
+	--color-line-faint: var(--border-subtle);
+	--color-line: var(--border-default);
+	--shadow-card: var(--shadow-surface);
+	--color-line-strong: var(--border-strong);
+	--color-text-faint: var(--foreground-subtle);
+	--color-primary: var(--accent);
+	--color-good: var(--status-success);
+	--color-warn: var(--status-warning);
+	--color-danger: var(--status-critical);
+	--color-busy: var(--status-info);
 	--color-note: var(--color-blue-ink);
-	/* The site's blue, concrete's accent, in light and dark alike: what the keyboard's ring is
-	   drawn in, by the kit's interaction.css, and a selection's ground. Mono's own are two
-	   blues and a gray. See spec/console/design.md, "Accessibility". */
-	--color-accent: oklch(0.623 0.214 259.815);
+	/* What the keyboard's ring is drawn in, by the kit's interaction.css, and a selection's ground.
+	   See spec/console/design.md, "Accessibility". */
+	--color-accent: var(--interaction-focus);
 	--color-selection: var(--color-accent);
-}
-
-/* Mono's dark, under the same names: the ground black, a card one step up, its rule a whisper of
-   white, and no shadow, which the dark cannot show. */
-.dark {
-	--color-ground: var(--color-paper);
-	--color-sunken: var(--color-paper);
-	--color-surface: var(--color-page);
-	--color-line: oklch(1 0 0 / 0.09);
-	--shadow-card: none;
-	--wash-ink: 1;
-	--wash: 0.07;
 }
 
 /* Over mono's own selection, which is unlayered and so outranks the base layer: the site's blue,
@@ -80,13 +51,11 @@ html {
 	background-color: var(--color-ground);
 }
 
+/* The shell's face is the style's mono, the site's Ioskeley Mono from @canmi/fonts, for code names
+   and for the figures a page reads out; words stay in the sans. See spec/console/design.md, "Words
+   in the sans, figures in the shell's face". */
 @theme {
-	--font-sans: ui-sans-serif, system-ui, sans-serif;
-	/* The shell's face, the site's Ioskeley Mono from @canmi/fonts, for code names and for the
-	   figures a page reads out; words stay in the sans. See spec/console/design.md, "Words in
-	   the sans, figures in the shell's face". */
-	--font-shell: 'Ioskeley Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-	--font-mono: var(--font-shell);
+	--font-shell: var(--font-mono);
 }
 
 /* What carries no class: the document, the scrollbars, and a table's elements, which

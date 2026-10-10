@@ -30,20 +30,31 @@ around a reader's credentials, which no static build can.
 same for every reader goes into the Cache API, and a reader's credentials stay in the request that
 carries them.
 
-## Three layers of design, two of them shared
+## The design system: three layers, and a style across them
 
-- **The foundation** -- color, type, spacing, motion, theme -- is shared in part. What both read
-  is `@canmi/kit`'s, in lib, and each declares the rest of its own over it, as the console's
-  stylesheet lays its ground, surface and wash over kit's palettes. A value two consumers declare
-  alike moves down into kit; one only a consumer reads stays with it.
-- **The neutral components**, the console's: menus, segmented controls, tabs, the hover hold, icon
-  buttons. They move out of `apps/console` into a library under `libs/`, exported as source, so the
-  console and space read the same files with nothing published between them. One that a project
-  outside web needs moves on to `@canmi/ui` in lib.
-- **The site's own components** stay in `apps/site`: they carry its style, and it is their one
-  consumer.
+What space's `/design` shows, drawn from the code itself and never a picture of it:
 
-Space's `/design` draws the first two from the code itself, never a picture of it.
+- **Primitives** are headless: what a control does, its keys, its focus and what assistive
+  technology is told, drawing nothing. There is one set, and every component stands on it.
+- **Components** bind a primitive and draw it, taking its accessibility with it. They are the
+  units an interface is made of.
+- **An interface** is components put together: a sidebar, a top bar, a page. It is an app's own.
+
+**A style is two things, kept apart.** Its colors are values given to one contract of semantic
+names -- lib's `spec/design/styles.md` holds the names and how one is made -- and light and dark are
+two sets of values under it. Its components are a family, and a second family exists only where the
+structure differs, never where only the colors do. A component reads the contract's names and no
+color of its own, so one family takes any palette. An app picks a family and a palette, and
+declares over them what is its alone.
+
+**The console and space are the first on it**, with one style, mono, and they are moved a step at
+a time, the console looking as it did after every step. **Only what the console has polished is
+taken**: the sidebar with its account, the top bar, and the overview's map and timeline. A token or
+a component the rest of the console uses is not the system's until that part is polished too.
+
+**A component space needs and nothing has is made in space first**, used there as it is, and only
+then split into its layers and moved into the system, which space then reads it back from. The site and the CMS each keep a style of their own until there is time to
+move them -- [../issues/site.md](../issues/site.md) and [../issues/cms.md](../issues/cms.md).
 
 ## Defined once, rendered here, later
 

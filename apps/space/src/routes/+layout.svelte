@@ -2,10 +2,12 @@
 	import type { Snippet } from 'svelte';
 	import { dev } from '$app/env';
 	import { discloseGlobals, disclosureHead } from '@canmi/web/disclose';
+	import ThemeSwitch from '#lib/theme-switch.svelte';
 	import '@canmi/fonts/mono.css';
 	import '../app.css';
+	import type { LayoutData } from './$types';
 
-	let { children }: { children: Snippet } = $props();
+	let { children, data }: { children: Snippet; data: LayoutData } = $props();
 
 	/**
 	 * The visual layer in development, linked as the console links it: the layer order first, then
@@ -41,11 +43,12 @@
 
 <header class="flex items-center gap-6 px-6 py-4">
 	<a href="/" class="font-medium">canmi.app</a>
-	<nav class="flex gap-4 text-(--color-text-muted)">
+	<nav class="flex flex-1 gap-4 text-(--foreground-muted)">
 		{#each PARTS as part (part.href)}
 			<a href={part.href}>{part.label}</a>
 		{/each}
 	</nav>
+	<ThemeSwitch initial={data.theme} />
 </header>
 
 <main class="px-6 py-8">

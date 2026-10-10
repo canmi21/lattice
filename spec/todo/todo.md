@@ -48,8 +48,8 @@ What [../architecture/space.md](../architecture/space.md) decides and is not bui
 - **What every host carries**: robots.txt and security.txt from `@canmi/me/robots`, the favicon
   through `aka` as the console's is, and Sentry with its own DSN, `EXTERNAL.sentry.space`, once
   `@canmi/me` is released with it.
-- **The neutral components move to a library under `libs/`**, the console importing them from
-  there.
+- **The console and space move onto the design system**: the token contract, then the
+  primitives, then each component, the console looking as it did after every step.
 
 ## The console's reads move to the backend
 

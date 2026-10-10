@@ -19,6 +19,7 @@
 		"deploy": "vite build && wrangler deploy"
 	},
 	"devDependencies": {
+		"@canmi/design": "^2026.1010.0",
 		"@canmi/fonts": "workspace:*",
 		"@canmi/kit": "^2026.1010.0",
 		"@canmi/web": "^2026.1009.0",

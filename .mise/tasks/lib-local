@@ -22,7 +22,7 @@ LIB = ROOT.parent / "lib"
 LOCAL = "http://localhost:4873"
 SAVED = ROOT / ".local" / "lib"
 CARGO_CONFIG = ROOT / ".cargo" / "config.toml"
-PACKAGES = ("@canmi/me", "@canmi/kit", "@canmi/ui", "@canmi/web", "@canmi/response")
+PACKAGES = ("@canmi/me", "@canmi/design", "@canmi/kit", "@canmi/ui", "@canmi/web", "@canmi/response")
 CRATES = ("canmi", "response", "whereabouts")
 
 

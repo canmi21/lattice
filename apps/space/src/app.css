@@ -2,22 +2,21 @@
    spec/architecture/css/layers.md. */
 @layer properties, theme, base, components, utilities, priority1, priority2, priority3, priority4, priority5, priority6, priority7, overrides;
 @import 'tailwindcss';
-@import '@canmi/kit/theme/palettes/mono.css';
+@import '@canmi/design/styles/mono.css';
 @import '@canmi/kit/tokens/interaction.css';
 @source '.';
 
 @custom-variant dark (&:where(.dark, .dark *, [data-theme='dark'], [data-theme='dark'] *));
 
-@theme {
-	--font-sans: ui-sans-serif, system-ui, sans-serif;
-	--font-shell: 'Ioskeley Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-	--font-mono: var(--font-shell);
+/* Over mono's own `html` rule, so the document's ground is the contract's. */
+html {
+	background-color: var(--background-base);
 }
 
 @layer base {
 	body {
-		background-color: var(--color-page);
-		color: var(--color-text);
+		background-color: var(--background-base);
+		color: var(--foreground-default);
 		font-family: var(--font-sans);
 		font-size: 0.875rem;
 		line-height: 1.5;

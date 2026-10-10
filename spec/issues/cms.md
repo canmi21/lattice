@@ -89,3 +89,14 @@ compiler before the migration settles what they are. A path that writes the mark
 live root is a second writer of the one mutable object, outside the check that refuses a root naming
 an object the tree does not hold -- platform's `spec/architecture/delivery.md`, "Every fixed name is
 a record".
+
+## The CMS keeps a style of its own, and moving it waits on the platform
+
+The CMS made a style unlike the site's, and is to move to the console's neutral one --
+[../architecture/space.md](../architecture/space.md), "The design system: three layers, and a
+style across them". It waits in a chain: the design system comes first, the platform's interface
+is built on it, the platform is waiting on that interface, and the CMS's move waits on the
+platform -- [../todo/milestones.md](../todo/milestones.md), D3 and D4.
+
+**What deciding it would cost.** The move and a check for visual regression, once the platform
+it waits on is there.

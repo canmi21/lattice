@@ -27,8 +27,8 @@ which areas exist and which entries are worth reaching for first.
 | [console.md](console.md) | 2       | what the console's pages read from elsewhere                         |
 | [space.md](space.md)     | 1       | where space's specs come from, and which are public                  |
 | [css.md](css.md)         | 48      | the layer migration's leftovers                                      |
-| [site.md](site.md)       | 25      | routing, rendering, the article page, the tests, the license surface |
-| [cms.md](cms.md)         | 4       | what the CMS cannot yet offer, and what it cannot reach              |
+| [site.md](site.md)       | 26      | routing, rendering, the article page, the tests, the license surface |
+| [cms.md](cms.md)         | 5       | what the CMS cannot yet offer, and what it cannot reach              |
 | [plan.md](plan.md)       | 3       | what the milestones leave open                                       |
 | [video.md](video.md)     | 4       | what the video pipeline has not settled                              |
 | [tooling.md](tooling.md) | 4       | the files that describe the repository rather than run it            |
