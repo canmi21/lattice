@@ -25,6 +25,19 @@ export function arrive(node: HTMLElement): void {
 	);
 }
 
+/**
+ * A menu opening out of what was pressed: from a step smaller at its top left, where the title
+ * that opened it stands, to its size, over 120 ms. An attachment, as `arrive` is.
+ */
+export function unfold(node: HTMLElement): void {
+	if (stilled()) return;
+	gsap.fromTo(
+		node,
+		{ autoAlpha: 0, scale: 0.98, y: -2, transformOrigin: 'top left' },
+		{ autoAlpha: 1, scale: 1, y: 0, duration: 0.12, ease: 'power2.out', clearProps: 'transform' },
+	);
+}
+
 /** How far a level of the sidebar travels as it gives way, in pixels. */
 const STEP = 24;
 

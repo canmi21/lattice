@@ -14,7 +14,7 @@
 	import ChevronDownIcon from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import { DropdownMenu } from 'bits-ui';
 	import Icon from '../design/icon.svelte';
-	import { arrive } from '../design/motion.ts';
+	import { unfold } from '../design/motion.ts';
 	import { type } from '../style.ts';
 
 	let {
@@ -49,18 +49,19 @@
 			borderColor: 'var(--color-line)',
 			borderRadius: radius.lg,
 			boxShadow: '0 4px 12px rgb(0 0 0 / 0.25), 0 1px 3px rgb(0 0 0 / 0.2)',
-			fontSize: text.px14,
+			fontSize: text.px13,
 		},
 		item: {
 			borderRadius: radius.md,
-			color: { default: 'var(--color-text)', ':hover': 'var(--color-text-strong)' },
+			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 			backgroundColor: {
 				default: 'transparent',
 				':hover': 'var(--color-hover)',
 				':focus-visible': 'var(--color-hover)',
 			},
 		},
-		checked: { color: 'var(--color-text-strong)' },
+		/** The chosen option, at the selection's wash and in the strong ink, as a chosen link is. */
+		checked: { color: 'var(--color-text-strong)', backgroundColor: 'var(--color-selected)' },
 		rule: { backgroundColor: 'var(--color-line)' },
 		away: { color: 'var(--color-text-muted)' },
 	});
@@ -79,13 +80,18 @@
 		<Icon icon={ChevronDownIcon} size={16} class={stylex.attrs(styles.chevron).class} />
 	</DropdownMenu.Trigger>
 	<DropdownMenu.Portal>
+		<!-- Its options' words under the title's, the menu as wide as the title and as the longest
+		     of them needs. -->
 		<DropdownMenu.Content
 			sideOffset={6}
 			align="start"
+			alignOffset={-6}
 			loop
 			aria-label={label}
-			class="z-40 flex min-w-44 flex-col p-1 {stylex.attrs(styles.menu).class}"
-			{@attach arrive}
+			class="z-40 flex w-max min-w-(--bits-floating-anchor-width) flex-col p-1 {stylex.attrs(
+				styles.menu,
+			).class}"
+			{@attach unfold}
 		>
 			{#each options as one (one.key)}
 				{@const here = one.key === value}
@@ -97,7 +103,7 @@
 					).class}"
 				>
 					{one.title}
-					{#if here}<Icon icon={CheckIcon} size={16} stroke={2.5} />{/if}
+					{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
 				</DropdownMenu.Item>
 			{/each}
 			{#if links.length}
@@ -120,7 +126,7 @@
 									></span>
 								{/if}
 								{one.title}
-								<Icon icon={ArrowUpRightIcon} size={16} class={stylex.attrs(styles.away).class} />
+								<Icon icon={ArrowUpRightIcon} size={14} class={stylex.attrs(styles.away).class} />
 							</a>
 						{/snippet}
 					</DropdownMenu.Item>

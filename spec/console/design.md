@@ -139,6 +139,12 @@ in the page's head, where there is room for a framed switch. The overview's `All
 beside a card's title, and its `24h` and `7d`, were framed switches inside a card's head until
 2026-10-09. Decided with the author on 2026-10-09.
 
+**The menu opens out of its title**: its options' words stand under the title's, the menu as wide as
+the title and as its longest item needs and no wider, set in the list's smaller type, the options
+not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
+the pointer's row on the hover's wash, each inset from the menu's edge. It unfolds from a step
+smaller at its top left, where the title stands, over 120 ms. Decided with the author on 2026-10-10.
+
 ## Words in the sans, figures in the shell's face
 
 **What a reader reads as words is in the sans; what they read as a figure is in the shell's face.**
