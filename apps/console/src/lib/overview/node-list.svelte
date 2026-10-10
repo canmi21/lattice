@@ -117,7 +117,7 @@
 		row: {
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
+				':hover': 'var(--color-selected)',
 			},
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,
@@ -131,7 +131,6 @@
 			fontVariantNumeric: 'tabular-nums',
 		},
 	});
-
 </script>
 
 <div class="flex flex-col gap-1">

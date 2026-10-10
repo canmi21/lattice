@@ -69,11 +69,19 @@
 	};
 
 	const ROWS = ['Uptime', 'Role', 'Apps', 'CPU', 'RAM', 'Latency'] as const;
+	const LAST = ROWS.at(-1);
+	/**
+	 * The card's first and last words cut to their ink, cap height above and baseline below, so
+	 * its padding reads as even on every side rather than gaining a line's leading at top and
+	 * foot. A browser without `text-box` keeps the leading, as before.
+	 */
+	const START = '[text-box:trim-start_cap_alphabetic]';
+	const END = '[text-box:trim-end_cap_alphabetic]';
 
 	const styles = stylex.create({
 		card: {
-			paddingBlock: 10,
-			paddingInline: 12,
+			// Even on every side, measured from the words' ink, which `TRIM` cuts the leading to.
+			padding: 12,
 			backgroundColor: 'var(--color-surface)',
 			borderWidth: '1px',
 			borderStyle: 'solid',
@@ -136,8 +144,11 @@
 {#snippet rows(member: Member)}
 	<dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-1">
 		{#each ROWS as row (row)}
-			<dt class={stylex.attrs(styles.muted).class}>{row}</dt>
-			<dd class={stylex.attrs(styles.value, row !== 'Role' && type.shell).class}>
+			<dt class="{row === LAST ? END : ''} {stylex.attrs(styles.muted).class}">{row}</dt>
+			<dd
+				class="{row === LAST ? END : ''} {stylex.attrs(styles.value, row !== 'Role' && type.shell)
+					.class}"
+			>
 				{@render value(member, row)}
 			</dd>
 		{/each}
@@ -152,7 +163,7 @@
 >
 	<div class="flex w-max flex-col gap-1.5">
 		{#if lone}
-			<span class={stylex.attrs(styles.title).class}>{nameOf(lone.code).full}</span>
+			<span class="block {START} {stylex.attrs(styles.title).class}">{nameOf(lone.code).full}</span>
 			{@render rows(lone)}
 		{:else}
 			<!-- One table: the rows named once at the left, a little apart, and the place's nodes as
@@ -163,11 +174,11 @@
 					<tr>
 						<th
 							scope="col"
-							class="border-0 p-0 pr-5 text-left font-normal {stylex.attrs(styles.muted).class}"
-							>{countryOf(site.members[0]?.code ?? site.key)}</th
+							class="border-0 p-0 pr-5 text-left font-normal {START} {stylex.attrs(styles.muted)
+								.class}">{countryOf(site.members[0]?.code ?? site.key)}</th
 						>
 						{#each site.members as member (member.code)}
-							<th scope="col" class="border-0 py-0.5 pr-0 pl-3 text-right font-normal">
+							<th scope="col" class="border-0 pt-0 pr-0 pb-0.5 pl-3 text-right font-normal {START}">
 								<a
 									href={toNode(member.code)}
 									data-row={member.code}
@@ -183,15 +194,16 @@
 						<tr>
 							<th
 								scope="row"
-								class="border-0 p-0 py-0.5 pr-5 text-left font-normal {stylex.attrs(styles.muted)
-									.class}">{row}</th
+								class="border-0 p-0 py-0.5 pr-5 text-left font-normal {row === LAST
+									? `pb-0 ${END}`
+									: ''} {stylex.attrs(styles.muted).class}">{row}</th
 							>
 							{#each site.members as member (member.code)}
 								<td
-									class="border-0 py-0.5 pr-0 pl-3 whitespace-nowrap {stylex.attrs(
-										styles.value,
-										row !== 'Role' && type.shell,
-									).class}">{@render value(member, row)}</td
+									class="border-0 py-0.5 pr-0 pl-3 whitespace-nowrap {row === LAST
+										? `pb-0 ${END}`
+										: ''} {stylex.attrs(styles.value, row !== 'Role' && type.shell).class}"
+									>{@render value(member, row)}</td
 								>
 							{/each}
 						</tr>

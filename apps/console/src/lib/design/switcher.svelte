@@ -21,7 +21,7 @@
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
+				':hover': 'var(--color-selected)',
 			},
 			color: 'var(--color-text-strong)',
 			fontSize: text.px14,
@@ -44,8 +44,8 @@
 			color: { default: 'var(--color-text)', ':hover': 'var(--color-text-strong)' },
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-raised)',
-				':focus-visible': 'var(--color-raised)',
+				':hover': 'var(--color-selected)',
+				':focus-visible': 'var(--color-selected)',
 			},
 		},
 		checked: { color: 'var(--color-text-strong)' },
@@ -56,7 +56,7 @@
 	<!-- Pulled left by its padding, so the name lines up with the page below. -->
 	<DropdownMenu.Trigger
 		aria-label="View: {labelOf(view)}"
-		class="-ml-2 inline-flex h-8 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
+		class="-ml-2 inline-flex h-7 cursor-pointer items-center gap-1 pr-1 pl-2 {stylex.attrs(
 			styles.trigger,
 		).class}"
 	>

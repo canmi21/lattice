@@ -47,6 +47,8 @@
 			groups[0],
 	);
 	const chosen = $derived(home?.options.find((one) => one.key === value));
+	/** One group alone is a plain list: no head to open it, and no column for a head's chevron. */
+	const lone = $derived(groups.length === 1);
 	/** The group open in the menu: the chosen one's, each time the menu opens. */
 	let menu = $state(false);
 	let opened: string | undefined = $state();
@@ -77,7 +79,7 @@
 	const styles = stylex.create({
 		trigger: {
 			borderRadius: radius.md,
-			backgroundColor: { default: 'transparent', ':hover': 'var(--color-hover)' },
+			backgroundColor: { default: 'transparent', ':hover': 'var(--color-selected)' },
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,
 		},
@@ -98,8 +100,8 @@
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
-				':focus-visible': 'var(--color-hover)',
+				':hover': 'var(--color-selected)',
+				':focus-visible': 'var(--color-selected)',
 			},
 		},
 		/** A group's head, its unit, a step quieter than the options it holds. */
@@ -131,10 +133,11 @@
 {/snippet}
 
 <DropdownMenu.Root bind:open={menu}>
-	<!-- Pulled left by its padding, so the words stand where a plain title's would. -->
+	<!-- Pulled left by its padding, so the words stand where a plain title's would; as far from
+	     the wash on every side, the chevron's own margin counted as part of its side's. -->
 	<DropdownMenu.Trigger
 		aria-label="{label}: {chosen?.title}"
-		class="-ml-1.5 inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 px-1.5 whitespace-nowrap {stylex.attrs(
+		class="-ml-2 inline-flex h-7 shrink-0 cursor-pointer items-center gap-1 pr-1 pl-2 whitespace-nowrap {stylex.attrs(
 			type.heading,
 			styles.trigger,
 		).class}"
@@ -148,7 +151,7 @@
 		<DropdownMenu.Content
 			sideOffset={6}
 			align="start"
-			alignOffset={-6}
+			alignOffset={-4}
 			loop
 			aria-label={label}
 			bind:ref={content}
@@ -159,24 +162,25 @@
 		>
 			{#each groups as group, at (group.name)}
 				{@const open = group.name === opened}
-				<!-- A head opens its group in place and closes the one open; it chooses nothing. -->
-				<DropdownMenu.Item
-					closeOnSelect={false}
-					onSelect={() => {
-						if (opened === group.name) return;
-						if (content) still(content);
-						opened = group.name;
-					}}
-					aria-expanded={open}
-					class="flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
-						styles.item,
-						styles.head,
-					).class}"
-				>
-					{@render mark(open ? ChevronDownIcon : ChevronRightIcon)}
-					<span class="flex-1">{group.name}</span>
-					{@render mark()}
-				</DropdownMenu.Item>
+				<!-- A head opens its group in place and closes the one open; it chooses nothing. A lone
+				     group has no head, its options the whole menu. -->
+				{#if !lone}<DropdownMenu.Item
+						closeOnSelect={false}
+						onSelect={() => {
+							if (opened === group.name) return;
+							if (content) still(content);
+							opened = group.name;
+						}}
+						aria-expanded={open}
+						class="flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
+							styles.item,
+							styles.head,
+						).class}"
+					>
+						{@render mark(open ? ChevronDownIcon : ChevronRightIcon)}
+						<span class="flex-1">{group.name}</span>
+						{@render mark()}
+					</DropdownMenu.Item>{/if}
 				<!-- Every group's options stand in the menu, a closed group's folded to nothing and out of
 				     the keys' reach, so opening one is carried rather than cut. -->
 				<div bind:this={folds[at]} class="flex shrink-0 flex-col overflow-hidden">
@@ -192,7 +196,7 @@
 								styles.item,
 							).class}"
 						>
-							{@render mark()}
+							{#if !lone}{@render mark()}{/if}
 							<span class="flex-1">{one.label}</span>
 							{@render mark(here ? CheckIcon : undefined, false)}
 						</DropdownMenu.Item>
@@ -211,7 +215,7 @@
 								).class}"
 							>
 								{#if index === 0}{@render rule()}{/if}
-								{@render mark()}
+								{#if !lone}{@render mark()}{/if}
 								<span class="flex-1">{one.title}</span>
 								{@render mark(ArrowUpRightIcon)}
 							</a>

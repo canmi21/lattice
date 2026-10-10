@@ -46,7 +46,7 @@
 		ghost: {
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
+				':hover': 'var(--color-selected)',
 			},
 			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
 		},
