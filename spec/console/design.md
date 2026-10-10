@@ -150,7 +150,11 @@ beside a card's title, and its `24h` and `7d`, were framed switches inside a car
 the title and as its longest item needs and no wider, set in the list's smaller type, the options
 not chosen muted, the chosen one in the strong ink on the selection's wash with a small check, and
 the pointer's row on the hover's wash, each inset from the menu's edge. It unfolds from a step
-smaller at its top left, where the title stands, over 120 ms. Decided with the author on 2026-10-10.
+smaller at its top left, where the title stands, over 120 ms. **A long menu folds into groups a unit
+each, one open at a time**: a group's head, its unit and a chevron, opens it in place and closes the
+one open, choosing nothing; the menu opens on the chosen option's group; and one option may stand in
+two groups, said in each one's unit, a mixed list having read `12 hours` and then `24 hours` above
+`3 days` as though 24 hours were not a day. Decided with the author on 2026-10-10.
 
 ## Words in the sans, figures in the shell's face
 

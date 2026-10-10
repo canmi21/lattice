@@ -15,7 +15,7 @@
 	import { current, fromLive, merged } from '#lib/overview/moving.js';
 	import Timeline from '#lib/overview/timeline.svelte';
 	import TimelineLegend from '#lib/overview/timeline-legend.svelte';
-	import { SPANS, type Span } from '#lib/overview/timeline.js';
+	import { SPANS, SPAN_GROUPS, type Span } from '#lib/overview/timeline.js';
 	import TitleChoice from '#lib/ui/title-choice.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
 	import Empty from '#lib/scope/empty.svelte';
@@ -83,7 +83,7 @@
 				label="How far back"
 				bind:value={back}
 				links={[{ title: 'View all deployments', href: to('/deployments') }]}
-				options={SPANS}
+				groups={SPAN_GROUPS}
 			/>
 		{/snippet}
 		{#snippet aside()}<TimelineLegend />{/snippet}

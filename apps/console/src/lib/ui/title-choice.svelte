@@ -12,19 +12,26 @@
 	import ArrowUpRightIcon from '@tabler/icons-svelte-runes/icons/arrow-up-right';
 	import CheckIcon from '@tabler/icons-svelte-runes/icons/check';
 	import ChevronDownIcon from '@tabler/icons-svelte-runes/icons/chevron-down';
+	import ChevronRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
 	import { DropdownMenu } from 'bits-ui';
 	import Icon from '../design/icon.svelte';
 	import { unfold } from '../design/motion.ts';
 	import { type } from '../style.ts';
 
+	/** An option: its key, the title it gives the card, and its words in the menu. */
+	type Option = { key: Key; title: string; label: string };
+
 	let {
-		options,
+		groups,
 		value = $bindable(),
 		label,
 		links = [],
 	}: {
-		/** Each option's key, the title it gives the card, and whether a rule stands over it. */
-		options: readonly { key: Key; title: string; rule?: boolean }[];
+		/**
+		 * The options in groups a unit each, one open at a time: a group's head opens it in place
+		 * and chooses nothing. One key may stand in two groups, said in each one's unit.
+		 */
+		groups: readonly { name: string; options: readonly Option[] }[];
 		value: Key;
 		/** What the choice is of, for assistive technology: `How far back`. */
 		label: string;
@@ -32,7 +39,20 @@
 		links?: readonly { title: string; href: string }[];
 	} = $props();
 
-	const chosen = $derived(options.find((one) => one.key === value) ?? options[0]);
+	/** The group the choice was made in, which says it; the first holding it until one is made. */
+	let from: string | undefined = $state();
+	const home = $derived(
+		groups.find((group) => group.name === from && group.options.some((one) => one.key === value)) ??
+			groups.find((group) => group.options.some((one) => one.key === value)) ??
+			groups[0],
+	);
+	const chosen = $derived(home?.options.find((one) => one.key === value));
+	/** The group open in the menu: the chosen one's, each time the menu opens. */
+	let menu = $state(false);
+	let opened: string | undefined = $state();
+	$effect(() => {
+		if (menu) opened = home?.name;
+	});
 
 	const styles = stylex.create({
 		trigger: {
@@ -62,6 +82,8 @@
 		},
 		/** The chosen option, at the selection's wash and in the strong ink, as a chosen link is. */
 		checked: { color: 'var(--color-text-strong)', backgroundColor: 'var(--color-selected)' },
+		/** A group's head, its unit, a step quieter than the options it holds. */
+		head: { color: 'var(--color-text-muted)' },
 		rule: { backgroundColor: 'var(--color-line)' },
 		away: { color: 'var(--color-text-muted)' },
 	});
@@ -76,7 +98,7 @@
 	></span>
 {/snippet}
 
-<DropdownMenu.Root>
+<DropdownMenu.Root bind:open={menu}>
 	<!-- Pulled left by its padding, so the words stand where a plain title's would. -->
 	<DropdownMenu.Trigger
 		aria-label="{label}: {chosen?.title}"
@@ -102,19 +124,40 @@
 			).class}"
 			{@attach unfold}
 		>
-			{#each options as one (one.key)}
-				{@const here = one.key === value}
+			{#each groups as group, at (group.name)}
+				{@const open = group.name === opened}
+				<!-- A head opens its group in place and closes the one open; it chooses nothing. -->
 				<DropdownMenu.Item
-					onSelect={() => (value = one.key)}
-					class="relative flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 px-2 {stylex.attrs(
+					closeOnSelect={false}
+					onSelect={() => (opened = group.name)}
+					aria-expanded={open}
+					class="relative flex h-7 shrink-0 cursor-pointer items-center gap-1.5 px-2 {stylex.attrs(
 						styles.item,
-						here && styles.checked,
+						styles.head,
 					).class}"
 				>
-					{#if one.rule}{@render rule()}{/if}
-					{one.title}
-					{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
+					{#if at > 0}{@render rule()}{/if}
+					<Icon icon={open ? ChevronDownIcon : ChevronRightIcon} size={14} />
+					{group.name}
 				</DropdownMenu.Item>
+				{#if open}
+					{#each group.options as one (one.key)}
+						{@const here = one.key === value && group.name === home?.name}
+						<DropdownMenu.Item
+							onSelect={() => {
+								value = one.key;
+								from = group.name;
+							}}
+							class="flex h-7 shrink-0 cursor-pointer items-center justify-between gap-3 pr-2 pl-[1.625rem] {stylex.attrs(
+								styles.item,
+								here && styles.checked,
+							).class}"
+						>
+							{one.label}
+							{#if here}<Icon icon={CheckIcon} size={14} stroke={2} />{/if}
+						</DropdownMenu.Item>
+					{/each}
+				{/if}
 			{/each}
 			{#if links.length}
 				{#each links as one, index (one.href)}

@@ -12,22 +12,57 @@ export const WEEK = 7 * DAY;
 export const HOUR = 3_600_000;
 const MINUTE = 60_000;
 
-/** The spans the timeline is read over, the shortest first, what each is called, and a rule over
- * the first of the days and of the months. */
+/** The spans the timeline is read over, the shortest first, and what each is called. */
 export const SPANS = [
 	{ key: '1h', title: 'Last hour', span: HOUR },
 	{ key: '6h', title: 'Last 6 hours', span: 6 * HOUR },
 	{ key: '12h', title: 'Last 12 hours', span: 12 * HOUR },
-	{ key: '24h', title: 'Last 24 hours', span: DAY, rule: true },
+	{ key: '24h', title: 'Last 24 hours', span: DAY },
 	{ key: '3d', title: 'Last 3 days', span: 3 * DAY },
 	{ key: '7d', title: 'Last 7 days', span: 7 * DAY },
-	{ key: '30d', title: 'Last 30 days', span: 30 * DAY, rule: true },
+	{ key: '30d', title: 'Last 30 days', span: 30 * DAY },
 	{ key: '90d', title: 'Last 3 months', span: 90 * DAY },
 	{ key: '180d', title: 'Last 6 months', span: 180 * DAY },
 	{ key: '1y', title: 'Last year', span: 365 * DAY },
 ] as const;
 
 export type Span = (typeof SPANS)[number]['key'];
+
+/**
+ * The spans as the menu groups them, a unit each, every option said in its group's unit: 24
+ * hours stands in the hours and again as a day in the days, the card titled as it was chosen.
+ */
+export const SPAN_GROUPS = [
+	{
+		name: 'Hours',
+		options: [
+			{ key: '1h', title: 'Last hour', label: '1 hour' },
+			{ key: '6h', title: 'Last 6 hours', label: '6 hours' },
+			{ key: '12h', title: 'Last 12 hours', label: '12 hours' },
+			{ key: '24h', title: 'Last 24 hours', label: '24 hours' },
+		],
+	},
+	{
+		name: 'Days',
+		options: [
+			{ key: '24h', title: 'Last day', label: '1 day' },
+			{ key: '3d', title: 'Last 3 days', label: '3 days' },
+			{ key: '7d', title: 'Last 7 days', label: '7 days' },
+			{ key: '30d', title: 'Last 30 days', label: '30 days' },
+		],
+	},
+	{
+		name: 'Months',
+		options: [
+			{ key: '90d', title: 'Last 3 months', label: '3 months' },
+			{ key: '180d', title: 'Last 6 months', label: '6 months' },
+			{ key: '1y', title: 'Last 12 months', label: '12 months' },
+		],
+	},
+] as const satisfies readonly {
+	name: string;
+	options: readonly { key: Span; title: string; label: string }[];
+}[];
 
 /**
  * How long a slot may be over each span, the finest first: a slot's length is a whole number of
