@@ -18,6 +18,7 @@
 	import type { Paint } from './globe.ts';
 	import { DOT, DOTS, HEIGHT, LOCATIONS, PITCH, POINTS, WIDTH } from './land.generated.ts';
 	import { opacity, period, radius as size, SIZES, type Shown } from './marks.ts';
+	import { prefer } from '../ui/preference.ts';
 	import PlaceCard from './place-card.svelte';
 	import { gather, nameOf, nodeLabel, PLACES } from './places.ts';
 
@@ -29,6 +30,7 @@
 		pointed,
 		tallest,
 		primary,
+		shape: first = 'flat',
 	}: {
 		/** What is held of each node, by code; a node not in it has not been heard. */
 		states: Readonly<Record<string, Entry>>;
@@ -44,6 +46,8 @@
 		tallest?: string;
 		/** The node the database is primary on, which each card's latency is to. */
 		primary?: string;
+		/** The view the reader left the map in, which it opens in, already round if a globe. */
+		shape?: 'flat' | 'globe';
 	} = $props();
 
 	const { node: toNode } = scoped();
@@ -156,7 +160,15 @@
 		if (!within || within.getAttribute('data-place') !== active) active = undefined;
 	}
 
-	let view = $state<(typeof VIEWS)[number]['key']>('flat');
+	// svelte-ignore state_referenced_locally
+	let view = $state<(typeof VIEWS)[number]['key']>(first);
+	/** Whether the globe it opens as is still to be drawn, round at once rather than turned. */
+	// svelte-ignore state_referenced_locally
+	let opening = first === 'globe';
+	// A small map has no globe, so it says nothing of the reader's view.
+	$effect(() => {
+		if (!compact) prefer('map', view);
+	});
 	/** How far round the map is, 0 flat and 1 a globe, and the longitude the globe faces. */
 	const shape = $state({ t: 0 });
 	let facing = $state(FACING);
@@ -174,6 +186,11 @@
 			return;
 		}
 		if (!round) return;
+		if (opening) {
+			opening = false;
+			shape.t = to;
+			return;
+		}
 		void turn(shape, to);
 	});
 

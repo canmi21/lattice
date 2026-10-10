@@ -1,11 +1,12 @@
 import { figures } from '#lib/overview/deploys.js';
 import { fromHistory } from '#lib/overview/moving.js';
-import { DAY } from '#lib/overview/timeline.js';
+import { DAY, SPANS } from '#lib/overview/timeline.js';
 import { runsIn } from '#lib/scope/runs.js';
 import { viewOf } from '#lib/scope/scope.js';
 import { edgeOf } from '#lib/server/platform.js';
 import { cluster } from '#lib/server/read.js';
 import { primaryOf } from '#lib/server/primary.js';
+import { preferred } from '#lib/ui/preference.js';
 import type { PageServerLoad } from './$types';
 
 const DAYS = 30;
@@ -39,6 +40,14 @@ export const load: PageServerLoad = async (event) => {
 	return {
 		view,
 		nodes,
+		// The reader's own span and map view, so the first response is drawn as they left it.
+		back: preferred(
+			event.cookies,
+			'span',
+			SPANS.map((one) => one.key),
+			'7d',
+		),
+		shape: preferred(event.cookies, 'map', ['flat', 'globe'] as const, 'flat'),
 		cluster: first ? await held : held,
 		deploys: first ? await deploys : deploys,
 		moving: first ? await moving : moving,

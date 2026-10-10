@@ -26,6 +26,7 @@
 	import { Landed } from '#lib/ui/landed.svelte.js';
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Silent from '#lib/ui/silent.svelte';
+	import { prefer } from '#lib/ui/preference.js';
 	import Skeleton from '#lib/ui/skeleton.svelte';
 	import Unread from '#lib/unread.svelte';
 	import type { PageProps } from './$types';
@@ -69,8 +70,10 @@
 		foot: { overflow: 'hidden', borderBottomLeftRadius: INSIDE, borderBottomRightRadius: INSIDE },
 		whole: { overflow: 'hidden', borderRadius: INSIDE },
 	});
-	/** How far back the timeline reaches; a week until the reader chooses. */
-	let back: Span = $state('7d');
+	/** How far back the timeline reaches: the reader's last choice, a week until they make one. */
+	// svelte-ignore state_referenced_locally
+	let back: Span = $state(data.back);
+	$effect(() => prefer('span', back));
 
 	/** The place list's and the timeline's height before their reads land. */
 	const LIST = 9 * 28;
@@ -132,6 +135,7 @@
 						{pointed}
 						tallest="26.25rem"
 						primary={primary.value}
+						shape={data.shape}
 					/>
 					{#snippet pending()}
 						<div class="mx-auto" style:max-width="calc(26.25rem * {WIDTH} / {HEIGHT})">

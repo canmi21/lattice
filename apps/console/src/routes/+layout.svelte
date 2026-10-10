@@ -13,6 +13,7 @@
 	import SkipLink from '#lib/design/skip-link.svelte';
 	import TopBar from '#lib/design/top-bar.svelte';
 	import { provideActions } from '#lib/ui/actions.svelte.js';
+	import { goTo, keepPlace, placeIn, placeOf } from '#lib/ui/place.js';
 	import { setTimeZone } from '#lib/ui/time-zone.js';
 	// The shell's face, its CDN filled in by the build; see vite.config.ts.
 	import '@canmi/fonts/mono.css';
@@ -72,11 +73,31 @@
 	// spec/console/design.md, "Accessibility".
 	onMount(() => trackFocusSource());
 
-	/** The page scrolls inside `main`, so a new path starts at its top as the window would. */
+	/**
+	 * The page scrolls inside `main`, so its place is the console's to keep: a path arrived at
+	 * returns to where this tab left it, else its top, and the place is kept as it moves. See
+	 * spec/console/state.md, "A place comes back as near as the page still allows".
+	 */
 	let scroller: HTMLElement | undefined = $state();
+	/** The path whose place is being kept; none between a navigation and its arrival. */
+	let placing: string | undefined;
 	afterNavigate(({ from, to }) => {
-		if (from?.url.pathname !== to?.url.pathname) scroller?.scrollTo({ top: 0 });
+		const path = to?.url.pathname;
+		if (!scroller || !path) return;
+		if (from?.url.pathname !== path) goTo(scroller, placeOf(sessionStorage, path));
+		placing = path;
 	});
+	let pending = false;
+	function moved() {
+		if (pending) return;
+		pending = true;
+		requestAnimationFrame(() => {
+			pending = false;
+			// A scroll while the next page replaces this one is neither page's place.
+			if (!scroller || placing !== page.url.pathname) return;
+			keepPlace(sessionStorage, placing, placeIn(scroller));
+		});
+	}
 
 	/** Where the reader is, which the sidebar, the trail and the title are drawn from. */
 	// An error's page drills into nothing: a node, app or run the address names may not exist.
@@ -112,6 +133,7 @@
 	id="content"
 	tabindex="-1"
 	bind:this={scroller}
+	onscroll={moved}
 	class="fixed top-14 right-0 bottom-0 left-60 overflow-y-auto overscroll-contain"
 >
 	<div class="mx-auto flex w-full max-w-[90rem] flex-col gap-6 px-8 pt-8 pb-12">

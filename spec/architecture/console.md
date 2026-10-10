@@ -22,7 +22,7 @@ hostname and cannot set one ahead for a wildcard application's subdomains, and a
 follow Access's redirect to get one: a page on one name could not open a socket on another --
 https://developers.cloudflare.com/cloudflare-one/identity/authorization-cookie/.
 
-**What the console looks like -- its shell, its icons, how its styles are layered, its motion -- is [../console/design.md](../console/design.md).** This file is what it does.
+**What the console looks like -- its shell, its icons, how its styles are layered, its motion -- is [../console/design.md](../console/design.md).** What it remembers of a reader, and where, is [../console/state.md](../console/state.md). This file is what it does.
 
 **The console is read whole, or in one of three scopes, the layers the workspace's
 `spec/architecture/layers.md` draws.** `All` is the default and has no segment of its own -- `/`,

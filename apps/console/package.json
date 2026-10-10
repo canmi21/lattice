@@ -26,7 +26,7 @@
 	},
 	"devDependencies": {
 		"@canmi/fonts": "workspace:*",
-		"@canmi/kit": "^2026.1008.1",
+		"@canmi/kit": "^2026.1010.0",
 		"@canmi/me": "^2026.1008.0",
 		"@canmi/response": "^2.0.0",
 		"@canmi/web": "^2026.1009.0",

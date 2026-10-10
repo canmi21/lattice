@@ -1,5 +1,7 @@
 <script lang="ts">
 	import * as stylex from '@stylexjs/stylex';
+	import { onMount } from 'svelte';
+	import { page } from '$app/state';
 	import Card from '#lib/card.svelte';
 	import { duration, percent } from '#lib/chart/numbers.js';
 	import StackedBar from '#lib/chart/stacked-bar.svelte';
@@ -15,6 +17,7 @@
 	import type { Node } from '#lib/server/nodes.js';
 	import { surfaces, type } from '#lib/style.js';
 	import { Landed } from '#lib/ui/landed.svelte.js';
+	import { keepOpened, openedOn } from '#lib/ui/opened.js';
 	import Silent from '#lib/ui/silent.svelte';
 	import PageHeader from '#lib/ui/page-header.svelte';
 	import Skeleton from '#lib/ui/skeleton.svelte';
@@ -35,7 +38,19 @@
 		() => runs.some((run) => run.running > 0) || stirring(held.view.nodes, newest),
 	);
 
-	let tab: 'runs' | 'apart' = $state('runs');
+	const TABS = ['runs', 'apart'] as const;
+	/** The tab open: the one this browser tab last had open here, read once it is hydrated. */
+	let tab: (typeof TABS)[number] = $state('runs');
+	let recalled = false;
+	onMount(() => {
+		tab = openedOn(sessionStorage, page.url.pathname, TABS, 'runs');
+		recalled = true;
+	});
+	// Kept from the reader's own changes on, so the default drawn first never overwrites theirs.
+	$effect(() => {
+		const open = tab;
+		if (recalled) keepOpened(sessionStorage, page.url.pathname, open);
+	});
 
 	const unknown = $derived(new Set(Object.keys(read.value?.failures ?? {}) as Node[]));
 	const missing = $derived(Object.entries(read.value?.failures ?? {}));
