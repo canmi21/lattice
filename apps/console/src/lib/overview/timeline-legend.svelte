@@ -6,7 +6,7 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
-	import { type Dimension, LEGENDS } from './history.ts';
+	import { type Dimension, LEGENDS, WORDS } from './history.ts';
 	import { painted } from './verdict.ts';
 
 	let { dimension }: { dimension: Dimension } = $props();
@@ -20,10 +20,11 @@
      each naming itself on its hover. -->
 <div class="@container min-w-0 flex-1">
 	<div class="flex h-8 items-center justify-end gap-x-4 {stylex.attrs(styles.word).class}">
-		{#each LEGENDS[dimension] as one (one.verdict)}
-			<span class="flex items-center gap-1.5" title={one.label}>
-				<span class="h-3 w-[3px] rounded-[1px] {stylex.attrs(painted[one.verdict]).class}"></span>
-				<span class="hidden whitespace-nowrap @min-[24rem]:inline">{one.label}</span>
+		{#each LEGENDS[dimension] as verdict (verdict)}
+			<span class="flex items-center gap-1.5" title={WORDS[dimension][verdict]}>
+				<span class="h-3 w-[3px] rounded-[1px] {stylex.attrs(painted[verdict]).class}"></span>
+				<span class="hidden whitespace-nowrap @min-[24rem]:inline">{WORDS[dimension][verdict]}</span
+				>
 			</span>
 		{/each}
 	</div>

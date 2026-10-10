@@ -84,6 +84,21 @@ const LENGTHS: Readonly<Record<Span, readonly number[]>> = {
 	'1y': [DAY, 2 * DAY, 3 * DAY, 5 * DAY, 7 * DAY],
 };
 
+/**
+ * Where a row of `of` slots of `length` milliseconds stands, so each slot begins on a time the
+ * reader's clock says whole -- 9 PM, Oct 9 -- rather than wherever `now` happened to cut: the last
+ * slot holds `now` and ends on the next whole `length` in a zone `offset` from UTC.
+ */
+export function aligned(
+	now: number,
+	length: number,
+	of: number,
+	offset: number,
+): { start: number; end: number } {
+	const end = Math.floor((now + offset) / length) * length - offset + length;
+	return { start: end - of * length, end };
+}
+
 /** The finest slot `key`'s span is drawn in, which is what its history is asked at. */
 export const finestOf = (key: Span): number => LENGTHS[key][0] ?? HOUR;
 

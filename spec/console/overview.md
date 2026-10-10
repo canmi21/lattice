@@ -208,22 +208,29 @@ is, in a cookie the server draws with:
 
 **Services and connectivity are never empty once a node's history begins**: a node down for a whole
 slot is lost there, not blank, since a minute is due whether or not it is heard. Only a slot before
-the node's first minute is grey for them, and its hover says so -- `Not recorded before` that
-minute -- rather than reading as a node with nothing to report; deploys alone have slots with
+the node's first minute is grey for them, and its tip says so -- `Unrecorded` -- rather than
+reading as a node with nothing to report; deploys alone have slots with
 nothing in them. **Fine is drawn quiet, at four tenths, so trouble is what the eye finds**; a slot fine because a
 deploy ran there is as dark as its runs make it. A view without nodes draws its busiest apps, each
 app's services the worst any node had of it, and is not asked about connectivity, having no node
-to hear. The legend names the dimension's own steps: `Fine, Planned, Degraded, Down`; `Up, Dipped,
-Down`; `Heard, Announced, Missed, Lost`.
+to hear. The legend names the dimension's own steps, one word each, the words its tip uses: `Fine,
+Planned, Degraded, Down`; `Done, Running, Partial, Failed`; `Up, Dipped, Down`; `Heard,
+Announced, Missed, Lost`; and `Unrecorded` before a node's history begins.
 
 **A slot pointed at is ringed flush in the focus ring's color**, two pixels of the accent with no
 gap, as the keyboard's focus is drawn -- the kit's `interaction.css` -- the shade on what the slot
 holds rather than on the slot, so the ring is never faded with it. **What it holds is a tip of the
-console's own, not the browser's title**: the time it covers, then a line for each thing it says,
-each with its icon -- a rocket for deploys, packages for services, an access point for being heard
--- its verdict's dot and a few words, `2 done`, `2 apps down, longest 57m`, `Heard`; where deploys
-are drawn, the runs in it under a rule, three at most and the rest counted. It stands over the
-slot, under it near the window's top, and inside the window, and goes with a scroll.
+console's own, not the browser's title, in as few words as it can**: when, strong, with what it
+leaves out quiet beside it -- `9 PM` and `Oct 9`, `Oct 9` and `Thu`, `Oct 7 – 9`; a line for each
+thing it says, an icon -- a rocket for deploys, packages for services, an access point for being
+heard -- its name, its verdict's dot and one word; and under a rule what it holds by name, how
+long each lasted aside in the figures' face: each app down, the minutes unheard, each run, four at
+most and the rest counted. It stands over the slot, under it near the window's top, and inside the
+window, and goes with a scroll.
+
+**The row's slots begin on whole times of the reader's clock** -- the hour, the day -- the last
+holding now, so a slot is `9 PM`, never `9:27 PM`, and a reload a few minutes on draws the same
+slots.
 
 **Each span's history is read once, at its finest slot, and gathered in the page to the row's
 width**: the relays' `/history`, through the console's `/history`, the span a whole number of its

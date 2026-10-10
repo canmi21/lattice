@@ -9,26 +9,26 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
-	import { localTime } from '../format.ts';
 	import type { Live } from '../live.svelte.ts';
 	import { nameOf, partOf } from '../map/places.ts';
 	import { CODES } from '../nodes/facts.ts';
 	import { scoped } from '../scope/context.ts';
 	import { displayOf } from '../scope/scope.ts';
-	import { timeZone } from '../ui/time-zone.ts';
+	import { offsetIn, timeZone } from '../ui/time-zone.ts';
 	import type { History, Slot } from '../wire.ts';
 	import HealthFlag from './health-flag.svelte';
-	import SlotTip, { type Fact, type Tip } from './slot-tip.svelte';
+	import SlotTip, { type Fact, type Item, type Tip } from './slot-tip.svelte';
 	import { healthOf } from './health.ts';
 	import {
 		type Dimension,
 		type Verdict,
-		connectivitySaid,
+		WORDS,
 		deployed,
+		downIn,
 		gathered,
 		heard,
 		served,
-		servicesSaid,
+		lasting,
 		worse,
 	} from './history.ts';
 	import type { Step } from './moving.ts';
@@ -40,6 +40,7 @@
 		SHADES,
 		SPANS,
 		type Span,
+		aligned,
 		fit,
 		marks,
 		shades,
@@ -47,7 +48,6 @@
 		slotsIn,
 	} from './timeline.ts';
 	import { painted } from './verdict.ts';
-	import { OUTCOME } from './words.ts';
 
 	let {
 		live,
@@ -86,14 +86,18 @@
 	const span = $derived(SPANS.find((one) => one.key === back)?.span ?? 0);
 	const layout = $derived(width ? fit(back, width) : undefined);
 	const of = $derived(layout?.of ?? slotsIn(back));
+	/** The row's slots on whole times of the reader's clock, the last holding now. */
+	const length = $derived(span / of);
+	const bounds = $derived(aligned(live.now, length, of, offsetIn(zone, live.now)));
+	const reach = $derived(bounds.end - bounds.start);
 	/** Past the mirror's 30 days a deploy is read from the history's day counts, not its runs. */
 	const counted = $derived(span > 30 * DAY);
 
 	const drawn = $derived(
 		marks(
 			steps.filter((step) => keep(step.app)),
-			live.now,
-			span,
+			bounds.end,
+			reach,
 		),
 	);
 
@@ -140,7 +144,7 @@
 	/** Each node's history gathered to the row's slots, once for every line. */
 	const minutes = $derived(
 		new Map<string, (Slot | undefined)[]>(
-			CODES.map((code) => [code, gathered(history, code, live.now, span, of)]),
+			CODES.map((code) => [code, gathered(history, code, bounds.end, reach, of)]),
 		),
 	);
 
@@ -183,7 +187,7 @@
 
 	/** How long, in its one largest unit: `42s`, `3m`. */
 	function took(mark: Mark): string {
-		if (!mark.finished_at) return 'going';
+		if (!mark.finished_at) return 'now';
 		const seconds = Math.round((Date.parse(mark.finished_at) - Date.parse(mark.started_at)) / 1000);
 		if (seconds < 60) return `${seconds}s`;
 		if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
@@ -199,100 +203,106 @@
 	const hrefOf = (mark: Mark) =>
 		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
 
-	/** A slot's time in the reader's zone: hours within a day, days past one. */
-	function whenOf(start: number, end: number): string {
-		const day = new Intl.DateTimeFormat('en-US', {
-			month: 'short',
-			day: 'numeric',
-			timeZone: zone,
-		});
-		if (end - start >= DAY) return `${day.format(start)} – ${day.format(end)}`;
-		const hour = new Intl.DateTimeFormat('en-US', {
-			hour: 'numeric',
-			minute: '2-digit',
-			timeZone: zone,
-		});
-		return `${day.format(start)}, ${hour.format(start)} – ${hour.format(end)}`;
+	const dayOf = (at: number) =>
+		new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: zone }).format(at);
+	/** A slot's time on the reader's clock: `9 PM` of `Oct 9`, `Oct 9` a `Thu`, `Oct 7 – 9`. */
+	function timeOf(start: number): Pick<Tip, 'time' | 'date'> {
+		if (length < DAY) {
+			const clock = new Intl.DateTimeFormat('en-US', {
+				hour: 'numeric',
+				minute: '2-digit',
+				timeZone: zone,
+			});
+			return { time: clock.format(start).replace(':00', ''), date: dayOf(start) };
+		}
+		if (length === DAY) {
+			const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: zone });
+			return { time: dayOf(start), date: weekday.format(start) };
+		}
+		const last = start + length - 1;
+		const [from, to] = [dayOf(start), dayOf(last)];
+		const [month, day] = to.split(' ');
+		return { time: from.startsWith(`${month} `) ? `${from} – ${day}` : `${from} – ${to}` };
 	}
 
-	/** A slot's runs in a few words: `2 done`, `1 failed, 3 done`. */
-	function runsSaid(cell: Cell | undefined, outcome: Outcome | undefined): string {
-		if (!cell) return outcome ? OUTCOME[outcome] : 'None';
-		const by = Map.groupBy(cell.marks, (mark) => mark.outcome);
-		return (['failed', 'mixed', 'running', 'succeeded'] as const)
-			.filter((one) => by.has(one))
-			.map((one) => `${by.get(one)?.length} ${OUTCOME[one].toLowerCase()}`)
-			.join(', ');
-	}
-
-	/** Services in a few words: the one app down and how long, or how many and the longest. */
-	function servicesShort(slot: Slot | undefined, app?: string): string {
-		const said = servicesSaid(slot, displayOf, app);
-		const parts = said.split(', ');
-		if (parts.length < 2) return said;
-		const longest = parts[0]?.split(' down ')[1];
-		return `${parts.length} apps down, longest ${longest}`;
-	}
+	/** Names shown in a tip at most; the rest are counted. */
+	const NAMED = 4;
 
 	/** The slot at `index` of `line`, as the card's dimension draws it. */
 	function slotOf(line: Line, cell: Cell | undefined, index: number): Drawn {
-		const start = live.now - span + (index * span) / of;
-		const end = start + span / of;
+		const start = bounds.start + index * length;
+		const end = start + length;
 		const own = line.code ? minutes.get(line.code)?.[index] : undefined;
 		// An app's services are the worst any node had of it.
 		const across = line.app
-			? CODES.map((code) => minutes.get(code)?.[index]).filter((one) => one !== undefined)
+			? CODES.flatMap((code) => {
+					const slot = minutes.get(code)?.[index];
+					return slot ? [{ code, slot }] : [];
+				})
 			: [];
 
 		const outcome = counted ? counts(own) : cell?.outcome;
 		const deploys = deployed(outcome);
 		const services = line.app
-			? across.reduce<Verdict>((worst, one) => worse(worst, served(one, line.app)), 'none')
+			? across.reduce<Verdict>((worst, one) => worse(worst, served(one.slot, line.app)), 'none')
 			: served(own);
 		const connectivity = line.code ? heard(own) : 'none';
 
 		const from = line.code ? began.get(line.code) : earliest;
 		const unrecorded = from === undefined || end <= from;
+		const wordOf = (what: Fact['what'], verdict: Verdict) =>
+			verdict === 'none' && what !== 'deploys' && unrecorded ? 'Unrecorded' : WORDS[what][verdict];
 		const facts: Fact[] = [
-			{ what: 'deploys', verdict: deploys, words: runsSaid(cell, outcome) },
-			{
-				what: 'services',
-				verdict: services,
-				words:
-					unrecorded && services === 'none'
-						? 'Not recorded yet'
-						: line.app
-							? (across.map((one) => servicesShort(one, line.app)).find((one) => one !== 'Up') ??
-								(services === 'none' ? 'No reading' : 'Up'))
-							: servicesShort(own),
-			},
-			...(line.code
+			{ what: 'deploys' as const, verdict: deploys },
+			{ what: 'services' as const, verdict: services },
+			...(line.code ? [{ what: 'connectivity' as const, verdict: connectivity }] : []),
+		]
+			.filter((fact) => dimension === 'overview' || fact.what === dimension)
+			.map((fact) => ({ ...fact, word: wordOf(fact.what, fact.verdict) }));
+
+		const asks = (what: Fact['what']) => dimension === 'overview' || dimension === what;
+		const items: Item[] = [
+			...(asks('services')
+				? line.app
+					? across.flatMap(({ code, slot }) =>
+							downIn(slot, line.app).map((one) => ({
+								key: `down ${code}`,
+								name: partOf(code),
+								lasted: lasting(one.seconds),
+								verdict: served(slot, line.app),
+							})),
+						)
+					: downIn(own).map((one) => ({
+							key: `down ${one.app}`,
+							name: displayOf(one.app),
+							lasted: lasting(one.seconds),
+							verdict: services,
+						}))
+				: []),
+			...(asks('connectivity') && own?.missing
 				? [
 						{
-							what: 'connectivity' as const,
+							key: 'unheard',
+							name: 'Unheard',
+							lasted: lasting(own.missing * 60),
 							verdict: connectivity,
-							words:
-								unrecorded && connectivity === 'none' ? 'Not recorded yet' : connectivitySaid(own),
 						},
 					]
 				: []),
+			...(asks('deploys')
+				? (cell?.marks ?? []).map((mark) => ({
+						key: mark.key,
+						name: appsOf(mark),
+						lasted: took(mark),
+						verdict: deployed(mark.outcome),
+					}))
+				: []),
 		];
-		const shown =
-			dimension === 'overview' ? facts : facts.filter((fact) => fact.what === dimension);
-		const marks = dimension === 'overview' || dimension === 'deploys' ? (cell?.marks ?? []) : [];
 		const tip: Tip = {
-			when: whenOf(start, end),
-			facts: shown,
-			runs: [
-				...marks.slice(0, 3).map((mark) => ({
-					key: mark.key,
-					words: `${appsOf(mark)} · ${took(mark)}`,
-					verdict: deployed(mark.outcome),
-				})),
-				...(marks.length > 3
-					? [{ key: 'more', words: `${marks.length - 3} more`, verdict: 'none' as const }]
-					: []),
-			],
+			...timeOf(start),
+			facts,
+			items: items.slice(0, NAMED),
+			more: Math.max(0, items.length - NAMED),
 		};
 		const deployShade = cell ? opacityOf(shaded.get(cell) ?? SHADES) : FINE;
 
@@ -349,7 +359,9 @@
 		this={one.href ? 'a' : 'span'}
 		href={one.href}
 		role={one.href ? undefined : 'img'}
-		aria-label={[one.tip.when, ...one.tip.facts.map((fact) => fact.words)].join(', ')}
+		aria-label={[one.tip.time, one.tip.date, ...one.tip.facts.map((fact) => fact.word)]
+			.filter(Boolean)
+			.join(', ')}
 		tabindex={one.href ? undefined : -1}
 		class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(styles.slot).class}"
 		style:width={layout ? `${layout.slot}px` : undefined}

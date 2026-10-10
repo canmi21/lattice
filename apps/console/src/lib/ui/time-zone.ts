@@ -39,6 +39,13 @@ export function offsetOf(zone: string, at: number = Date.now()): string {
 	return `UTC${offset === '' ? '+0' : offset}`;
 }
 
+/** `zone`'s offset from UTC at `at`, in milliseconds: `UTC-4` is `-14_400_000`. */
+export function offsetIn(zone: string, at: number = Date.now()): number {
+	const [, sign, hours, minutes] = /^UTC([+-])(\d+)(?::(\d+))?$/.exec(offsetOf(zone, at)) ?? [];
+	const size = (Number(hours ?? 0) * 60 + Number(minutes ?? 0)) * 60_000;
+	return sign === '-' ? -size : size;
+}
+
 /** Exported for a test to render a chart as though the layout had set `zone`. */
 export function zoned(zone: string): Map<symbol, string> {
 	return new Map([[KEY, known(zone)]]);

@@ -135,66 +135,42 @@ export function asked(key: Span): { span: number; slot: number } {
 	return { span: Math.ceil(whole / slot) * slot, slot };
 }
 
-/** The legend each dimension draws, mildest first, by verdict. */
-export const LEGENDS: Readonly<Record<Dimension, readonly { verdict: Verdict; label: string }[]>> =
-	{
-		overview: [
-			{ verdict: 'fine', label: 'Fine' },
-			{ verdict: 'planned', label: 'Planned' },
-			{ verdict: 'degraded', label: 'Degraded' },
-			{ verdict: 'down', label: 'Down' },
-		],
-		services: [
-			{ verdict: 'fine', label: 'Up' },
-			{ verdict: 'degraded', label: 'Dipped' },
-			{ verdict: 'down', label: 'Down' },
-		],
-		deploys: [
-			{ verdict: 'fine', label: 'Done' },
-			{ verdict: 'planned', label: 'In progress' },
-			{ verdict: 'degraded', label: 'Partly failed' },
-			{ verdict: 'down', label: 'Failed' },
-		],
-		connectivity: [
-			{ verdict: 'fine', label: 'Heard' },
-			{ verdict: 'planned', label: 'Announced' },
-			{ verdict: 'degraded', label: 'Missed' },
-			{ verdict: 'down', label: 'Lost' },
-		],
-	};
+/** Each dimension's word for each verdict, one word, for its legend and a slot's tip. */
+export const WORDS: Readonly<Record<Dimension, Readonly<Record<Verdict, string>>>> = {
+	overview: { none: 'None', fine: 'Fine', planned: 'Planned', degraded: 'Degraded', down: 'Down' },
+	services: { none: 'Unread', fine: 'Up', planned: 'Planned', degraded: 'Dipped', down: 'Down' },
+	deploys: { none: 'None', fine: 'Done', planned: 'Running', degraded: 'Partial', down: 'Failed' },
+	connectivity: {
+		none: 'Unread',
+		fine: 'Heard',
+		planned: 'Announced',
+		degraded: 'Missed',
+		down: 'Lost',
+	},
+};
+
+/** The verdicts each dimension's legend names, mildest first. */
+export const LEGENDS: Readonly<Record<Dimension, readonly Verdict[]>> = {
+	overview: ['fine', 'planned', 'degraded', 'down'],
+	services: ['fine', 'degraded', 'down'],
+	deploys: ['fine', 'planned', 'degraded', 'down'],
+	connectivity: ['fine', 'planned', 'degraded', 'down'],
+};
+
+/** Each app down in `slot`, or `app` alone, longest first, past a blip, in seconds down. */
+export function downIn(slot: Slot | undefined, app?: string): { app: string; seconds: number }[] {
+	return Object.entries(slot?.down ?? {})
+		.filter(([one, rounds]) => (app === undefined || one === app) && rounds >= BLIP)
+		.toSorted(([, a], [, b]) => b - a)
+		.map(([one, rounds]) => ({ app: one, seconds: rounds * SECONDS_A_ROUND }));
+}
 
 const SECONDS_A_ROUND = 3;
 
 /** How long, in its largest unit: `40s`, `3m`, `2h`. */
-const lasting = (seconds: number) =>
+export const lasting = (seconds: number) =>
 	seconds < 60
 		? `${seconds}s`
 		: seconds < 3600
 			? `${Math.round(seconds / 60)}m`
 			: `${Math.round(seconds / 3600)}h`;
-
-/** A slot's services in words, for its hover: `Up`, or each app down and for how long. */
-export function servicesSaid(
-	slot: Slot | undefined,
-	name: (app: string) => string,
-	app?: string,
-): string {
-	if (!slot?.due || !slot.beats) return 'No reading';
-	const down = Object.entries(slot.down ?? {})
-		.filter(([one, rounds]) => (app === undefined || one === app) && rounds >= BLIP)
-		.toSorted(([, a], [, b]) => b - a);
-	if (!down.length) return 'Up';
-	return down
-		.map(([one, rounds]) => `${name(one)} down ${lasting(rounds * SECONDS_A_ROUND)}`)
-		.join(', ');
-}
-
-/** A slot's connectivity in words, for its hover. */
-export function connectivitySaid(slot: Slot | undefined): string {
-	if (!slot?.due) return 'No reading';
-	const missing = slot.missing ?? 0;
-	const announced = slot.announced ?? 0;
-	if (!missing) return slot.leaving ? 'Heard, said it was leaving' : 'Heard';
-	if (announced >= missing) return `${missing}m unheard, announced`;
-	return `${missing - announced}m unheard${announced ? `, ${announced}m announced` : ''}`;
-}

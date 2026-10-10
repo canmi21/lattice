@@ -1,28 +1,41 @@
 <script lang="ts" module>
 	import type { Verdict } from './history.ts';
 
-	/** One thing a slot says, in a line: which, how it went, and a few words. */
+	/** One thing a slot says: which, its verdict, and that verdict's one word. */
 	export interface Fact {
 		what: 'deploys' | 'services' | 'connectivity';
 		verdict: Verdict;
-		words: string;
+		word: string;
 	}
 
-	/** A slot's tip: the time it covers, what it says, and the runs in it where they are drawn. */
+	/** One thing in a slot worth naming -- an app down, a run -- and how long it took or lasted. */
+	export interface Item {
+		key: string;
+		name: string;
+		lasted: string;
+		verdict: Verdict;
+	}
+
+	/** A slot's tip: when, said as the reader's clock says it, what it says, and what it holds. */
 	export interface Tip {
-		when: string;
+		/** The time it begins, or its days: `9 PM`, `Oct 9`, `Oct 7 – 9`. */
+		time: string;
+		/** What the time leaves out, quieter: the day of an hour, the weekday of a day. */
+		date?: string;
 		facts: Fact[];
-		runs: { key: string; words: string; verdict: Verdict }[];
+		items: Item[];
+		/** Items past the few drawn. */
+		more: number;
 	}
 </script>
 
 <script lang="ts">
 	/**
-	 * What a pointed slot holds, in a card over it rather than the browser's title: the time it
-	 * covers, then a line for each thing it says -- deploys, services, being heard -- each with its
-	 * icon, a dot in its verdict's color and a few words, and the runs it holds where deploys are
-	 * drawn. Placed above the slot, or under it near the window's top, and kept inside the window.
-	 * See spec/console/overview.md, "A line is any of three things, or the worst of them".
+	 * What a pointed slot holds, in a card over it rather than the browser's title: when, a line
+	 * for each thing it says -- an icon, a dot, one word -- and under a rule what it holds by name,
+	 * how long each took or lasted aside. Placed above the slot, or under it near the window's
+	 * top, and kept inside the window. See spec/console/overview.md, "A line is any of three
+	 * things, or the worst of them".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -30,6 +43,7 @@
 	import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
 	import Icon from '../design/icon.svelte';
+	import { type } from '../style.ts';
 	import { painted } from './verdict.ts';
 
 	let { tip, at }: { tip: Tip; at: DOMRect } = $props();
@@ -59,17 +73,20 @@
 			lineHeight: 1.4,
 			color: 'var(--color-text)',
 		},
-		when: { color: 'var(--color-text-muted)' },
-		name: { color: 'var(--color-text-muted)' },
-		words: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
-		quiet: { color: 'var(--color-text-muted)' },
+		time: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
+		muted: { color: 'var(--color-text-muted)' },
+		word: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
 		rule: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--color-line)' },
 	});
 </script>
 
+{#snippet dot(verdict: Verdict)}
+	<span class="size-1.5 shrink-0 rounded-full {stylex.attrs(painted[verdict]).class}"></span>
+{/snippet}
+
 <div
 	role="tooltip"
-	class="pointer-events-none fixed z-50 flex w-max max-w-72 flex-col gap-2 px-3 py-2.5 {stylex.attrs(
+	class="pointer-events-none fixed z-50 flex w-max max-w-64 min-w-44 flex-col {stylex.attrs(
 		styles.card,
 	).class}"
 	style:left="{left}px"
@@ -78,30 +95,42 @@
 	bind:clientWidth={width}
 	bind:clientHeight={height}
 >
-	<span class={stylex.attrs(styles.when).class}>{tip.when}</span>
-	<div class="grid grid-cols-[auto_auto_minmax(0,1fr)] items-center gap-x-2 gap-y-1.5">
+	<!-- When, the time strong and what it leaves out quiet beside it. -->
+	<div class="flex items-baseline justify-between gap-4 px-3 pt-2.5 pb-2">
+		<span class={stylex.attrs(styles.time).class}>{tip.time}</span>
+		{#if tip.date}<span class={stylex.attrs(styles.muted).class}>{tip.date}</span>{/if}
+	</div>
+	<div class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 px-3 pb-2.5">
 		{#each tip.facts as fact (fact.what)}
-			<Icon icon={ICONS[fact.what]} size={14} class={stylex.attrs(styles.name).class} />
-			<span class={stylex.attrs(styles.name).class}>{NAMES[fact.what]}</span>
-			<span class="flex min-w-0 items-center justify-end gap-1.5 text-right">
-				<span
-					class="truncate {stylex.attrs(fact.verdict === 'none' ? styles.quiet : styles.words)
-						.class}">{fact.words}</span
+			<Icon icon={ICONS[fact.what]} size={14} class={stylex.attrs(styles.muted).class} />
+			<span class={stylex.attrs(styles.muted).class}>{NAMES[fact.what]}</span>
+			<span class="flex items-center justify-end gap-1.5">
+				<span class={stylex.attrs(fact.verdict === 'none' ? styles.muted : styles.word).class}
+					>{fact.word}</span
 				>
-				<span class="size-1.5 shrink-0 rounded-full {stylex.attrs(painted[fact.verdict]).class}"
-				></span>
+				{@render dot(fact.verdict)}
 			</span>
 		{/each}
 	</div>
-	{#if tip.runs.length}
-		<ul class="flex flex-col gap-1 pt-2 {stylex.attrs(styles.rule).class}">
-			{#each tip.runs as run (run.key)}
-				<li class="flex items-center gap-1.5">
-					<span class="size-1.5 shrink-0 rounded-full {stylex.attrs(painted[run.verdict]).class}"
-					></span>
-					<span class="truncate">{run.words}</span>
+	{#if tip.items.length}
+		<!-- What it holds by name, how long aside in the figures' face. -->
+		<ul
+			class="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1 px-3 pt-2 pb-2.5 {stylex.attrs(
+				styles.rule,
+			).class}"
+		>
+			{#each tip.items as item (item.key)}
+				<li class="contents">
+					{@render dot(item.verdict)}
+					<span class="truncate">{item.name}</span>
+					<span class="text-right {stylex.attrs(type.shell, styles.muted).class}"
+						>{item.lasted}</span
+					>
 				</li>
 			{/each}
+			{#if tip.more}
+				<li class="col-start-2 {stylex.attrs(styles.muted).class}">{tip.more} more</li>
+			{/if}
 		</ul>
 	{/if}
 </div>
