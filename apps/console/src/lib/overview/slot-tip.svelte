@@ -21,10 +21,10 @@
 
 	/** A slot's tip: when, said as the reader's clock says it, what it says, and what it holds. */
 	export interface Tip {
-		/** The time it begins, or its days: `9 PM`, `Oct 9`, `Oct 7 – 9`. */
-		time: string;
-		/** What the time leaves out, quieter: the day of an hour, the weekday of a day. */
-		date?: string;
+		/** When it begins, its date first, or its days: `Oct 9, 9 PM`, `Oct 9`, `Oct 7 – 9`. */
+		when: string;
+		/** The zone `when` is written in, the reader's, quieter: `UTC-4`. */
+		zone: string;
 		facts: Fact[];
 		items: Item[];
 		/** Items past the few drawn. */
@@ -66,7 +66,9 @@
 	const ICONS = { deploys: RocketIcon, services: PackagesIcon, connectivity: AccessPointIcon };
 	/** A verdict as the dot in an icon's corner; nothing to say draws none. */
 	const badgeOf = (verdict: Verdict) =>
-		verdict === 'none' ? undefined : stylex.attrs(painted[verdict]).class;
+		verdict === 'none'
+			? undefined
+			: stylex.attrs(verdict === 'fine' ? styles.good : painted[verdict]).class;
 	const NAMES = { deploys: 'Deploys', services: 'Services', connectivity: 'Connectivity' };
 
 	/**
@@ -113,6 +115,8 @@
 		},
 		time: { color: 'var(--color-text-strong)', fontWeight: weight.semibold },
 		muted: { color: 'var(--color-text-muted)' },
+		/** Fine, in a tip's dot, as the good it is; the row's slots keep the quieter ink. */
+		good: { backgroundColor: 'var(--color-good)' },
 		word: { color: 'var(--color-text-strong)', fontWeight: weight.medium },
 		rule: { borderTopWidth: '1px', borderTopStyle: 'solid', borderTopColor: 'var(--color-line)' },
 	});
@@ -141,10 +145,10 @@
 		style:top={below ? undefined : '100%'}
 		style:bottom={below ? '100%' : undefined}
 	></span>
-	<!-- When, the time strong and what it leaves out quiet beside it. -->
+	<!-- When, its date first, strong; the zone it is written in quiet beside it. -->
 	<div class="flex items-baseline justify-between gap-4 px-2 pt-2 pb-1.5">
-		<span class="{START} {stylex.attrs(styles.time).class}">{tip.time}</span>
-		{#if tip.date}<span class="{START} {stylex.attrs(styles.muted).class}">{tip.date}</span>{/if}
+		<span class="{START} {stylex.attrs(styles.time).class}">{tip.when}</span>
+		<span class="{START} {stylex.attrs(styles.muted).class}">{tip.zone}</span>
 	</div>
 	<!-- A mark and the words it marks a half step apart, everything else a whole step. -->
 	<div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 px-2 pb-2">

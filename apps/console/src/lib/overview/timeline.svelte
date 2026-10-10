@@ -15,7 +15,7 @@
 	import { CODES } from '../nodes/facts.ts';
 	import { scoped } from '../scope/context.ts';
 	import { displayOf } from '../scope/scope.ts';
-	import { offsetIn, timeZone } from '../ui/time-zone.ts';
+	import { offsetIn, offsetOf, timeZone } from '../ui/time-zone.ts';
 	import type { History, Slot } from '../wire.ts';
 	import HealthFlag from './health-flag.svelte';
 	import AccessPointIcon from '@tabler/icons-svelte-runes/icons/access-point';
@@ -212,18 +212,24 @@
 		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
 
 	const dayOf = (at: number) => written(at, zone, 'day');
-	/** A slot's time on the reader's clock: `9 PM` of `Oct 9`, `Oct 9` a `Thu`, `Oct 7 – 9`. */
-	function timeOf(start: number): Pick<Tip, 'time' | 'date'> {
+	/**
+	 * A slot's time on the reader's clock, its date first: `Oct 9, 9 PM`, `Oct 9`, `Oct 7 – 9`; and
+	 * the zone it is written in, the reader's, as its offset then.
+	 */
+	function timeOf(start: number): Pick<Tip, 'when' | 'zone'> {
+		const zoned = offsetOf(zone, start);
 		if (length < DAY) {
-			return { time: written(start, zone, 'hour').replace(':00', ''), date: dayOf(start) };
+			const hour = written(start, zone, 'hour').replace(':00', '');
+			return { when: `${dayOf(start)}, ${hour}`, zone: zoned };
 		}
-		if (length === DAY) {
-			return { time: dayOf(start), date: written(start, zone, 'weekday') };
-		}
+		if (length === DAY) return { when: dayOf(start), zone: zoned };
 		const last = start + length - 1;
 		const [from, to] = [dayOf(start), dayOf(last)];
 		const [month, day] = to.split(' ');
-		return { time: from.startsWith(`${month} `) ? `${from} – ${day}` : `${from} – ${to}` };
+		return {
+			when: from.startsWith(`${month} `) ? `${from} – ${day}` : `${from} – ${to}`,
+			zone: zoned,
+		};
 	}
 
 	/** Names shown in a tip at most; the rest are counted. */
@@ -383,9 +389,7 @@
 		this={one.href ? 'a' : 'span'}
 		href={one.href}
 		role={one.href ? undefined : 'img'}
-		aria-label={[one.tip.time, one.tip.date, ...one.tip.facts.map((fact) => fact.word)]
-			.filter(Boolean)
-			.join(', ')}
+		aria-label={[one.tip.when, ...one.tip.facts.map((fact) => fact.word)].join(', ')}
 		tabindex={one.href ? undefined : -1}
 		class="group relative block h-full min-w-0 outline-none hover:z-10 focus-visible:z-10 {layout
 			? 'shrink-0'

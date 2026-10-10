@@ -167,21 +167,20 @@ export function downIn(slot: Slot | undefined, app?: string): { app: string; sec
 
 const SECONDS_A_ROUND = 3;
 
-/** How long, in its two largest units, no space inside one: `40s`, `3m 20s`, `2h 13m`, `3d 4h`. */
+/**
+ * How long, in its largest unit alone and floored: `40s`, `15m` for 15m 3s, `2h`, `3d`. The tip
+ * has room for one figure, and the largest says the most.
+ */
 export function lasting(seconds: number): string {
-	const whole = Math.max(0, Math.round(seconds));
+	const whole = Math.max(0, Math.floor(seconds));
 	const units = [
 		[86_400, 'd'],
 		[3600, 'h'],
 		[60, 'm'],
 		[1, 's'],
 	] as const;
-	const at = units.findIndex(([size]) => whole >= size);
-	if (at === -1) return '0s';
-	const [size, name] = units[at] as (typeof units)[number];
-	const next = units[at + 1];
-	const rest = next ? Math.floor((whole % size) / next[0]) : 0;
-	return `${Math.floor(whole / size)}${name}${rest && next ? ` ${rest}${next[1]}` : ''}`;
+	const [size, name] = units.find(([one]) => whole >= one) ?? [1, 's'];
+	return `${Math.floor(whole / size)}${name}`;
 }
 
 /**

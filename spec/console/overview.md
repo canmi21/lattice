@@ -220,16 +220,19 @@ Announced, Missed, Lost`; and `Unrecorded` before a node's history begins.
 **A slot pointed at is ringed flush in the focus ring's color**, two pixels of the accent with no
 gap, as the keyboard's focus is drawn -- the kit's `interaction.css` -- the shade on what the slot
 holds rather than on the slot, so the ring is never faded with it. **What it holds is a tip of the
-console's own, not the browser's title, in as few words as it can**: when, strong, with what it
-leaves out quiet beside it -- `9 PM` and `Oct 9`, `Oct 9` and `Thu`, `Oct 7 – 9`; a line for each
+console's own, not the browser's title, in as few words as it can**: when, its date first and
+strong -- `Oct 9, 9 PM`, `Oct 9`, `Oct 7 – 9` -- with the zone it is written in quiet on the right,
+the reader's, as its offset then, `UTC-4`, since every time is written in the reader's zone; a line for each
 thing it says, an icon -- a rocket for deploys, packages for services, an access point for being
-heard -- with its verdict as a dot in the icon's lower corner, its name, and on the right one word
+heard -- with its verdict as a dot in the icon's lower corner -- fine there is green, `--color-good`, though
+the row's fine slots keep the quieter ink -- its name, and on the right one word
 alone; and under a rule what it holds, each by its own icon, the dot in its corner, its name, and
 how long aside in the figures' face: each app down by the app's icon (`src/lib/apps/glyphs.ts`),
 the time unheard, each run by a rocket, four at most and the rest counted. **How long a trouble
-lasted is the whole of it**, not the share one slot holds: an app down across many slots is said as
-the sum of every slot it was down in without a break, to its end, or, still down, to now -- `1h
-52m`, not the `1m` a minute's slot holds; a run, how long it took. A mark and the words it marks --
+lasted is the whole of it, said by its largest unit alone**, not the share one slot holds: an app down across many slots is said as
+the sum of every slot it was down in without a break, to its end, or, still down, to now -- `1h` for an
+hour and 52 minutes, `15m` for 15 minutes and 3 seconds, the first unit that is not zero and
+floored, since a tip has room for one figure -- not the `1m` a minute's slot holds; a run, how long it took. A mark and the words it marks --
 an icon and its name -- stand a half step apart, four pixels, and everything else a whole step, eight, so each
 mark reads as part of its words. It stands over the slot, under it near the window's top, and
 inside the window, its edge eight pixels on every side measured from the ink -- its first and last
