@@ -1,11 +1,11 @@
 <script lang="ts" generics="Key extends string">
 	/**
-	 * A card's title that is its own choice: the chosen option's words, a chevron after them, and a
-	 * menu of the others under it -- in place of a framed switch inside the card's head, which is
-	 * a box set in a box. A framed switch stays where it floats over a drawing, as the map's does.
-	 * After the options, under a rule, the places the card leads, each with an arrow off its edge.
-	 * The menu's keys, focus and dismissal are Bits UI's, its arrival GSAP's. See
-	 * spec/console/design.md, "A choice in a card's head is its title".
+	 * A card's title that is its own choice: the chosen option's words, a chevron, and a menu of the
+	 * others under it, in place of a framed switch in the card's head, a box set in a box; a framed
+	 * switch stays where it floats over a drawing, as the map's does. After the options, under a rule
+	 * that takes no room, the pages the card leads to, each with an arrow. The menu's keys, focus and
+	 * dismissal are Bits UI's, its arrival GSAP's. See spec/console/design.md, "A choice in a card's
+	 * head is its title".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius, text } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -70,7 +70,7 @@
 	<!-- Pulled left by its padding, so the words stand where a plain title's would. -->
 	<DropdownMenu.Trigger
 		aria-label="{label}: {chosen?.title}"
-		class="-ml-1.5 inline-flex h-8 cursor-pointer items-center gap-1 px-1.5 {stylex.attrs(
+		class="-ml-1.5 inline-flex h-8 shrink-0 cursor-pointer items-center gap-1 px-1.5 whitespace-nowrap {stylex.attrs(
 			type.heading,
 			styles.trigger,
 		).class}"
@@ -101,16 +101,24 @@
 				</DropdownMenu.Item>
 			{/each}
 			{#if links.length}
-				<DropdownMenu.Separator class="mx-1 my-1 h-px {stylex.attrs(styles.rule).class}" />
-				{#each links as one (one.href)}
+				{#each links as one, index (one.href)}
 					<DropdownMenu.Item>
 						{#snippet child({ props })}
 							<a
 								{...props}
 								href={one.href}
-								class="flex h-8 items-center justify-between gap-3 px-2 {stylex.attrs(styles.item)
-									.class}"
+								class="relative flex h-8 items-center justify-between gap-3 px-2 {stylex.attrs(
+									styles.item,
+								).class}"
 							>
+								<!-- The rule over the first link is drawn, not laid out: no height and no gap of
+								     its own, so the menu is as tall with it as without. -->
+								{#if index === 0}
+									<span
+										aria-hidden="true"
+										class="absolute inset-x-1 -top-[0.5px] h-px {stylex.attrs(styles.rule).class}"
+									></span>
+								{/if}
 								{one.title}
 								<Icon icon={ArrowUpRightIcon} size={16} class={stylex.attrs(styles.away).class} />
 							</a>

@@ -1,14 +1,14 @@
 <script lang="ts">
 	/**
-	 * The week, a line a node, as a status page draws one: its flag with the dot that says how it
-	 * is, the part of its place that tells it apart, and a row of slots -- grey where nothing ran,
-	 * white done, blue going, amber where a run partly failed and red where it failed. The slots
-	 * stretch between their bounds to fill the row, and where they cannot, there are more or fewer
-	 * of them. Under the rows, the legend and `Now`. In a view without nodes the lines are its
-	 * busiest apps instead. See spec/console/overview.md, "The week is a line a node".
+	 * The week, a line a node, as a status page draws one: its flag and its health's dot, the part of
+	 * its place that tells it apart, and a row of slots -- grey where nothing ran, white done, blue
+	 * going, amber partly failed, red failed -- each as dark as its runs rank among its color's,
+	 * saying when on its hover. The slots stretch to fill the row, else there are more or fewer. In a
+	 * view without nodes the lines are its busiest apps. See spec/console/overview.md, "The week is a
+	 * line a node".
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { duration, text } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { text } from '@canmi/kit/tokens/vocabulary.stylex';
 	import { localTime } from '../format.ts';
 	import type { Live } from '../live.svelte.ts';
 	import { nameOf, partOf } from '../map/places.ts';
@@ -23,9 +23,10 @@
 		type Cell,
 		DAY,
 		type Mark,
-		type Outcome,
+		SHADES,
 		fit,
 		marks,
+		shades,
 		slots,
 		slotsIn,
 	} from './timeline.ts';
@@ -59,8 +60,6 @@
 	let width = $state(0);
 	const layout = $derived(width ? fit(span, width) : undefined);
 	const of = $derived(layout?.of ?? slotsIn(span));
-	/** The legend, in the reader's words, each beside its slot's color. */
-	const LEGEND: readonly Outcome[] = ['succeeded', 'running', 'mixed', 'failed'];
 
 	const drawn = $derived(
 		marks(
@@ -106,7 +105,9 @@
 			label: displayOf(app),
 			whole: displayOf(app),
 		}));
-	});
+	}); /** Each line with its slots, and the shade of every filled slot among them all. */
+	const rows = $derived(lines.map((line) => ({ line, slots: slots(line.marks, of) })));
+	const shaded = $derived(shades(rows.flatMap((row) => row.slots)));
 
 	/** How long it took, in its one largest unit: ` in 42s`, ` in 3m`. */
 	function took(mark: Mark): string {
@@ -120,8 +121,19 @@
 	const said = (mark: Mark) =>
 		`${appsOf(mark)}: ${OUTCOME[mark.outcome]}, ${localTime(mark.started_at, zone)}${took(mark)}` +
 		(mark.detail ? `\n${mark.detail}` : '');
-	/** A slot's hover: each of its runs. */
-	const told = (cell: Cell) => cell.marks.map(said).join('\n');
+	/** A slot's hover: the time it covers, then each of its runs. */
+	function told(cell: Cell): string {
+		const start = live.now - span + (cell.index * span) / cell.of;
+		const end = start + span / cell.of;
+		const at = (ms: number) => localTime(new Date(ms).toISOString(), zone);
+		return [`${at(start)} to ${at(end)}`, ...cell.marks.map(said)].join('\n');
+	}
+	/** Where a slot leads: the run in it that failed, else the latest. */
+	const leadOf = (cell: Cell): Mark =>
+		cell.marks.find((one) => one.outcome === 'failed' || one.outcome === 'mixed') ??
+		(cell.marks.at(-1) as Mark);
+	/** A shade's opacity: a quarter at the palest, whole at the darkest, in even steps between. */
+	const opacityOf = (shade: number) => (0.25 + (0.75 * (shade - 1)) / (SHADES - 1)).toFixed(3);
 	const hrefOf = (mark: Mark) =>
 		mark.run === undefined ? `${toNode(mark.node)}?tab=events` : to(`/deployments/${mark.run}`);
 
@@ -134,27 +146,28 @@
 		running: { backgroundColor: 'var(--color-busy)' },
 		mixed: { backgroundColor: 'var(--color-warn)' },
 		failed: { backgroundColor: 'var(--color-danger)' },
+		/** Pointed at, ringed in the ink, since its own shade is what it says. */
 		slot: {
-			opacity: { default: 1, ':hover': 0.7 },
-			transitionProperty: 'opacity',
-			transitionDuration: duration.base,
+			outlineWidth: '1px',
+			outlineStyle: { default: 'none', ':hover': 'solid' },
+			outlineColor: 'var(--color-text)',
+			outlineOffset: '1px',
 		},
-		axis: { color: 'var(--color-text-muted)', fontSize: text.px12 },
 		none: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 	});
 </script>
 
 {#snippet slot(one: Cell | undefined)}
 	{#if one}
-		{@const only = one.marks.length === 1 ? one.marks[0] : undefined}
 		<a
-			href={only ? hrefOf(only) : to('/deployments')}
+			href={hrefOf(leadOf(one))}
 			title={told(one)}
 			class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(
 				styles.slot,
 				styles[one.outcome],
 			).class}"
 			style:width={layout ? `${layout.slot}px` : undefined}
+			style:opacity={opacityOf(shaded.get(one) ?? SHADES)}
 		></a>
 	{:else}
 		<span
@@ -167,7 +180,8 @@
 
 {#if nodes || lines.length}
 	<div class="flex flex-col gap-1.5">
-		{#each lines as line (line.key)}
+		{#each rows as row (row.line.key)}
+			{@const line = row.line}
 			<div class="h-6 {COLUMNS}">
 				<a
 					href={line.href}
@@ -188,24 +202,12 @@
 					class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
 					style:gap={layout ? `${layout.gap}px` : undefined}
 				>
-					{#each slots(line.marks, of) as one, index (index)}
+					{#each row.slots as one, index (index)}
 						{@render slot(one)}
 					{/each}
 				</div>
 			</div>
 		{/each}
-		<!-- The legend under the names, and where the rows end; the title says where they start. -->
-		<div class="flex items-center justify-between pt-2 {stylex.attrs(styles.axis).class}">
-			<div class="flex flex-wrap items-center gap-x-4 gap-y-1">
-				{#each LEGEND as outcome (outcome)}
-					<span class="flex items-center gap-1.5">
-						<span class="h-3 w-[3px] rounded-[1px] {stylex.attrs(styles[outcome]).class}"
-						></span>{OUTCOME[outcome]}
-					</span>
-				{/each}
-			</div>
-			<span>Now</span>
-		</div>
 		<!-- What the slots are measured against: the rows' second column, empty and as wide. -->
 		<div aria-hidden="true" class="h-0 {COLUMNS}">
 			<span></span>

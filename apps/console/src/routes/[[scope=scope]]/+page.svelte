@@ -14,6 +14,7 @@
 	import NodeList from '#lib/overview/node-list.svelte';
 	import { current, fromLive, merged } from '#lib/overview/moving.js';
 	import Timeline from '#lib/overview/timeline.svelte';
+	import TimelineLegend from '#lib/overview/timeline-legend.svelte';
 	import { DAY, WEEK } from '#lib/overview/timeline.js';
 	import TitleChoice from '#lib/ui/title-choice.svelte';
 	import Verdict from '#lib/overview/verdict.svelte';
@@ -89,6 +90,7 @@
 				]}
 			/>
 		{/snippet}
+		{#snippet aside()}<TimelineLegend />{/snippet}
 		<div class="px-5 pb-4">
 			{#if seed.value}
 				<Timeline {live} steps={day} {keep} nodes={data.nodes} {span} />

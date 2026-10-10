@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { Step } from './moving.ts';
-import { DAY, GAP, SLOT, WEEK, cells, fit, marks, slots, slotsIn } from './timeline.ts';
+import {
+	DAY,
+	GAP,
+	SHADES,
+	SLOT,
+	WEEK,
+	type Cell,
+	cells,
+	fit,
+	marks,
+	shades,
+	slots,
+	slotsIn,
+} from './timeline.ts';
 
 const NOW = Date.parse('2026-10-09T12:00:00Z');
 const at = (hoursAgo: number) => new Date(NOW - hoursAgo * 3_600_000).toISOString();
@@ -107,5 +120,23 @@ describe('timeline', () => {
 			expect(one.slot).toBeLessThanOrEqual(SLOT.max);
 		}
 		expect(narrow.of * narrow.slot + (narrow.of - 1) * narrow.gap).toBeLessThanOrEqual(600.001);
+	});
+
+	it('shades a slot by its rank among its outcome, so one busy hour does not pale the rest', () => {
+		const slot = (runs: number, outcome: Cell['outcome'] = 'succeeded'): Cell => ({
+			key: `${runs} ${outcome}`,
+			node: 'tyo',
+			index: runs,
+			of: 168,
+			outcome,
+			marks: Array.from({ length: runs }, () => marks([step({})], NOW)[0]!),
+		});
+		const row = [slot(1), slot(2), slot(3), slot(40), undefined, slot(1, 'failed')];
+		const shaded = shades(row);
+		expect(shaded.get(row[3] as Cell)).toBe(SHADES);
+		expect(shaded.get(row[2] as Cell)).toBeGreaterThan(5);
+		expect(shaded.get(row[0] as Cell)).toBeLessThan(shaded.get(row[1] as Cell) ?? 0);
+		// A lone failure is the darkest of the failures, ranked apart from the done.
+		expect(shaded.get(row[5] as Cell)).toBe(SHADES);
 	});
 });

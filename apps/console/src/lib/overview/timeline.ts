@@ -152,3 +152,29 @@ export function slots(marks: readonly Mark[], of: number): (Cell | undefined)[] 
 	const filled = new Map(cells(marks, of).map((cell) => [cell.index, cell]));
 	return Array.from({ length: of }, (_, index) => filled.get(index));
 }
+
+/** How many shades a slot's color comes in, its runs' count ranked among the others'. */
+export const SHADES = 10;
+
+/**
+ * Each filled slot's shade, 1 to `SHADES`, by where its count of runs ranks among the slots of the
+ * same outcome: the share of them holding as many or fewer, taken in tenths. Ranked rather than
+ * measured against the busiest, so one hour of forty deploys is the darkest without washing every
+ * other out to the palest; and equal counts share a shade. See spec/console/overview.md, "The
+ * week is a line a node".
+ */
+export function shades(slots: readonly (Cell | undefined)[]): Map<Cell, number> {
+	const filled = slots.filter((one): one is Cell => one !== undefined);
+	const shaded = new Map<Cell, number>();
+	for (const outcome of new Set(filled.map((one) => one.outcome))) {
+		const counts = filled
+			.filter((one) => one.outcome === outcome)
+			.map((one) => one.marks.length)
+			.toSorted((a, b) => a - b);
+		for (const one of filled.filter((cell) => cell.outcome === outcome)) {
+			const atMost = counts.filter((count) => count <= one.marks.length).length;
+			shaded.set(one, Math.max(1, Math.ceil((SHADES * atMost) / counts.length)));
+		}
+	}
+	return shaded;
+}
