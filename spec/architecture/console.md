@@ -56,11 +56,13 @@ console waits. A read the console needs and the backend cannot yet answer that w
 to hold, not the console's to gather. **So the document's own response is drawn filled**: a page's
 load awaits its reads when the request is the browser's first, not a move -- `event.isDataRequest`
 false -- and the browser takes over from the data in the page with no read of its own; on a move
-between pages a read is streamed as above, since the browser holds most of it already. The
-placeholders stay for a read that fails or comes late, rarely seen but never removed. The reads that
-still fan out across the nodes break this rule until they move, in
-[../todo/todo.md](../todo/todo.md), "The console's reads move to the backend". Decided with the
-author on 2026-10-09.
+between pages a read is streamed as above, since the browser holds most of it already. **A relay
+counts as answering once its body is read whole**, not once its head arrives: a far relay that had
+sent half of 450 KB of runs when the time ran out was read as nothing, and the overview said no
+deploys, until 2026-10-10; now the next nearest is asked. The placeholders stay for a read that
+fails or comes late, rarely seen but never removed. The reads that still fan out across the nodes
+break this rule until they move, in [../todo/todo.md](../todo/todo.md), "The console's reads move to
+the backend". Decided with the author on 2026-10-09.
 
 **A node is shown by its city, and its code is the key.** What the console writes for a node is a
 display name, its city and its country, written whole -- `Tokyo, Japan`, `Raleigh, United States`,

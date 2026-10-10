@@ -206,6 +206,20 @@ describe('runs', () => {
 		expect(found.failures).toEqual({});
 	});
 
+	it('reads the next relay where the nearest sends half a body', async () => {
+		let asked = 0;
+		const half = () => {
+			asked += 1;
+			return asked === 1
+				? new Response('{"status":"success","data":{"runs":[', { status: 200 })
+				: success(mirror);
+		};
+		const { env } = bound(relays(half));
+		const found = await runs({ env });
+		expect(found.runs.map((r) => r.run)).toEqual([42]);
+		expect(found.failures).toEqual({});
+	});
+
 	it('says every node is unread where no relay answers', async () => {
 		const { env } = bound(relays(down));
 		const found = await runs({ env });

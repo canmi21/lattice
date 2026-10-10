@@ -8,7 +8,7 @@ import type { Code } from '@canmi/response';
 import { URLS } from '@monoflake/sdk';
 import type { Cluster } from '../wire.ts';
 import type { FleetEvent } from './fleet.ts';
-import { type Env, TIMEOUT, bindingOf, first, reach } from './edge.ts';
+import { type Env, TIMEOUT, TRIES, bindingOf, reach } from './edge.ts';
 import { NODES, type Node, type Whereabouts, order } from './nodes.ts';
 
 /**
@@ -34,18 +34,34 @@ export interface Failure {
 export type Read<T> = { ok: true; node: Node; data: T } | { ok: false; failure: Failure };
 
 /**
- * Every node as the nearest relay that answers holds them, as `/state` passes it on. A relay that
- * has not answered in `timeout` milliseconds is given up on for the next.
+ * `path` of the nearest relay that answers it whole: a relay counts once its body is read and
+ * parsed within `timeout` milliseconds, not once its head arrives, so a far relay that sends half
+ * a body before the time runs out is passed over for the next rather than read as nothing.
  */
+async function nearest<T>(edge: Edge, path: `/${string}`, timeout: number): Promise<Read<T>> {
+	let last: Read<T> | undefined;
+	for (const node of order(edge.where).slice(0, TRIES)) {
+		try {
+			const signal = AbortSignal.timeout(timeout);
+			const answer = await reach(edge.env, node, path, { method: 'GET', signal });
+			if (!answer.ok) {
+				await answer.body?.cancel();
+				console.error(`read: ${node} answered ${path} ${answer.status}`);
+				continue;
+			}
+			last = await opened<T>(node, answer);
+			if (last.ok) return last;
+			console.error(`read: ${node} answered ${path} unreadably: ${last.failure.message}`);
+		} catch (error) {
+			console.error(`read: ${node} did not answer ${path}: ${String(error)}`);
+		}
+	}
+	return last ?? failed(502, 'upstream_unavailable', 'No relay answered.');
+}
+
+/** Every node as the nearest relay that answers holds them, as `/state` passes it on. */
 export async function cluster(edge: Edge, timeout = TIMEOUT): Promise<Read<Cluster>> {
-	const reached = await first(
-		order(edge.where),
-		(node) =>
-			reach(edge.env, node, '/state', { method: 'GET', signal: AbortSignal.timeout(timeout) }),
-		(answer) => answer.ok,
-	);
-	if (reached === undefined) return failed(502, 'upstream_unavailable', 'No relay answered.');
-	return opened<Cluster>(reached.node, reached.answer);
+	return nearest<Cluster>(edge, '/state', timeout);
 }
 
 /** Every node's rows of the last 30 days, newest first, as one relay mirrors them. */
@@ -62,14 +78,7 @@ export interface Mirrored {
  * every relay's disk".
  */
 export async function mirrored(edge: Edge, timeout = TIMEOUT): Promise<Read<Mirrored>> {
-	const reached = await first(
-		order(edge.where),
-		(node) =>
-			reach(edge.env, node, '/runs', { method: 'GET', signal: AbortSignal.timeout(timeout) }),
-		(answer) => answer.ok,
-	);
-	if (reached === undefined) return failed(502, 'upstream_unavailable', 'No relay answered.');
-	return opened<Mirrored>(reached.node, reached.answer);
+	return nearest<Mirrored>(edge, '/runs', timeout);
 }
 
 /**
