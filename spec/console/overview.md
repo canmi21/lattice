@@ -223,10 +223,14 @@ holds rather than on the slot, so the ring is never faded with it. **What it hol
 console's own, not the browser's title, in as few words as it can**: when, strong, with what it
 leaves out quiet beside it -- `9 PM` and `Oct 9`, `Oct 9` and `Thu`, `Oct 7 – 9`; a line for each
 thing it says, an icon -- a rocket for deploys, packages for services, an access point for being
-heard -- its name, its verdict's dot and one word; and under a rule what it holds by name, how
-long each lasted aside in the figures' face: each app down, the minutes unheard, each run, four at
-most and the rest counted. A mark and the words it marks -- an icon and its name, a dot and its
-word -- stand a half step apart, four pixels, and everything else a whole step, eight, so each
+heard -- with its verdict as a dot in the icon's lower corner, its name, and on the right one word
+alone; and under a rule what it holds, each by its own icon, the dot in its corner, its name, and
+how long aside in the figures' face: each app down by the app's icon (`src/lib/apps/glyphs.ts`),
+the time unheard, each run by a rocket, four at most and the rest counted. **How long a trouble
+lasted is the whole of it**, not the share one slot holds: an app down across many slots is said as
+the sum of every slot it was down in without a break, to its end, or, still down, to now -- `1h
+52m`, not the `1m` a minute's slot holds; a run, how long it took. A mark and the words it marks --
+an icon and its name -- stand a half step apart, four pixels, and everything else a whole step, eight, so each
 mark reads as part of its words. It stands over the slot, under it near the window's top, and
 inside the window, its edge eight pixels on every side measured from the ink -- its first and last
 words trimmed to cap height and baseline, as the map's card is, since a line's leading would
@@ -242,6 +246,10 @@ intent asks for. A slot under it is reached by leaving the tip first, which clos
 deliberate move to something else. This is the behavior wanted, not a cost; the alternative, a
 tip the pointer passes through, would close under a reader still reading it. Decided with the
 author on 2026-10-10.
+
+**A row is one place to point along, with no gap between its slots**: each slot holds the pointer
+over itself and half the gap either side, so a pointer moving across the row goes from one slot's
+tip to the next without falling between them; the ring stays on the slot alone, not its reach.
 
 **The row's slots begin on whole times of the reader's clock** -- the hour, the day -- the last
 holding now, so a slot is `9 PM`, never `9:27 PM`, and a reload a few minutes on draws the same

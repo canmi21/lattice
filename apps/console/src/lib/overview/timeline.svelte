@@ -18,6 +18,9 @@
 	import { offsetIn, timeZone } from '../ui/time-zone.ts';
 	import type { History, Slot } from '../wire.ts';
 	import HealthFlag from './health-flag.svelte';
+	import AccessPointIcon from '@tabler/icons-svelte-runes/icons/access-point';
+	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
+	import { glyphOf } from '../apps/glyphs.ts';
 	import SlotTip, { type Fact, type Item, type Tip } from './slot-tip.svelte';
 	import { healthOf } from './health.ts';
 	import {
@@ -25,11 +28,14 @@
 		type Verdict,
 		WORDS,
 		deployed,
+		downFor,
 		downIn,
+		episode,
 		gathered,
 		heard,
 		served,
 		lasting,
+		unheardIn,
 		worse,
 	} from './history.ts';
 	import type { Step } from './moving.ts';
@@ -256,30 +262,39 @@
 			.map((fact) => ({ ...fact, word: wordOf(fact.what, fact.verdict) }));
 
 		const asks = (what: Fact['what']) => dimension === 'overview' || dimension === what;
+		/** One node's history as asked, and where this slot stands in it. */
+		const raw = (code: string) => history?.nodes[code] ?? [];
+		const step = (history?.slot ?? 0) * 1000;
+		/** How long the trouble this slot is part of lasted, to its end or, going on, to now. */
+		const lastedIn = (code: string, of: (slot: Slot) => number, fallback: number) =>
+			lasting(episode(raw(code), step, start, end, of) ?? fallback);
 		const items: Item[] = [
 			...(asks('services')
 				? line.app
 					? across.flatMap(({ code, slot }) =>
 							downIn(slot, line.app).map((one) => ({
 								key: `down ${code}`,
+								icon: glyphOf(one.app),
 								name: partOf(code),
-								lasted: lasting(one.seconds),
+								lasted: lastedIn(code, downFor(one.app), one.seconds),
 								verdict: served(slot, line.app),
 							})),
 						)
 					: downIn(own).map((one) => ({
 							key: `down ${one.app}`,
+							icon: glyphOf(one.app),
 							name: displayOf(one.app),
-							lasted: lasting(one.seconds),
+							lasted: lastedIn(line.code ?? '', downFor(one.app), one.seconds),
 							verdict: services,
 						}))
 				: []),
-			...(asks('connectivity') && own?.missing
+			...(asks('connectivity') && own?.missing && line.code
 				? [
 						{
 							key: 'unheard',
+							icon: AccessPointIcon,
 							name: 'Unheard',
-							lasted: lasting(own.missing * 60),
+							lasted: lastedIn(line.code, unheardIn, own.missing * 60),
 							verdict: connectivity,
 						},
 					]
@@ -287,6 +302,7 @@
 			...(asks('deploys')
 				? (cell?.marks ?? []).map((mark) => ({
 						key: mark.key,
+						icon: RocketIcon,
 						name: appsOf(mark),
 						lasted: took(mark),
 						verdict: deployed(mark.outcome),
@@ -355,23 +371,14 @@
 
 	const styles = stylex.create({
 		label: { color: 'var(--color-text)', fontSize: text.px13 },
-		/** Pointed at, ringed flush in the focus ring's color, the ring the keyboard's focus draws. */
-		slot: {
-			outlineWidth: '2px',
-			outlineStyle: { default: 'none', ':hover': 'solid', ':focus-visible': 'solid' },
-			outlineColor: 'var(--color-accent)',
-			outlineOffset: 0,
-			position: 'relative',
-			zIndex: { default: 'auto', ':hover': 1 },
-		},
-		/** Ringed while its tip is held, the pointer gone up into it. */
-		held: { outlineStyle: 'solid', zIndex: 1 },
 		none: { color: 'var(--color-text-muted)', fontSize: text.px13 },
 	});
 </script>
 
 {#snippet slot(one: Drawn)}
-	<!-- The ring on the slot and the shade on what it holds, so the ring is drawn whole. -->
+	<!-- Three layers: what the pointer holds, the slot and half the gap either side of it, so a
+	     pointer moving along the row never falls between two; the ring, on the slot alone; and the
+	     shade, on what it holds, so the ring is drawn whole. -->
 	<svelte:element
 		this={one.href ? 'a' : 'span'}
 		href={one.href}
@@ -380,20 +387,27 @@
 			.filter(Boolean)
 			.join(', ')}
 		tabindex={one.href ? undefined : -1}
-		class="min-w-0 rounded-[2px] {layout ? 'shrink-0' : 'flex-1'} {stylex.attrs(
-			styles.slot,
-			pointed?.key === one.key && styles.held,
-		).class}"
-		style:width={layout ? `${layout.slot}px` : undefined}
+		class="group relative block h-full min-w-0 outline-none hover:z-10 focus-visible:z-10 {layout
+			? 'shrink-0'
+			: 'flex-1'}"
+		style:width={layout ? `${layout.slot + layout.gap}px` : undefined}
+		style:padding-inline={layout ? `${layout.gap / 2}px` : undefined}
 		onpointerenter={point(one)}
 		onpointerleave={off}
 		onfocus={point(one)}
 		onblur={leave}
 	>
 		<span
-			class="block size-full rounded-[2px] {stylex.attrs(painted[one.verdict]).class}"
-			style:opacity={one.verdict === 'none' ? undefined : one.opacity.toFixed(3)}
-		></span>
+			class="block size-full rounded-[2px] outline-offset-0 outline-[var(--color-accent)] group-hover:outline-2 group-hover:outline-solid group-focus-visible:outline-2 group-focus-visible:outline-solid {pointed?.key ===
+			one.key
+				? 'outline-2 outline-solid'
+				: ''}"
+		>
+			<span
+				class="block size-full rounded-[2px] {stylex.attrs(painted[one.verdict]).class}"
+				style:opacity={one.verdict === 'none' ? undefined : one.opacity.toFixed(3)}
+			></span>
+		</span>
 	</svelte:element>
 {/snippet}
 
@@ -417,9 +431,10 @@
 					<span class="truncate">{line.label}</span>
 				</a>
 				<!-- Its slots as wide and as far apart as the row lets them be, ending at now. -->
+				<!-- Half a gap out past each end, which the first and last slots' reach fills. -->
 				<div
 					class="flex h-5 justify-end {layout ? '' : 'gap-px'}"
-					style:gap={layout ? `${layout.gap}px` : undefined}
+					style:margin-inline={layout ? `${-layout.gap / 2}px` : undefined}
 				>
 					{#each row.cells as cell, index (index)}
 						{@render slot(slotOf(line, cell, index))}

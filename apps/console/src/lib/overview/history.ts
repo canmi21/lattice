@@ -167,10 +167,61 @@ export function downIn(slot: Slot | undefined, app?: string): { app: string; sec
 
 const SECONDS_A_ROUND = 3;
 
-/** How long, in its largest unit: `40s`, `3m`, `2h`. */
-export const lasting = (seconds: number) =>
-	seconds < 60
-		? `${seconds}s`
-		: seconds < 3600
-			? `${Math.round(seconds / 60)}m`
-			: `${Math.round(seconds / 3600)}h`;
+/** How long, in its two largest units, no space inside one: `40s`, `3m 20s`, `2h 13m`, `3d 4h`. */
+export function lasting(seconds: number): string {
+	const whole = Math.max(0, Math.round(seconds));
+	const units = [
+		[86_400, 'd'],
+		[3600, 'h'],
+		[60, 'm'],
+		[1, 's'],
+	] as const;
+	const at = units.findIndex(([size]) => whole >= size);
+	if (at === -1) return '0s';
+	const [size, name] = units[at] as (typeof units)[number];
+	const next = units[at + 1];
+	const rest = next ? Math.floor((whole % size) / next[0]) : 0;
+	return `${Math.floor(whole / size)}${name}${rest && next ? ` ${rest}${next[1]}` : ''}`;
+}
+
+/**
+ * The trouble a slot of `slots` -- one node's history, oldest first, `length` milliseconds each --
+ * is part of, between `from` and `to`: every slot touching each other with trouble in it, `of`
+ * saying how many seconds of it a slot holds, summed. So a service down across many slots is said
+ * once, as long as it lasted to its end or, still going, to now -- not as the share one slot holds.
+ */
+export function episode(
+	slots: readonly Slot[],
+	length: number,
+	from: number,
+	to: number,
+	of: (slot: Slot) => number,
+): number | undefined {
+	const starts = slots.map((one) => Date.parse(one.at));
+	const inside = slots.flatMap((one, index) => {
+		const at = starts[index] ?? 0;
+		return at < to && at + length > from && of(one) > 0 ? [index] : [];
+	});
+	const [first] = inside;
+	const last = inside.at(-1);
+	if (first === undefined || last === undefined) return undefined;
+	/** Slot `a` runs straight on into `b`, and `added`, the one taken in, has trouble too. */
+	const joined = (a: number, b: number, added: number) =>
+		(starts[b] ?? 0) - (starts[a] ?? 0) === length && of(slots[added] as Slot) > 0;
+	let start = first;
+	while (start > 0 && joined(start - 1, start, start - 1)) start -= 1;
+	let end = last;
+	while (end < slots.length - 1 && joined(end, end + 1, end + 1)) end += 1;
+	return slots.slice(start, end + 1).reduce((total, one) => total + of(one), 0);
+}
+
+/** The seconds `app` was down in a slot, past a blip; for `episode`. */
+export const downFor =
+	(app: string) =>
+	(slot: Slot): number => {
+		const rounds = slot.down?.[app] ?? 0;
+		return rounds >= BLIP ? rounds * SECONDS_A_ROUND : 0;
+	};
+
+/** The seconds a slot's node went unheard; for `episode`. */
+export const unheardIn = (slot: Slot): number => (slot.missing ?? 0) * 60;

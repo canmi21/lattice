@@ -1,4 +1,5 @@
 <script lang="ts" module>
+	import type { IconComponent } from '../design/optics.ts';
 	import type { Verdict } from './history.ts';
 
 	/** One thing a slot says: which, its verdict, and that verdict's one word. */
@@ -11,6 +12,8 @@
 	/** One thing in a slot worth naming -- an app down, a run -- and how long it took or lasted. */
 	export interface Item {
 		key: string;
+		/** What it is drawn with: the app's own icon, a run's rocket, the unheard's access point. */
+		icon: IconComponent;
 		name: string;
 		lasted: string;
 		verdict: Verdict;
@@ -31,11 +34,11 @@
 
 <script lang="ts">
 	/**
-	 * What a pointed slot holds, in a card over it rather than the browser's title: when, a line
-	 * for each thing it says -- an icon, a dot, one word -- and under a rule what it holds by name,
-	 * how long each took or lasted aside. Placed above the slot, or under it near the window's
-	 * top, and kept inside the window. See spec/console/overview.md, "A line is any of three
-	 * things, or the worst of them".
+	 * What a pointed slot holds, in a card over it rather than the browser's title: when; a line for
+	 * each thing it says -- its icon, how it is as a dot in the icon's corner, one word; and under a
+	 * rule what it holds by icon and name, how long each took or lasted aside. Over the slot, or
+	 * under it near the window's top, and inside the window. See spec/console/overview.md, "A line
+	 * is any of three things, or the worst of them".
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
@@ -61,6 +64,9 @@
 	} = $props();
 
 	const ICONS = { deploys: RocketIcon, services: PackagesIcon, connectivity: AccessPointIcon };
+	/** A verdict as the dot in an icon's corner; nothing to say draws none. */
+	const badgeOf = (verdict: Verdict) =>
+		verdict === 'none' ? undefined : stylex.attrs(painted[verdict]).class;
 	const NAMES = { deploys: 'Deploys', services: 'Services', connectivity: 'Connectivity' };
 
 	/**
@@ -112,10 +118,6 @@
 	});
 </script>
 
-{#snippet dot(verdict: Verdict)}
-	<span class="size-1.5 shrink-0 rounded-full {stylex.attrs(painted[verdict]).class}"></span>
-{/snippet}
-
 <div
 	role="tooltip"
 	bind:this={root}
@@ -148,17 +150,20 @@
 	<div class="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2 gap-y-1.5 px-2 pb-2">
 		{#each tip.facts as fact, index (fact.what)}
 			{@const end = !tip.items.length && index === tip.facts.length - 1 ? END : ''}
-			<span class="flex items-center gap-1 {stylex.attrs(styles.muted).class}">
-				<Icon icon={ICONS[fact.what]} size={14} />
-				<span class={end}>{NAMES[fact.what]}</span>
-			</span>
-			<span class="flex items-center justify-end gap-1">
-				<span
-					class="{end} {stylex.attrs(fact.verdict === 'none' ? styles.muted : styles.word).class}"
-					>{fact.word}</span
-				>
-				{@render dot(fact.verdict)}
-			</span>
+			<span class="whitespace-nowrap {end} {stylex.attrs(styles.muted).class}"
+				><Icon
+					icon={ICONS[fact.what]}
+					size={14}
+					words={NAMES[fact.what]}
+					badge={badgeOf(fact.verdict)}
+					class="mr-1"
+				/>{NAMES[fact.what]}</span
+			>
+			<span
+				class="text-right whitespace-nowrap {end} {stylex.attrs(
+					fact.verdict === 'none' ? styles.muted : styles.word,
+				).class}">{fact.word}</span
+			>
 		{/each}
 	</div>
 	{#if tip.items.length}
@@ -171,20 +176,25 @@
 			{#each tip.items as item, index (item.key)}
 				{@const end = !tip.more && index === tip.items.length - 1 ? END : ''}
 				<li class="contents">
-					<span class="flex min-w-0 items-center gap-1">
-						{@render dot(item.verdict)}
-						<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
-						<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
-							>{item.name}</span
-						>
-					</span>
+					<!-- Cut across only: a descender below the trimmed foot stays drawn. -->
+					<span class="min-w-0 overflow-x-clip text-ellipsis whitespace-nowrap {end}"
+						><Icon
+							icon={item.icon}
+							size={14}
+							words={item.name}
+							badge={badgeOf(item.verdict)}
+							class="mr-1 {stylex.attrs(styles.muted).class}"
+						/>{item.name}</span
+					>
 					<span class="text-right {end} {stylex.attrs(type.shell, styles.muted).class}"
 						>{item.lasted}</span
 					>
 				</li>
 			{/each}
 			{#if tip.more}
-				<li class="pl-2.5 {END} {stylex.attrs(styles.muted).class}">{tip.more} more</li>
+				<li class="pl-[18px] {END} {stylex.attrs(styles.muted).class}">
+					{tip.more} more
+				</li>
 			{/if}
 		</ul>
 	{/if}

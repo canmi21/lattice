@@ -22,6 +22,10 @@
 	/* What the pointer is over and what is chosen, as one wash of the text's own color at two
 	   strengths: the wash's ink and its full strength are a theme's, the tiers' shares of it are
 	   not. See spec/console/design.md, "Hover and choice are one wash at two strengths". */
+	/* The sans's capital height, as `H` is drawn: what CSS's `cap` should be, which Chrome reads
+	   from this webfont as 0.86em. An `em` here is the user's, so it scales with the type. See
+	   spec/console/design.md, "An icon is drawn in layers". */
+	--cap: 0.714em;
 	--wash-ink: 0;
 	--wash: 0.05;
 	--color-hover: oklch(var(--wash-ink) 0 0 / calc(var(--wash) * 0.7));
