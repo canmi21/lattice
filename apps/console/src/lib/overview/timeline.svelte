@@ -17,7 +17,7 @@
 	import { type } from '../style.ts';
 	import { offsetIn, offsetOf, timeZone } from '../ui/time-zone.ts';
 	import type { History } from '../wire.ts';
-	import Icon from '../design/icon.svelte';
+	import Icon from '@canmi/design/components/icon.svelte';
 	import HealthFlag from './health-flag.svelte';
 	import Members from './members.svelte';
 	import AccessPointIcon from '@tabler/icons-svelte-runes/icons/access-point';

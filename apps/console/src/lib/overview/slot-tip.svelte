@@ -1,5 +1,5 @@
 <script lang="ts" module>
-	import type { IconComponent } from '../design/optics.ts';
+	import type { IconComponent } from '@canmi/design/components/icon';
 	import type { Verdict } from './history.ts';
 
 	/** One thing a slot says: which, its verdict, and that verdict's one word. */
@@ -49,10 +49,10 @@
 	import AccessPointIcon from '@tabler/icons-svelte-runes/icons/access-point';
 	import PackagesIcon from '@tabler/icons-svelte-runes/icons/packages';
 	import RocketIcon from '@tabler/icons-svelte-runes/icons/rocket';
-	import Icon from '../design/icon.svelte';
+	import Icon from '@canmi/design/components/icon.svelte';
 	import Bridge from '../design/bridge.svelte';
 	import Point from '../design/point.svelte';
-	import { heightBeside } from '../design/optics.ts';
+	import { heightBeside } from '@canmi/design/components/icon';
 	import Flag from '../map/flag.svelte';
 	import { type } from '../style.ts';
 	import { painted } from './verdict.ts';

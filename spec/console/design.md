@@ -209,38 +209,9 @@ console answers a hover the same way; its name is its label and its hover both.
 
 ### An icon is drawn in layers
 
-**An icon's box, its drawing's offset, its drawing's scale, and where its box sits among words are
-four things, and only the first and the last are layout's.** The box is a square of the size asked for, and its center is the one point everything
-around it aligns to. The drawing is then moved off that center, and scaled about it, by the icon's
-row in `src/lib/design/optics.ts` -- in the units of its own 24-unit grid, so one correction holds at
-every size it is drawn at. Both are done through the drawing's `viewBox`, as the player's cog is --
-web's `spec/styling/player.md` -- so the box, and any focus ring or frame around it, never moves;
-and a scaled drawing is given its stroke back, so it keeps the weight of the icons beside it.
-`src/lib/design/icon.svelte` draws every icon that way.
-
-**An icon beside words is set in their line, its box's center on the middle of the letter nearest
-it.** Find the words' baseline; take the height that letter stands to -- a lowercase to `1ex`, since
-lowercase reaches neither up to the capitals nor down past the baseline as a whole; a capital or a
-figure, which stand as tall, to the capital height -- and the middle of it is where the box's center
-goes. The letter is the one the icon touches: the first of the words it stands before, the last of
-the words it stands after, so `Deploys` centers its rocket on the capitals and a lowercase label on
-its lowercase. CSS's `cap` would be the capital height, but Chrome reads it from the console's sans
-as 0.86em where `H` is drawn 0.71em, so the console declares its own, `--cap: 0.714em` in
-`app.css`, measured off the sans. `words` on `src/lib/design/icon.svelte` does this, and
-`heightBeside` in `optics.ts` names the letter. The drawing's own correction stays inside the box
-and the caller never sees it: the caller places the box, the icon's row places the ink. **A dot set by words follows the
-same rule**, its middle on the middle of the letter nearest it, whichever side it stands on: after a
-word ending in a lowercase, an `ex`; before a name starting with a capital, the capital height.
-**A state an icon carries is a dot in the icon's lower corner**, ringed in the ground -- `badge` on
-the icon -- so a line of icons, names and words needs no dot of its own beside the words. Decided
-with the author on 2026-10-10.
-
-**A correction is measured, and then judged.** An outline icon's ink is weighed by rendering it and
-taking its centroid against the grid's center: `git-merge` centers at x 9.97, two units left,
-because two circles and the stem sit on the left and one on the right. Its correction is three
-quarters of that, 1.5 units right, since a drawing moved all the way to its centroid reads as having
-overshot. The table holds one row per icon, so an icon is corrected once and is the same wherever it
-appears.
+The console draws every icon with `@canmi/design`'s, whose rules -- the box, the drawing's
+correction, its place among words, the dot a state is -- are lib's `spec/design/components.md`, "An
+icon is drawn in layers".
 
 ## Styles are written in three layers
 

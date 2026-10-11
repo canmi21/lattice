@@ -19,8 +19,8 @@
 	 */
 	import * as stylex from '@stylexjs/stylex';
 	import { border, duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
-	import Icon from '../design/icon.svelte';
-	import type { IconComponent } from '../design/optics.ts';
+	import Icon from '@canmi/design/components/icon.svelte';
+	import type { IconComponent } from '@canmi/design/components/icon';
 
 	let {
 		options,

@@ -17,7 +17,6 @@
 	--color-sunken: var(--background-inset);
 	--color-surface: var(--background-surface);
 	--color-raised: var(--background-raised);
-	--cap: var(--font-sans-cap-height);
 	--color-hover: var(--interaction-hover);
 	--color-selected: var(--interaction-selected);
 	--color-selected-solid: var(--interaction-selected-opaque);

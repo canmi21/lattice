@@ -16,8 +16,8 @@
 	import TopologyIcon from '@tabler/icons-svelte-runes/icons/topology-star-3';
 	import SpeedtestIcon from '@tabler/icons-svelte-runes/icons/brand-speedtest';
 	import Gauge from '../chart/gauge.svelte';
-	import Icon from '../design/icon.svelte';
-	import type { IconComponent } from '../design/optics.ts';
+	import Icon from '@canmi/design/components/icon.svelte';
+	import type { IconComponent } from '@canmi/design/components/icon';
 	import Flag from './flag.svelte';
 	import { reshape } from '../design/motion.ts';
 	import { uptime } from '../nodes/machine.ts';

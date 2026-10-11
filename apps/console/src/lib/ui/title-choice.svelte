@@ -14,8 +14,8 @@
 	import ChevronDownIcon from '@tabler/icons-svelte-runes/icons/chevron-down';
 	import ChevronRightIcon from '@tabler/icons-svelte-runes/icons/chevron-right';
 	import { DropdownMenu } from 'bits-ui';
-	import Icon from '../design/icon.svelte';
-	import type { IconComponent } from '../design/optics.ts';
+	import Icon from '@canmi/design/components/icon.svelte';
+	import type { IconComponent } from '@canmi/design/components/icon';
 	import { type Fold, fold, still } from '../design/motion.ts';
 	import { type } from '../style.ts';
 	import MenuContent from './menu-content.svelte';

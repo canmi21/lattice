@@ -304,8 +304,8 @@ importers:
         specifier: workspace:*
         version: link:../../libs/addresses
       '@canmi/design':
-        specifier: ^2026.1011.0
-        version: 2026.1011.0(@stylexjs/stylex@0.19.1)(svelte@5.57.1)
+        specifier: ^2026.1011.1
+        version: 2026.1011.1(@stylexjs/stylex@0.19.1)(@tabler/icons-svelte-runes@3.49.0(svelte@5.57.1))(svelte@5.57.1)
       '@canmi/fonts':
         specifier: workspace:*
         version: link:../../libs/fonts
@@ -760,8 +760,8 @@ importers:
   apps/space:
     devDependencies:
       '@canmi/design':
-        specifier: ^2026.1011.0
-        version: 2026.1011.0(@stylexjs/stylex@0.19.1)(svelte@5.57.1)
+        specifier: ^2026.1011.1
+        version: 2026.1011.1(@stylexjs/stylex@0.19.1)(@tabler/icons-svelte-runes@3.49.0(svelte@5.57.1))(svelte@5.57.1)
       '@canmi/fonts':
         specifier: workspace:*
         version: link:../../libs/fonts
@@ -1354,13 +1354,16 @@ packages:
   '@bytecodealliance/preview3-shim@0.6.1':
     resolution: {integrity: sha512-61mEfjfgGmZhEMA0H3waawPKvYd3za9y0vJ7pmQz/9yvm4FR6Ef+cmqhnxDE7ezsM07MY1btP92ymmgsgFwxmg==}
 
-  '@canmi/design@2026.1011.0':
-    resolution: {integrity: sha512-2JBP6e33/uc4uu79hy05xJhTxec5sTgiVZJxxpLNpn+PXpqhRWhYSBnJ0UjwyNizHrZDWY+0DSDkmvJ5YUo2JA==}
+  '@canmi/design@2026.1011.1':
+    resolution: {integrity: sha512-YldUZV+rxF0gkJ/vMlGmzZ1MJju7/NgE4CrKhvnTH9OVakXbDIRiZZG2jxQV7pOxgoyeK9OYgLTD5EOPV4Ao2w==}
     peerDependencies:
       '@stylexjs/stylex': ^0.19.1
+      '@tabler/icons-svelte-runes': ^3.49.0
       svelte: ^5.57.1
     peerDependenciesMeta:
       '@stylexjs/stylex':
+        optional: true
+      '@tabler/icons-svelte-runes':
         optional: true
       svelte:
         optional: true
@@ -5914,9 +5917,10 @@ snapshots:
       '@bytecodealliance/jco-node-fs': 0.3.2
       '@bytecodealliance/preview2-shim': 0.25.0
 
-  '@canmi/design@2026.1011.0(@stylexjs/stylex@0.19.1)(svelte@5.57.1)':
+  '@canmi/design@2026.1011.1(@stylexjs/stylex@0.19.1)(@tabler/icons-svelte-runes@3.49.0(svelte@5.57.1))(svelte@5.57.1)':
     optionalDependencies:
       '@stylexjs/stylex': 0.19.1
+      '@tabler/icons-svelte-runes': 3.49.0(svelte@5.57.1)
       svelte: 5.57.1
 
   '@canmi/kit@2026.1010.0(@stylexjs/stylex@0.19.1)(react@19.3.0)(svelte@5.57.1)':

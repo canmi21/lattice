@@ -13,7 +13,7 @@
 	import { Popover } from 'bits-ui';
 	import { tick } from 'svelte';
 	import FindBody from './find-body.svelte';
-	import Icon from './icon.svelte';
+	import Icon from '@canmi/design/components/icon.svelte';
 	import { grow } from './motion.ts';
 	import Palette from './palette.svelte';
 

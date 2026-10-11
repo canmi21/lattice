@@ -32,7 +32,7 @@ import Webhook from '@tabler/icons-svelte-runes/icons/webhook';
 import World from '@tabler/icons-svelte-runes/icons/world';
 import WorldSearch from '@tabler/icons-svelte-runes/icons/world-search';
 import WorldWww from '@tabler/icons-svelte-runes/icons/world-www';
-import type { IconComponent } from '../design/optics.ts';
+import type { IconComponent } from '@canmi/design/components/icon';
 
 const GLYPHS: Readonly<Record<string, IconComponent>> = {
 	aka: Link,

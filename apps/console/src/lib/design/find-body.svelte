@@ -18,7 +18,7 @@
 	import { SECTIONS } from '../sections.ts';
 	import { type } from '../style.ts';
 	import { type Found, type Kind, find, findable } from './finding.ts';
-	import Icon from './icon.svelte';
+	import Icon from '@canmi/design/components/icon.svelte';
 
 	let {
 		open,

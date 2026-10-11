@@ -11,7 +11,7 @@
 	import CaretUpDownIcon from '@tabler/icons-svelte-runes/icons/selector';
 	import { DropdownMenu } from 'bits-ui';
 	import { hrefIn, type Section } from '../sections.ts';
-	import Icon from './icon.svelte';
+	import Icon from '@canmi/design/components/icon.svelte';
 	import { VIEW_GLYPHS } from '../scope/glyphs.ts';
 	import { VIEWS, type View, labelOf } from '../scope/scope.ts';
 	import MenuContent from '../ui/menu-content.svelte';
