@@ -19,12 +19,12 @@ describe('viewBoxOf', () => {
 
 describe('heightBeside', () => {
 	it('stands an icon by a capital or a figure at the capital height, else at the lowercase', () => {
-		expect(heightBeside('Deploys', 'before')).toBe('var(--cap)');
-		expect(heightBeside('3 more', 'before')).toBe('var(--cap)');
+		expect(heightBeside('Deploys', 'before')).toBe('var(--font-sans-cap-height)');
+		expect(heightBeside('3 more', 'before')).toBe('var(--font-sans-cap-height)');
 		expect(heightBeside('deploys', 'before')).toBe('1ex');
 		expect(heightBeside('View all', 'after')).toBe('1ex');
-		expect(heightBeside('ALL ', 'after')).toBe('var(--cap)');
-		expect(heightBeside('Ätna', 'before')).toBe('var(--cap)');
+		expect(heightBeside('ALL ', 'after')).toBe('var(--font-sans-cap-height)');
+		expect(heightBeside('Ätna', 'before')).toBe('var(--font-sans-cap-height)');
 		expect(heightBeside('', 'before')).toBe('1ex');
 	});
 });

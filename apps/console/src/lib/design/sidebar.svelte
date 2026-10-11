@@ -16,7 +16,7 @@
 	import BackIcon from '@tabler/icons-svelte-runes/icons/chevron-left';
 	import GitIcon from '@tabler/icons-svelte-runes/icons/git-merge';
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { borderWidth, duration, fontSize, fontWeight, radius } from '@canmi/design/scale.stylex';
 	import { pickUrls } from '@monoflake/sdk';
 	import { imgsrc } from '@monoflake/sdk/imgsrc';
 	import type { Live } from '../live.svelte.ts';
@@ -111,47 +111,50 @@
 	});
 
 	const styles = stylex.create({
-		disc: { backgroundColor: 'var(--color-raised)' },
+		disc: { backgroundColor: 'var(--background-raised)' },
 		link: {
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-hover)',
+				':hover': 'var(--interaction-hover)',
 			},
 			color: {
-				default: 'var(--color-text-muted)',
-				':hover': 'var(--color-text-strong)',
+				default: 'var(--foreground-muted)',
+				':hover': 'var(--foreground-strong)',
 			},
-			fontSize: text.px14,
-			fontWeight: weight.medium,
+			fontSize: fontSize.body,
+			fontWeight: fontWeight.medium,
 			transitionProperty: 'color, background-color',
 			transitionDuration: duration.base,
 		},
 		here: {
-			backgroundColor: { default: 'var(--color-selected)', ':hover': 'var(--color-selected)' },
-			color: { default: 'var(--color-text-strong)', ':hover': 'var(--color-text-strong)' },
+			backgroundColor: {
+				default: 'var(--interaction-selected)',
+				':hover': 'var(--interaction-selected)',
+			},
+			color: { default: 'var(--foreground-strong)', ':hover': 'var(--foreground-strong)' },
 		},
 		/** The way back up: laid out as a page, with no ground of its own, hovered or not. */
 		back: {
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
-			fontSize: text.px14,
-			fontWeight: weight.medium,
+			color: { default: 'var(--foreground-muted)', ':hover': 'var(--foreground-strong)' },
+			fontSize: fontSize.body,
+			fontWeight: fontWeight.medium,
 			transitionProperty: 'color',
 			transitionDuration: duration.base,
 		},
 		account: {
-			color: 'var(--color-text-strong)',
-			fontSize: text.px14,
-			fontWeight: weight.semibold,
+			color: 'var(--foreground-strong)',
+			fontSize: fontSize.body,
+			fontWeight: fontWeight.semibold,
 		},
 		rule: {
-			borderTopWidth: border.hairlinePx,
+			borderTopWidth: borderWidth.hairline,
 			borderTopStyle: 'solid',
-			borderTopColor: 'var(--color-line-faint)',
+			borderTopColor: 'var(--border-subtle)',
 		},
 		status: {
-			fontSize: text.px12,
-			color: 'var(--color-text-muted)',
+			fontSize: fontSize.caption,
+			color: 'var(--foreground-muted)',
 		},
 		/**
 		 * The whole account is the menu's button, raised on hover to the chosen link's wash: it has
@@ -161,7 +164,7 @@
 			borderRadius: radius.md,
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-selected)',
+				':hover': 'var(--interaction-selected)',
 			},
 			transitionProperty: 'background-color',
 			transitionDuration: duration.base,
@@ -170,7 +173,7 @@
 		presence: {
 			borderWidth: '2px',
 			borderStyle: 'solid',
-			borderColor: 'var(--color-ground)',
+			borderColor: 'var(--background-base)',
 		},
 	});
 </script>

@@ -4,8 +4,8 @@
 	 * offset from that center and its scale about it, from ./optics.ts or `optics`, moving only the
 	 * drawing through its `viewBox`; and, given the `words` it stands by, the box set in their line,
 	 * centered on the middle of the letter nearest it: half an `ex` over the baseline by a lowercase,
-	 * half the capital height, `--cap`, by a capital or a figure. See spec/console/design.md, "An
-	 * icon is drawn in layers".
+	 * half the capital height, `--font-sans-cap-height`, by a capital or a figure. See
+	 * spec/console/design.md, "An icon is drawn in layers".
 	 */
 	import { OPTICS, type IconComponent, type Optics, heightBeside, viewBoxOf } from './optics.ts';
 
@@ -71,7 +71,7 @@
 		<span
 			aria-hidden="true"
 			class="absolute -right-px -bottom-px size-1.5 rounded-full {badge}"
-			style:box-shadow="0 0 0 1.5px var(--badge-ground, var(--color-surface))"
+			style:box-shadow="0 0 0 1.5px var(--badge-ground, var(--background-surface))"
 		></span>
 	</span>
 {:else}

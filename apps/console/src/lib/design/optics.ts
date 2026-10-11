@@ -35,10 +35,14 @@ export function viewBoxOf({ x = 0, y = 0, scale = 1 }: Optics): string {
 
 /**
  * How high the letter of `words` nearest an icon stands, as a CSS length: a capital, or a figure,
- * which stands as tall, to the capital height `--cap`; anything else to the lowercase's `1ex`. The
- * icon stands `before` the words, by their first letter, or `after`, by their last.
+ * which stands as tall, to the capital height `--font-sans-cap-height`; anything else to the
+ * lowercase's `1ex`. The icon stands `before` the words, by their first letter, or `after`, by
+ * their last.
  */
-export function heightBeside(words: string, side: 'before' | 'after'): 'var(--cap)' | '1ex' {
+export function heightBeside(
+	words: string,
+	side: 'before' | 'after',
+): 'var(--font-sans-cap-height)' | '1ex' {
 	const nearest = side === 'before' ? words.trimStart()[0] : words.trimEnd().at(-1);
-	return nearest && /[\p{Lu}\p{Nd}]/u.test(nearest) ? 'var(--cap)' : '1ex';
+	return nearest && /[\p{Lu}\p{Nd}]/u.test(nearest) ? 'var(--font-sans-cap-height)' : '1ex';
 }

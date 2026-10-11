@@ -1,4 +1,5 @@
 import * as stylex from '@stylexjs/stylex';
+import { borderWidth } from '@canmi/design/scale.stylex';
 import { border, family, figures, radius, text, weight } from '@canmi/kit/tokens/vocabulary.stylex';
 
 /**
@@ -8,10 +9,10 @@ import { border, family, figures, radius, text, weight } from '@canmi/kit/tokens
 export const surfaces = stylex.create({
 	/** The sidebar, on the ground and ruled off from the page a step fainter than a card is. */
 	sidebar: {
-		backgroundColor: 'var(--color-ground)',
-		borderRightWidth: border.hairlinePx,
+		backgroundColor: 'var(--background-base)',
+		borderRightWidth: borderWidth.hairline,
 		borderRightStyle: 'solid',
-		borderRightColor: 'var(--color-line-faint)',
+		borderRightColor: 'var(--border-subtle)',
 	},
 	/** The top bar, ruled off as the sidebar is. */
 	bar: {

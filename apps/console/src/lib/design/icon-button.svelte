@@ -6,7 +6,7 @@
 	 * See spec/console/design.md, "It is black and white, drawn with semantic names".
 	 */
 	import * as stylex from '@stylexjs/stylex';
-	import { border, duration, radius } from '@canmi/kit/tokens/vocabulary.stylex';
+	import { borderWidth, duration, radius } from '@canmi/design/scale.stylex';
 	import type { Snippet } from 'svelte';
 	import type { HTMLButtonAttributes } from 'svelte/elements';
 
@@ -46,16 +46,19 @@
 		ghost: {
 			backgroundColor: {
 				default: 'transparent',
-				':hover': 'var(--color-selected)',
+				':hover': 'var(--interaction-selected)',
 			},
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			color: { default: 'var(--foreground-muted)', ':hover': 'var(--foreground-strong)' },
 		},
 		// Ruled by a shadow rather than a border, as Geist's secondary button is, so the rule takes no
 		// room and the button is exactly its size; the hover lifts the fill and leaves the rule.
 		framed: {
-			backgroundColor: { default: 'var(--color-surface)', ':hover': 'var(--color-raised)' },
-			boxShadow: `0 0 0 ${border.hairlinePx} var(--color-line)`,
-			color: { default: 'var(--color-text-muted)', ':hover': 'var(--color-text-strong)' },
+			backgroundColor: {
+				default: 'var(--background-surface)',
+				':hover': 'var(--background-raised)',
+			},
+			boxShadow: `0 0 0 ${borderWidth.hairline} var(--border-default)`,
+			color: { default: 'var(--foreground-muted)', ':hover': 'var(--foreground-strong)' },
 		},
 	});
 	const kind = $derived(
